@@ -39,6 +39,21 @@ registered on every session started from the preset (migration 13, `GET/PUT
 gains "Check everyone in". Profile photos: migration 12, `avatarUrl` on `PATCH /v1/me` and on
 roster entries, upload from the browser to the `avatars` bucket.
 
+## Clubs, invites and members (2026-10-21)
+
+The first-run flow for a regular crowd, all inside Rally:
+
+1. `/clubs/new` (from onboarding step 3 "Create a club", or the "New club" chip on `/start`):
+   club name, optional venue and court count, then straight into the preset builder for it.
+2. `/presets/:seriesId` shows how many people are in the club and groups the regulars checklist
+   into "Signed up" (members, with their photos) and "Added by name" (walk-ins, "No account yet").
+3. `/presets/:seriesId/invite`: one player invite link (participant role, 30 days, 200 uses)
+   shown as a QR and a share message; open links with join counts and revoke.
+4. `/invite/:token` on the Rally host reads as "Join {club}", and redeeming lands on
+   `/dashboard?joined=1` (Buddy Club keeps the club page).
+
+Signing out clears the onboarding cookies so the next account on the device starts at step 1.
+
 ## Structure
 
 - `app/rally/(marketing)`: front page, own header and footer, `.theme-night`.

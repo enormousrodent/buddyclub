@@ -116,7 +116,7 @@ function PresetCard({ p }: { p: Preset }) {
 export default async function RallyHomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ welcome?: string }>;
+  searchParams: Promise<{ welcome?: string; joined?: string }>;
 }) {
   const user = await getSessionUser();
   if (!user) {
@@ -168,7 +168,7 @@ export default async function RallyHomePage({
 
   // First visit after signing in: the three onboarding screens, once.
   const jar = await cookies();
-  const { welcome } = await searchParams;
+  const { welcome, joined } = await searchParams;
   if (!jar.get(ONBOARDED_COOKIE) && welcome !== 'done') redirect('/welcome');
   if (welcome === 'done' && !jar.get(ONBOARDED_COOKIE)) {
     // A player who picked "turn up and play" skips the preset step; mark them done.
@@ -214,6 +214,17 @@ export default async function RallyHomePage({
 
   return (
     <Page title="Home">
+      {joined ? (
+        <Card className="mb-3 border-live">
+          <div className="font-display text-[22px] font-bold uppercase leading-none">
+            You&apos;re in.
+          </div>
+          <Muted className="mt-1 block">
+            Your club&apos;s sessions show up here. On the night, check in with the code and
+            you&apos;ll see your court.
+          </Muted>
+        </Card>
+      ) : null}
       {resume ? <ResumeHero s={resume} /> : null}
 
       {canStart ? (

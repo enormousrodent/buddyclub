@@ -156,6 +156,17 @@ export default async function WelcomePage({
               <li>Who&apos;s in: club members, or anyone with the code</li>
             </ul>
           </Card>
+          <Card className="space-y-2">
+            <div className="font-display text-[20px] font-bold uppercase">Got a regular crowd?</div>
+            <p className="text-[14px] leading-6 text-ink-2">
+              Create a club first and send one invite link. Everyone who joins keeps their own name
+              and photo, and you tick them as regulars.
+            </p>
+            <LinkButton href="/clubs/new?from=welcome" variant="tonal" className="w-full">
+              <Icon name="users" size={16} />
+              Create a club
+            </LinkButton>
+          </Card>
           <div className="flex-1" />
           <LinkButton
             href="/start?new=1&from=welcome"

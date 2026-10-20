@@ -118,47 +118,52 @@ export default async function StartSessionPage({
         </>
       ) : null}
 
-      {places.length > 1 || !chosen ? (
-        <div className="mb-3">
-          <div className="mb-1.5 text-[13px] font-semibold">Where</div>
-          <div className="scroll-row -mx-5 flex gap-2 px-5 pb-1 sm:mx-0 sm:px-0">
-            {clubs.map((m) => (
-              <Link
-                key={m.organisationId}
-                href={`/start?club=${m.organisationId}${forceNew ? '&new=1' : ''}${fromWelcome ? '&from=welcome' : ''}`}
-                className={`inline-flex h-9 shrink-0 items-center rounded-full border px-3.5 text-[13px] font-semibold ${
-                  chosen?.organisationId === m.organisationId
-                    ? 'border-primary bg-primary text-primary-ink'
-                    : 'border-hairline-strong text-ink'
-                }`}
-              >
-                {m.organisationName}
-              </Link>
-            ))}
-            {personal ? (
-              <Link
-                href={`/start?club=${personal.organisationId}${forceNew ? '&new=1' : ''}${fromWelcome ? '&from=welcome' : ''}`}
-                className={`inline-flex h-9 shrink-0 items-center rounded-full border px-3.5 text-[13px] font-semibold ${
-                  chosen?.organisationId === personal.organisationId
-                    ? 'border-primary bg-primary text-primary-ink'
-                    : 'border-hairline-strong text-ink'
-                }`}
+      <div className="mb-3">
+        <div className="mb-1.5 text-[13px] font-semibold">Where</div>
+        <div className="scroll-row -mx-5 flex gap-2 px-5 pb-1 sm:mx-0 sm:px-0">
+          {clubs.map((m) => (
+            <Link
+              key={m.organisationId}
+              href={`/start?club=${m.organisationId}${forceNew ? '&new=1' : ''}${fromWelcome ? '&from=welcome' : ''}`}
+              className={`inline-flex h-9 shrink-0 items-center rounded-full border px-3.5 text-[13px] font-semibold ${
+                chosen?.organisationId === m.organisationId
+                  ? 'border-primary bg-primary text-primary-ink'
+                  : 'border-hairline-strong text-ink'
+              }`}
+            >
+              {m.organisationName}
+            </Link>
+          ))}
+          {personal ? (
+            <Link
+              href={`/start?club=${personal.organisationId}${forceNew ? '&new=1' : ''}${fromWelcome ? '&from=welcome' : ''}`}
+              className={`inline-flex h-9 shrink-0 items-center rounded-full border px-3.5 text-[13px] font-semibold ${
+                chosen?.organisationId === personal.organisationId
+                  ? 'border-primary bg-primary text-primary-ink'
+                  : 'border-hairline-strong text-ink'
+              }`}
+            >
+              Just me
+            </Link>
+          ) : (
+            <form action={startOnMyOwn}>
+              <button
+                type="submit"
+                className="inline-flex h-9 shrink-0 items-center rounded-full border border-hairline-strong px-3.5 text-[13px] font-semibold text-ink"
               >
                 Just me
-              </Link>
-            ) : (
-              <form action={startOnMyOwn}>
-                <button
-                  type="submit"
-                  className="inline-flex h-9 shrink-0 items-center rounded-full border border-hairline-strong px-3.5 text-[13px] font-semibold text-ink"
-                >
-                  Just me
-                </button>
-              </form>
-            )}
-          </div>
+              </button>
+            </form>
+          )}
+          <Link
+            href={`/clubs/new${fromWelcome ? '?from=welcome' : ''}`}
+            className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-dashed border-hairline-strong px-3.5 text-[13px] font-semibold text-primary"
+          >
+            <Icon name="plus" size={14} />
+            New club
+          </Link>
         </div>
-      ) : null}
+      </div>
 
       {chosen ? (
         <Card>
