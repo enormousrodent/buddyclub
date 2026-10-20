@@ -7,14 +7,18 @@ import { BottomNav } from './nav';
 
 /**
  * Product shell: slim top bar with the lockup, bottom tab bar when signed in.
- * Pages add their own title; the bar never repeats it.
+ * Pages add their own title; the bar never repeats it. Signed-out visitors on Buddy Club get the
+ * wider marketing pages, so the bar widens with them.
  */
 export async function AppShell({ product, children }: { product: Product; children: ReactNode }) {
   const user = await getSessionUser();
+  const wide = !user && product === 'buddyclub';
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-10 bg-paper/90 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-xl items-center justify-between px-5">
+        <div
+          className={`mx-auto flex h-14 items-center justify-between px-5 ${wide ? 'max-w-5xl' : 'max-w-xl'}`}
+        >
           <Link href="/" className="text-ink">
             <Lockup product={product} size={26} />
           </Link>
@@ -28,12 +32,27 @@ export async function AppShell({ product, children }: { product: Product; childr
               </button>
             </form>
           ) : (
-            <Link
-              href="/sign-in"
-              className="inline-flex min-h-9 items-center rounded-full bg-ink px-3.5 text-xs font-bold text-on-ink"
-            >
-              Sign in
-            </Link>
+            <div className="flex items-center gap-2">
+              {wide ? (
+                <nav
+                  aria-label="Main"
+                  className="hidden items-center gap-5 pr-2 text-[15px] font-semibold sm:flex"
+                >
+                  <Link href="/explore" className="text-ink">
+                    What&apos;s on
+                  </Link>
+                  <Link href="/rally" className="text-ink">
+                    Rally
+                  </Link>
+                </nav>
+              ) : null}
+              <Link
+                href="/sign-in"
+                className="inline-flex min-h-9 items-center rounded-full bg-ink px-3.5 text-xs font-bold text-on-ink"
+              >
+                Sign in
+              </Link>
+            </div>
           )}
         </div>
       </header>

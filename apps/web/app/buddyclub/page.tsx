@@ -1,6 +1,18 @@
 import type { DiscoverQuery } from '@buddyclub/shared-types';
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import { DiscoverBlocks, InterestChips, whenShort } from '../../components/discover';
+import {
+  ForOrganisers,
+  HappeningSoon,
+  HowItWorks,
+  InterestMosaic,
+  LandingHero,
+  MarketingFooter,
+  RallyBand,
+  TrustRow,
+  Wide,
+} from '../../components/marketing';
 import {
   Button,
   Card,
@@ -15,6 +27,7 @@ import {
   StateBadge,
 } from '../../components/ui';
 import { apiForUser, apiPublic } from '../../lib/api';
+import { rallyOrigin } from '../../lib/env';
 import { getSessionUser } from '../../lib/supabase/server';
 
 const ORGANISER_ROLES = [
@@ -25,30 +38,57 @@ const ORGANISER_ROLES = [
 ];
 
 /**
- * Buddy Club home: discovery first (Addendum 1.1 section 6). Works signed out; signed in adds
- * what you are going to. Clubs stay reachable for the people who run them.
+ * Buddy Club home. Signed out: the marketing page (search, what's on, how it works, interests,
+ * organisers, Rally). Signed in: discovery first (Addendum 1.1 section 6) with what you are
+ * going to and the clubs you run.
  */
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; interest?: string }>;
+  searchParams: Promise<{ q?: string; interest?: string; locality?: string }>;
 }) {
-  const { q, interest } = await searchParams;
+  const { q, interest, locality } = await searchParams;
   const user = await getSessionUser();
+
+  if (!user) {
+    const h = await headers();
+    const discover = await apiPublic().community.discover(locality ? { locality } : {});
+    return (
+      <>
+        <main>
+          <Wide>
+            <LandingHero interests={discover.interests} locality={locality} />
+            <HappeningSoon result={discover} locality={locality} />
+            <HowItWorks />
+          </Wide>
+          <InterestMosaic />
+          <Wide>
+            <ForOrganisers />
+          </Wide>
+          <RallyBand rallyUrl={rallyOrigin(h.get('host'), h.get('x-forwarded-proto'))} />
+          <Wide>
+            <TrustRow />
+          </Wide>
+        </main>
+        <MarketingFooter />
+      </>
+    );
+  }
+
   const query: DiscoverQuery = {
     ...(q ? { q } : {}),
     ...(interest ? { interest } : {}),
   };
   const [discover, mine, me] = await Promise.all([
     apiPublic().community.discover(query),
-    user ? apiForUser().community.mine() : Promise.resolve(null),
-    user ? apiForUser().me() : Promise.resolve(null),
+    apiForUser().community.mine(),
+    apiForUser().me(),
   ]);
-  const first = me?.profile.displayName.split(' ')[0];
-  const clubs = (me?.memberships ?? []).filter(
+  const first = me.profile.displayName.split(' ')[0];
+  const clubs = me.memberships.filter(
     (m) => m.organisationKind === 'club' && ORGANISER_ROLES.includes(m.role),
   );
-  const going = (mine?.upcoming ?? []).filter(
+  const going = mine.upcoming.filter(
     (a) => a.myRsvp === 'going' || a.myRsvp === 'maybe' || a.rally?.myAttendance,
   );
 
@@ -61,11 +101,9 @@ export default async function HomePage({
           : 'Groups, meetups and sessions near you: sports, books, walks, families and more.'
       }
       action={
-        user ? (
-          <LinkButton href="/groups/new" size="sm" variant="secondary">
-            New group
-          </LinkButton>
-        ) : undefined
+        <LinkButton href="/groups/new" size="sm" variant="secondary">
+          New group
+        </LinkButton>
       }
     >
       <form method="get" action="/" className="mb-3 flex gap-2">
@@ -122,27 +160,13 @@ export default async function HomePage({
       />
 
       <Card className="mt-6 flex items-center justify-between gap-3">
-        {user ? (
-          <>
-            <div>
-              <div className="font-semibold">Start something</div>
-              <Muted>A book club, a dog walk, a toddler morning, a padel night.</Muted>
-            </div>
-            <LinkButton href="/groups/new" size="sm">
-              New group
-            </LinkButton>
-          </>
-        ) : (
-          <>
-            <div>
-              <div className="font-semibold">Join in</div>
-              <Muted>Sign in to join groups and say you&apos;re going.</Muted>
-            </div>
-            <LinkButton href="/sign-in" size="sm">
-              Sign in
-            </LinkButton>
-          </>
-        )}
+        <div>
+          <div className="font-semibold">Start something</div>
+          <Muted>A book club, a dog walk, a toddler morning, a padel night.</Muted>
+        </div>
+        <LinkButton href="/groups/new" size="sm">
+          New group
+        </LinkButton>
       </Card>
 
       {clubs.length ? (

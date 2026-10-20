@@ -24,3 +24,14 @@ export function productForHost(host: string | null | undefined): Product {
   const h = (host ?? '').toLowerCase();
   return h.startsWith(env.rallyHostPrefix()) ? 'rally' : 'buddyclub';
 }
+
+/**
+ * The Rally app's origin for the current request: the prefix in front of the Buddy Club host
+ * (`rally.localhost:3000`, `rally-buddyclub.vercel.app`, `rally.buddy-club.com`).
+ */
+export function rallyOrigin(host: string | null | undefined, proto?: string | null): string {
+  const h = (host ?? 'localhost:3000').toLowerCase();
+  const bare = h.startsWith(env.rallyHostPrefix()) ? h.slice(env.rallyHostPrefix().length) : h;
+  const scheme = proto ?? (bare.startsWith('localhost') ? 'http' : 'https');
+  return `${scheme}://${env.rallyHostPrefix()}${bare}`;
+}
