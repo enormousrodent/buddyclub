@@ -1,0 +1,50 @@
+{
+  "name": "buddyclub-platform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Buddy Club platform monorepo: shared identity baseline and the Rally sub-product (social sessions, leagues, tournaments).",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "eslint .",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:db": "turbo run test:db",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "openapi:emit": "pnpm --filter @buddyclub/platform-api openapi:emit",
+    "db:start": "supabase --workdir infra start",
+    "db:stop": "supabase --workdir infra stop",
+    "db:reset": "supabase --workdir infra db reset",
+    "db:status": "supabase --workdir infra status",
+    "db:test": "supabase --workdir infra test db",
+    "db:migration:new": "supabase --workdir infra migration new",
+    "db:types": "supabase --workdir infra gen types typescript --local --schema identity,community,platform > packages/shared-types/src/generated/database.types.ts",
+    "db:link": "supabase --workdir infra link --project-ref xvkoukolmdpuvftvvcdd",
+    "db:cloud:migrations": "supabase --workdir infra migration list --linked",
+    "db:cloud:push": "supabase --workdir infra db push --linked",
+    "db:cloud:types": "supabase --workdir infra gen types typescript --linked --schema identity,community,platform > packages/shared-types/src/generated/database.types.ts",
+    "db:cloud:push:dry": "supabase --workdir infra db push --linked --dry-run"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.13.0",
+    "prettier": "3.9.10",
+    "turbo": "2.11.9",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.2",
+    "vitest": "3.2.7",
+    "supabase": "2.121.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "supabase"
+    ]
+  }
+}

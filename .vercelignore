@@ -1,0 +1,16 @@
+# Files never uploaded by `vercel deploy` from this repository (source deploys build on Vercel).
+node_modules
+.git
+.next
+.vercel
+.turbo
+dist
+coverage
+*.log
+*.tsbuildinfo
+infra/supabase/.branches
+infra/supabase/.temp
+# Secrets stay local; Vercel environment variables hold the deployed values.
+.env
+.env.*
+!.env.example

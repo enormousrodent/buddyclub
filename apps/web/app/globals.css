@@ -1,0 +1,285 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens: "Paper & Path" (docs/design/README.md, ADR-015).
+ * Shared ground, ink and type for both products; the accent switches per product via
+ * [data-product] on <html>, set by the root layout from the request hostname.
+ *
+ * Themes: light is the default. The dark theme ("Clubhouse", direction C: deep forest, cream,
+ * gold) applies when the system prefers dark and the user has not chosen light, or when the user
+ * chose dark. The choice is stored in the `bc-theme` cookie and mirrored as [data-theme] on
+ * <html> by the root layout, so the server renders the right theme with no flash.
+ *
+ * Rules for screens: never pair a `bg-ink` surface with `text-night-*`. Use the `on-ink-*`
+ * tokens, which flip with the theme. The `night-*` tokens are fixed dark values for the venue
+ * board, which is dark in both themes.
+ */
+:root {
+  color-scheme: light;
+
+  --bc-paper: #f6f3ec;
+  --bc-surface: #ffffff;
+  --bc-surface-2: #efebe2;
+  --bc-hairline: #e3ded3;
+  --bc-hairline-strong: #c9c2b4;
+  --bc-ink: #172019;
+  --bc-ink-2: #3e4a42;
+  --bc-muted: #66716a;
+
+  --bc-primary: #1f5f43;
+  --bc-primary-strong: #174a34;
+  --bc-primary-ink: #ffffff;
+  --bc-tint: #e3efe7;
+  --bc-tint-ink: #1f5f43;
+  --bc-highlight: #e7a33a;
+
+  --bc-live: #c9f24a;
+  --bc-live-ink: #172019;
+  --bc-info: #e4eafb;
+  --bc-info-ink: #1b3fae;
+  --bc-warning: #fff1d6;
+  --bc-warning-ink: #7a4d00;
+  --bc-danger: #b3261e;
+  --bc-danger-soft: #fbe9e7;
+  --bc-success: #e3efe7;
+  --bc-success-ink: #1f5f43;
+
+  /* Text and lines on an ink-coloured surface (player hero, ink cards, selected chips). */
+  --bc-on-ink: #f3f0e8;
+  --bc-on-ink-muted: #a9b5ad;
+  --bc-on-ink-hairline: #2e3d34;
+  --bc-on-ink-accent: #c9f24a;
+
+  /* Fixed night palette for the venue board; identical in both themes. */
+  --bc-night: #0f1a14;
+  --bc-night-surface: #16241c;
+  --bc-night-hairline: #2e3d34;
+  --bc-night-ink: #f3f0e8;
+  --bc-night-muted: #a9b5ad;
+
+  /* Decorative swatches for covers and tiles; never carry text that must pass contrast. */
+  --bc-swatch-1: #cfd9cc;
+  --bc-swatch-2: #e6d9c4;
+  --bc-swatch-3: #e4eafb;
+  --bc-swatch-4: #fbefd9;
+  --bc-swatch-5: #e6edd6;
+  --bc-swatch-6: #f3e6d2;
+
+  /* Rally's brand blue where it appears inside Buddy Club ("Powered by Rally"). */
+  --bc-brand-rally: #2350d6;
+
+  --bc-radius-control: 12px;
+  --bc-radius-card: 16px;
+  --bc-radius-sheet: 24px;
+  --bc-shadow-raised: 0 1px 2px rgba(23, 32, 25, 0.06), 0 4px 12px rgba(23, 32, 25, 0.06);
+  --bc-shadow-sheet: 0 12px 32px rgba(23, 32, 25, 0.14);
+
+  /* Legacy aliases kept so untouched screens keep rendering. */
+  --bc-bg: var(--bc-paper);
+  --bc-border: var(--bc-hairline);
+}
+
+[data-product='rally'] {
+  --bc-primary: #2350d6;
+  --bc-primary-strong: #1b3fae;
+  --bc-tint: #e4eafb;
+  --bc-tint-ink: #1b3fae;
+  --bc-highlight: #c9f24a;
+}
+
+/*
+ * Dark theme, "Clubhouse". Deep forest ground, cream ink, gold highlight. Accents are lifted so
+ * they pass 4.5:1 as text on the ground and take dark ink as buttons.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --bc-paper: #0f1a14;
+    --bc-surface: #16241c;
+    --bc-surface-2: #1e2f25;
+    --bc-hairline: #2a3b31;
+    --bc-hairline-strong: #4a5e52;
+    --bc-ink: #f3f0e8;
+    --bc-ink-2: #cdd5cf;
+    --bc-muted: #9db0a3;
+
+    --bc-primary: #5cbd87;
+    --bc-primary-strong: #78cf9f;
+    --bc-primary-ink: #0f1a14;
+    --bc-tint: #1d3729;
+    --bc-tint-ink: #a9e2c1;
+    --bc-highlight: #e7a33a;
+
+    --bc-info: #1c2a4f;
+    --bc-info-ink: #bccbff;
+    --bc-warning: #3a2c0f;
+    --bc-warning-ink: #f3cd7a;
+    --bc-danger: #ff8f85;
+    --bc-danger-soft: #3b1b19;
+    --bc-success: #1d3729;
+    --bc-success-ink: #a9e2c1;
+
+    --bc-on-ink: #0f1a14;
+    --bc-on-ink-muted: #55655b;
+    --bc-on-ink-hairline: #d6d0c2;
+    --bc-on-ink-accent: #7a4d00;
+
+    --bc-swatch-1: #243a2e;
+    --bc-swatch-2: #3a3222;
+    --bc-swatch-3: #1f2b4a;
+    --bc-swatch-4: #3b2f16;
+    --bc-swatch-5: #2b3a22;
+    --bc-swatch-6: #3a2e1e;
+
+    --bc-brand-rally: #7b9dff;
+
+    --bc-shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35);
+    --bc-shadow-sheet: 0 12px 32px rgba(0, 0, 0, 0.6);
+  }
+
+  :root:not([data-theme='light'])[data-product='rally'] {
+    --bc-primary: #7b9dff;
+    --bc-primary-strong: #97b2ff;
+    --bc-tint: #1c2a4f;
+    --bc-tint-ink: #bccbff;
+    --bc-highlight: #c9f24a;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bc-paper: #0f1a14;
+  --bc-surface: #16241c;
+  --bc-surface-2: #1e2f25;
+  --bc-hairline: #2a3b31;
+  --bc-hairline-strong: #4a5e52;
+  --bc-ink: #f3f0e8;
+  --bc-ink-2: #cdd5cf;
+  --bc-muted: #9db0a3;
+
+  --bc-primary: #5cbd87;
+  --bc-primary-strong: #78cf9f;
+  --bc-primary-ink: #0f1a14;
+  --bc-tint: #1d3729;
+  --bc-tint-ink: #a9e2c1;
+  --bc-highlight: #e7a33a;
+
+  --bc-info: #1c2a4f;
+  --bc-info-ink: #bccbff;
+  --bc-warning: #3a2c0f;
+  --bc-warning-ink: #f3cd7a;
+  --bc-danger: #ff8f85;
+  --bc-danger-soft: #3b1b19;
+  --bc-success: #1d3729;
+  --bc-success-ink: #a9e2c1;
+
+  --bc-on-ink: #0f1a14;
+  --bc-on-ink-muted: #55655b;
+  --bc-on-ink-hairline: #d6d0c2;
+  --bc-on-ink-accent: #7a4d00;
+
+  --bc-swatch-1: #243a2e;
+  --bc-swatch-2: #3a3222;
+  --bc-swatch-3: #1f2b4a;
+  --bc-swatch-4: #3b2f16;
+  --bc-swatch-5: #2b3a22;
+  --bc-swatch-6: #3a2e1e;
+
+  --bc-brand-rally: #7b9dff;
+
+  --bc-shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35);
+  --bc-shadow-sheet: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+:root[data-theme='dark'][data-product='rally'] {
+  --bc-primary: #7b9dff;
+  --bc-primary-strong: #97b2ff;
+  --bc-tint: #1c2a4f;
+  --bc-tint-ink: #bccbff;
+  --bc-highlight: #c9f24a;
+}
+
+@theme inline {
+  --color-paper: var(--bc-paper);
+  --color-surface: var(--bc-surface);
+  --color-surface-2: var(--bc-surface-2);
+  --color-hairline: var(--bc-hairline);
+  --color-hairline-strong: var(--bc-hairline-strong);
+  --color-ink: var(--bc-ink);
+  --color-ink-2: var(--bc-ink-2);
+  --color-muted: var(--bc-muted);
+  --color-primary: var(--bc-primary);
+  --color-primary-strong: var(--bc-primary-strong);
+  --color-primary-ink: var(--bc-primary-ink);
+  --color-tint: var(--bc-tint);
+  --color-tint-ink: var(--bc-tint-ink);
+  --color-highlight: var(--bc-highlight);
+  --color-live: var(--bc-live);
+  --color-live-ink: var(--bc-live-ink);
+  --color-info: var(--bc-info);
+  --color-info-ink: var(--bc-info-ink);
+  --color-warning: var(--bc-warning);
+  --color-warning-ink: var(--bc-warning-ink);
+  --color-danger: var(--bc-danger);
+  --color-danger-soft: var(--bc-danger-soft);
+  --color-success: var(--bc-success);
+  --color-success-ink: var(--bc-success-ink);
+  --color-on-ink: var(--bc-on-ink);
+  --color-on-ink-muted: var(--bc-on-ink-muted);
+  --color-on-ink-hairline: var(--bc-on-ink-hairline);
+  --color-on-ink-accent: var(--bc-on-ink-accent);
+  --color-night: var(--bc-night);
+  --color-night-surface: var(--bc-night-surface);
+  --color-night-hairline: var(--bc-night-hairline);
+  --color-night-ink: var(--bc-night-ink);
+  --color-night-muted: var(--bc-night-muted);
+  --color-brand-rally: var(--bc-brand-rally);
+
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-control: var(--bc-radius-control);
+  --radius-card: var(--bc-radius-card);
+  --radius-sheet: var(--bc-radius-sheet);
+  --shadow-raised: var(--bc-shadow-raised);
+  --shadow-sheet: var(--bc-shadow-sheet);
+}
+
+html,
+body {
+  background: var(--bc-paper);
+  color: var(--bc-ink);
+  font-family: var(--font-sans);
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Native controls follow the theme; keep the focus ring visible and on-brand. */
+:focus-visible {
+  outline: 2px solid var(--bc-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

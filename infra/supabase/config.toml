@@ -1,0 +1,57 @@
+# Supabase local development config. Run from the repo root with `pnpm db:start`
+# (which passes `--workdir infra`). Values here are for local emulation only.
+project_id = "buddyclub"
+
+[api]
+enabled = true
+port = 54321
+# Expose the platform schemas to PostgREST/Realtime so clients can subscribe to authorised,
+# RLS-filtered read projections. Writes still go through the platform API (ADR-002).
+schemas = ["public", "graphql_public", "identity", "community", "platform"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed/*.sql"]
+
+[studio]
+enabled = true
+port = 54323
+
+[realtime]
+enabled = true
+
+[storage]
+enabled = true
+file_size_limit = "10MiB"
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:3000"
+# Deep-link allowlist for the two mobile apps and the admin web app (ADR-001). Extend per environment.
+additional_redirect_urls = [
+  "http://127.0.0.1:3000/**",
+  "buddyclub://auth/callback",
+  "rally://auth/callback",
+]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
+[auth.rate_limit]
+email_sent = 10
+token_refresh = 150
+sign_in_sign_ups = 30
+token_verifications = 30

@@ -1,0 +1,9 @@
+node_modules
+dist
+.turbo
+pnpm-lock.yaml
+docs/api/openapi.json
+infra/supabase/.temp
+RALLY_TECHNICAL_SPEC.md
+.next
+next-env.d.ts
