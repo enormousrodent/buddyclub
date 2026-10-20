@@ -116,7 +116,7 @@ describe.skipIf(!databaseUrl)('Session presets: regulars', () => {
     expect(started.statusCode, started.body).toBe(201);
     const occurrenceId = json(started).id;
     const board = json(await get(`/v1/occurrences/${occurrenceId}`, users.solo));
-    const entries = json(await get(`/v1/occurrences/${occurrenceId}/entries`, users.solo))
+    const entries = json(await get(`/v1/occurrences/${occurrenceId}/participants`, users.solo))
       .items as {
       participantId: string;
       attendanceStatus: string;
