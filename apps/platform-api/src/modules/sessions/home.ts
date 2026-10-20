@@ -102,6 +102,11 @@ export async function myPresets(db: Db, actor: Actor): Promise<Preset[]> {
         .whereRef('c.venue_id', '=', 's.venue_id')
         .where('c.active', '=', true)
         .as('courts'),
+      eb
+        .selectFrom('activities.session_regulars as rg')
+        .select((e) => e.fn.countAll<string>().as('n'))
+        .whereRef('rg.series_id', '=', 's.id')
+        .as('regulars'),
     ])
     .where('s.organisation_id', 'in', orgIds)
     .where('s.archived_at', 'is', null)
@@ -124,5 +129,6 @@ export async function myPresets(db: Db, actor: Actor): Promise<Preset[]> {
     defaultDurationMinutes: r.default_duration_minutes,
     lastStartedAt: toIsoOrNull((r.last_started_at as Date | null) ?? null),
     activeOccurrenceId: (r.active_occurrence_id as string | null) ?? null,
+    regulars: Number(r.regulars ?? 0),
   }));
 }

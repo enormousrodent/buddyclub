@@ -20,7 +20,7 @@ const ITEMS: Record<Product, Item[]> = {
     { href: '/profile', label: 'Me', icon: 'user' },
   ],
   rally: [
-    { href: '/', label: 'Home', icon: 'home' },
+    { href: '/dashboard', label: 'Home', icon: 'home' },
     { href: '/sessions', label: 'Sessions', icon: 'list' },
     { href: '/league', label: 'Competitions', icon: 'trophy' },
     { href: '/profile', label: 'Profile', icon: 'user' },
@@ -28,9 +28,9 @@ const ITEMS: Record<Product, Item[]> = {
 };
 
 function isActive(pathname: string, href: string, all: Item[]): boolean {
-  if (href === '/') {
+  if (href === '/' || href === '/dashboard') {
     // Home owns everything no other tab claims.
-    return !all.some((i) => i.href !== '/' && pathname.startsWith(i.href));
+    return !all.some((i) => i.href !== href && pathname.startsWith(i.href));
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -55,12 +55,12 @@ export function BottomNav({ product }: { product: Product }) {
               key={item.href}
               href={item.href}
               aria-current={active ? 'page' : undefined}
-              className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-control text-[11px] ${
+              className={`flex h-12 flex-col items-center justify-center gap-1 whitespace-nowrap rounded-control text-[11px] leading-none ${
                 active ? 'font-bold text-primary' : 'font-semibold text-muted'
               }`}
             >
-              <Icon name={item.icon} size={24} />
-              {item.label}
+              <Icon name={item.icon} size={24} className="shrink-0" />
+              <span className="leading-none">{item.label}</span>
             </Link>
           );
         })}

@@ -42,6 +42,8 @@ export const UpdateMeBodySchema = z
   .object({
     displayName: DisplayNameSchema.optional(),
     locale: z.string().min(2).max(16).optional(),
+    /** Public URL of the profile photo in the `avatars` bucket; null removes it. */
+    avatarUrl: z.url().max(500).nullable().optional(),
   })
   .refine((b) => Object.keys(b).length > 0, { message: 'nothing to update' });
 export type UpdateMeBody = z.infer<typeof UpdateMeBodySchema>;

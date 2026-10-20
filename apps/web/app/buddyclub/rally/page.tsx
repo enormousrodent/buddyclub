@@ -1,20 +1,9 @@
 import { headers } from 'next/headers';
-import { MarketingFooter, RallyLanding } from '../../../components/marketing';
+import { redirect } from 'next/navigation';
 import { rallyOrigin } from '../../../lib/env';
 
-export const metadata = {
-  title: 'Rally',
-  description:
-    'Rally runs racket-sport sessions: fair rotations, live court boards, one timer, leagues and tournaments.',
-};
-
-/** Rally's front page while it lives on the Buddy Club host; later the Rally host's own home. */
-export default async function RallyPage() {
+/** Rally has its own front page on its own host now; this path just sends people there. */
+export default async function RallyRedirect() {
   const h = await headers();
-  return (
-    <>
-      <RallyLanding rallyUrl={rallyOrigin(h.get('host'), h.get('x-forwarded-proto'))} />
-      <MarketingFooter />
-    </>
-  );
+  redirect(rallyOrigin(h.get('host'), h.get('x-forwarded-proto')));
 }

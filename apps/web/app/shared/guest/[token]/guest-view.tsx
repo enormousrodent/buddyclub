@@ -143,7 +143,7 @@ export function GuestView({ token }: { token: string }) {
               resting={current.resting}
               topLeft={`Now · round ${current.sequenceNo}`}
               topRight={
-                <span className="text-on-ink">
+                <span className="tnum font-display text-2xl font-extrabold">
                   <Countdown
                     timer={current.timer}
                     serverTime={state.schedule.serverTime}

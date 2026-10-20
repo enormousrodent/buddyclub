@@ -263,6 +263,13 @@ export interface SessionSeriesTable {
   updated_at: Timestamp;
 }
 
+export interface SessionRegularsTable {
+  series_id: string;
+  participant_id: string;
+  added_by_profile_id: string | null;
+  created_at: Generated<Timestamp>;
+}
+
 export interface SessionOccurrencesTable {
   id: Generated<string>;
   series_id: string;
@@ -312,7 +319,7 @@ export interface PairLocksTable {
   occurrence_id: string;
   participant_a: string;
   participant_b: string;
-  kind: Generated<'hard' | 'soft'>;
+  kind: Generated<'hard' | 'soft' | 'avoid'>;
   until_round: number | null;
   released_at: NullableTimestamp;
   created_by_profile_id: string | null;
@@ -613,6 +620,7 @@ export interface Database {
   'platform.outbox_events': OutboxEventsTable;
   'platform.rulesets': RulesetsTable;
   'activities.session_series': SessionSeriesTable;
+  'activities.session_regulars': SessionRegularsTable;
   'activities.session_occurrences': SessionOccurrencesTable;
   'activities.session_courts': SessionCourtsTable;
   'activities.session_entries': SessionEntriesTable;

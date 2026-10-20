@@ -84,7 +84,7 @@ export function RotationPanel({
             })
           }
         >
-          {pending ? 'Working…' : preview ? 'Shuffle again' : `Preview round ${nextSequence}`}
+          {pending ? 'Working…' : preview ? 'Reshuffle' : `Call round ${nextSequence}`}
         </Button>
         {preview && preview.assignments.length > 0 ? (
           <Button

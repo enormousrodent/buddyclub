@@ -3,6 +3,8 @@ import type { PublicBoard, PublicMeetBoard, PublicSessionBoard } from '@buddyclu
 import { Countdown } from '../../../../components/live';
 import { apiPublic } from '../../../../lib/api';
 import { BoardRefresh } from './refresh';
+import { absoluteUrl } from '../../../../lib/links';
+import { qrSvg } from '../../../../lib/qr';
 
 export const metadata = { title: 'Live board' };
 
@@ -36,7 +38,15 @@ export default async function BoardPage({ params }: { params: Promise<{ slug: st
   return (
     <Shell>
       <BoardRefresh intervalMs={6_000} />
-      {board.kind === 'session' ? <SessionBoard board={board} /> : <MeetBoard board={board} />}
+      {board.kind === 'session' ? (
+        <SessionBoard
+          board={board}
+          slug={slug}
+          qr={await qrSvg(await absoluteUrl(`/join/${slug}`), 180)}
+        />
+      ) : (
+        <MeetBoard board={board} />
+      )}
     </Shell>
   );
 }
@@ -116,7 +126,15 @@ function CourtTile({
   );
 }
 
-function SessionBoard({ board }: { board: PublicSessionBoard }) {
+function SessionBoard({
+  board,
+  slug,
+  qr,
+}: {
+  board: PublicSessionBoard;
+  slug: string;
+  qr: string;
+}) {
   return (
     <>
       <Header
@@ -144,47 +162,81 @@ function SessionBoard({ board }: { board: PublicSessionBoard }) {
           )
         }
       />
-      {board.courts.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {board.courts.map((c) => (
-            <CourtTile key={c.code} code={c.code} sides={c.sides} />
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-sheet bg-night-surface p-10 text-center text-2xl text-night-muted">
-          {board.state === 'completed'
-            ? 'Session finished. Thanks for playing.'
-            : 'Waiting for the first round.'}
-        </div>
-      )}
-      {board.resting.length ? (
-        <div className="mt-4 rounded-card bg-night-surface px-5 py-4 text-xl">
-          <span className="mr-3 text-xs font-bold uppercase tracking-[0.08em] text-night-muted">
-            Resting
-          </span>
-          {board.resting.join(', ')}
-        </div>
-      ) : null}
-      {board.next ? (
-        <section className="mt-8">
-          <h2 className="mb-3 text-sm font-bold uppercase tracking-[0.08em] text-night-muted">
-            Next · round {board.next.sequenceNo}
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {board.next.courts.map((c) => (
-              <div key={c.code} className="rounded-card bg-night-surface/60 p-4">
-                <div className="font-display text-3xl font-extrabold">{c.code}</div>
-                <div className="text-base font-semibold">{c.sides[0]?.join(' & ')}</div>
-                <div className="text-xs text-night-muted">vs</div>
-                <div className="text-base font-semibold">{c.sides[1]?.join(' & ')}</div>
-              </div>
-            ))}
-          </div>
-          {board.next.resting.length ? (
-            <div className="mt-2 text-night-muted">Resting: {board.next.resting.join(', ')}</div>
+      <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
+        <div>
+          {board.courts.length ? (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {board.courts.map((c) => (
+                <CourtTile key={c.code} code={c.code} sides={c.sides} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-sheet bg-night-surface p-10 text-center text-2xl text-night-muted">
+              {board.state === 'completed'
+                ? 'Session finished. Thanks for playing.'
+                : 'Waiting for the first round.'}
+            </div>
+          )}
+          {board.resting.length ? (
+            <div className="mt-4 rounded-card bg-night-surface px-5 py-4 text-xl">
+              <span className="mr-3 text-xs font-bold uppercase tracking-[0.08em] text-night-muted">
+                Resting
+              </span>
+              {board.resting.join(', ')}
+            </div>
           ) : null}
-        </section>
-      ) : null}
+          {board.next ? (
+            <section className="mt-8">
+              <h2 className="mb-3 text-sm font-bold uppercase tracking-[0.08em] text-night-muted">
+                Next · round {board.next.sequenceNo}
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {board.next.courts.map((c) => (
+                  <div key={c.code} className="rounded-card bg-night-surface/60 p-4">
+                    <div className="font-display text-3xl font-extrabold">{c.code}</div>
+                    <div className="text-base font-semibold">{c.sides[0]?.join(' & ')}</div>
+                    <div className="text-xs text-night-muted">vs</div>
+                    <div className="text-base font-semibold">{c.sides[1]?.join(' & ')}</div>
+                  </div>
+                ))}
+              </div>
+              {board.next.resting.length ? (
+                <div className="mt-2 text-night-muted">
+                  Resting: {board.next.resting.join(', ')}
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+        </div>
+        <aside className="flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-3 rounded-sheet bg-night-surface p-6 text-center">
+            <div className="text-sm font-bold uppercase tracking-[0.08em] text-night-muted">
+              Join tonight
+            </div>
+            <div
+              role="img"
+              aria-label="QR code to join this session"
+              className="overflow-hidden rounded-control bg-white p-2"
+              style={{ width: 196, height: 196 }}
+              dangerouslySetInnerHTML={{ __html: qr }}
+            />
+            <div className="tnum font-display text-5xl font-extrabold uppercase leading-none tracking-[0.1em]">
+              {slug}
+            </div>
+            <div className="text-sm text-night-muted">rally.buddy-club.com/join</div>
+          </div>
+          <div className="flex flex-col gap-2 rounded-sheet bg-night-surface p-5 text-lg">
+            <div className="flex justify-between">
+              <span className="text-night-muted">Players here</span>
+              <strong className="tnum">{board.playersHere}</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-night-muted">Courts</span>
+              <strong className="tnum">{board.courts.length}</strong>
+            </div>
+          </div>
+        </aside>
+      </div>
     </>
   );
 }

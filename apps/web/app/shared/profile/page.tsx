@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { ActionForm } from '../../../components/action-form';
 import {
+  Button,
   Card,
   Field,
   Input,
@@ -15,7 +16,8 @@ import { apiForUser } from '../../../lib/api';
 import { getSessionUser } from '../../../lib/supabase/server';
 import { ThemeToggle } from '../../../components/theme-toggle';
 import { readTheme } from '../../../lib/theme-server';
-import { updateProfile } from './actions';
+import { updateAvatar, updateProfile } from './actions';
+import { AvatarUpload } from '../../../components/avatar-upload';
 
 export const metadata = { title: 'Profile' };
 
@@ -24,6 +26,13 @@ export default async function ProfilePage() {
   const [me, theme] = await Promise.all([apiForUser().me(), readTheme()]);
   return (
     <Page title="Profile" back="/">
+      <Card className="mb-3">
+        <AvatarUpload
+          name={me.profile.displayName}
+          current={me.profile.avatarUrl}
+          save={updateAvatar}
+        />
+      </Card>
       <Card>
         <ActionForm action={updateProfile} submitLabel="Save" resetOnSuccess={false}>
           <Field label="Display name" hint="Shown to other members and on court boards.">
@@ -40,7 +49,8 @@ export default async function ProfilePage() {
       <Card>
         <ThemeToggle initial={theme} />
         <Muted className="mt-2 block">
-          System follows your phone. Dark is the night-court theme for halls and evenings.
+          System follows your phone on Buddy Club and is night-court dark on Rally. Light and Dark
+          override it.
         </Muted>
       </Card>
       <SectionHeading>Memberships</SectionHeading>
@@ -58,6 +68,11 @@ export default async function ProfilePage() {
           ))}
         </List>
       )}
+      <form action="/sign-out" method="post" className="mt-6">
+        <Button type="submit" variant="danger" className="w-full">
+          Sign out
+        </Button>
+      </form>
     </Page>
   );
 }

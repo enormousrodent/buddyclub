@@ -33,17 +33,22 @@ type Reading =
  * phone with a wrong clock still agrees with the organiser's screen.
  */
 function useTimerReading(timer: Timer, serverTime: string, status: string): Reading {
-  const [now, setNow] = useState(() => Date.now());
+  // `now` is the estimated server clock. It starts at the page's server time (so the server
+  // render and the first client render agree), then the offset between the two clocks is
+  // measured once per server time and every tick adds the seconds that have really passed.
+  const [now, setNow] = useState(() => Date.parse(serverTime));
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
+    const offset = Date.parse(serverTime) - Date.now();
+    const tick = () => setNow(Date.now() + offset);
+    tick();
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, []);
-  const offset = Date.parse(serverTime) - now;
+  }, [serverTime]);
   if (!timer.startedAt || !timer.endsAt)
     return { kind: 'idle', text: format(timer.durationSeconds) };
   if (status === 'paused') return { kind: 'paused', text: format(timer.remainingSeconds ?? 0) };
   if (status === 'completed' || status === 'cancelled') return { kind: 'done', text: status };
-  const remaining = Math.max(0, Math.round((Date.parse(timer.endsAt) - (now + offset)) / 1000));
+  const remaining = Math.max(0, Math.round((Date.parse(timer.endsAt) - now) / 1000));
   return { kind: 'running', text: format(remaining), zero: remaining === 0 };
 }
 

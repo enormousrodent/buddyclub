@@ -109,7 +109,7 @@ function buildInput(
   players: RosterPlayer[],
   excluded: Set<string>,
   history: PlayedRound[],
-  locks: { a: string; b: string; kind: 'hard' | 'soft'; untilRound?: number }[],
+  locks: { a: string; b: string; kind: 'hard' | 'soft' | 'avoid'; untilRound?: number }[],
 ): RotationInput {
   const rules = parseSocialRules(occ.rules_json).rotation;
   const participants = participantsFromHistory(

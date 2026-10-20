@@ -302,3 +302,78 @@ describe('generateRotation (property)', () => {
     }
   });
 });
+
+describe('keep-apart pairs', () => {
+  const sharesCourt = (result: RotationResult, a: string, b: string) =>
+    result.assignments.some((as) => {
+      const on = as.teams.flat();
+      return on.includes(a) && on.includes(b);
+    });
+
+  it('never puts a keep-apart pair on the same court when another arrangement exists', () => {
+    for (let trial = 0; trial < 40; trial++) {
+      const result = generateRotation(
+        input({
+          seed: `avoid-${trial}`,
+          participants: players(8),
+          pairLocks: [{ a: 'p01', b: 'p02', kind: 'avoid' }],
+        }),
+      );
+      expect(result.assignments).toHaveLength(2);
+      expect(sharesCourt(result, 'p01', 'p02')).toBe(false);
+      expect(result.warnings.map((w) => w.code)).not.toContain('AVOID_VIOLATED');
+    }
+  });
+
+  it('keeps every keep-apart pair separate with several at once', () => {
+    for (let trial = 0; trial < 20; trial++) {
+      const result = generateRotation(
+        input({
+          seed: `avoid-many-${trial}`,
+          participants: players(12),
+          courts: courts(3),
+          pairLocks: [
+            { a: 'p01', b: 'p02', kind: 'avoid' },
+            { a: 'p03', b: 'p04', kind: 'avoid' },
+            { a: 'p05', b: 'p06', kind: 'avoid' },
+          ],
+        }),
+      );
+      expect(result.assignments).toHaveLength(3);
+      for (const [a, b] of [
+        ['p01', 'p02'],
+        ['p03', 'p04'],
+        ['p05', 'p06'],
+      ] as const)
+        expect(sharesCourt(result, a, b)).toBe(false);
+    }
+  });
+
+  it('warns rather than failing when the pair cannot be separated', () => {
+    const result = generateRotation(
+      input({
+        participants: players(4),
+        courts: courts(1),
+        pairLocks: [{ a: 'p01', b: 'p02', kind: 'avoid' }],
+      }),
+    );
+    expect(result.assignments).toHaveLength(1);
+    expect(result.warnings.map((w) => w.code)).toContain('AVOID_VIOLATED');
+  });
+
+  it('lets a partner lock win over a contradicting keep-apart', () => {
+    const result = generateRotation(
+      input({
+        participants: players(8),
+        pairLocks: [
+          { a: 'p01', b: 'p02', kind: 'hard' },
+          { a: 'p01', b: 'p02', kind: 'avoid' },
+        ],
+      }),
+    );
+    expect(result.warnings.map((w) => w.code)).toContain('AVOID_CONFLICT');
+    expect(
+      result.assignments.some((as) => as.teams.some((t) => t.includes('p01') && t.includes('p02'))),
+    ).toBe(true);
+  });
+});

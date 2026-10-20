@@ -29,6 +29,8 @@ import {
   MySessionSchema,
   OccurrenceSchema,
   PresetSchema,
+  RegularSchema,
+  type SetRegularsBody,
   OrganisationSchema,
   PairLockSchema,
   ParticipantSchema,
@@ -403,6 +405,13 @@ export function createApiClient(options: ApiClientOptions) {
         request('GET', '/v1/me/presets', listOf(PresetSchema), o ?? {}),
       startPreset: (seriesId: string, body: StartPresetBody = { open: true }, o?: RequestOptions) =>
         command(`/v1/sessions/${enc(seriesId)}/start`, OccurrenceSchema, o, body),
+      regulars: (seriesId: string, o?: RequestOptions) =>
+        request('GET', `/v1/sessions/${enc(seriesId)}/regulars`, listOf(RegularSchema), o ?? {}),
+      setRegulars: (seriesId: string, body: SetRegularsBody, o?: RequestOptions) =>
+        request('PUT', `/v1/sessions/${enc(seriesId)}/regulars`, listOf(RegularSchema), {
+          ...o,
+          body,
+        }),
       create: (orgId: string, body: CreateSessionSeriesBody, o?: RequestOptions) =>
         command(`/v1/organisations/${enc(orgId)}/sessions`, SessionSeriesSchema, o, body),
       list: (orgId: string, o?: RequestOptions) =>

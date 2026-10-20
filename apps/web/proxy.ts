@@ -54,8 +54,19 @@ export async function proxy(request: NextRequest) {
       },
     },
   });
-  // Refreshes the session cookie when needed; result is unused here.
-  await supabase.auth.getUser();
+  // Refreshes the session cookie when needed.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Rally's front page is marketing; a signed-in person lands on the app instead.
+  if (product === 'rally' && pathname === '/' && user) {
+    const to = request.nextUrl.clone();
+    to.pathname = '/dashboard';
+    const redirect = NextResponse.redirect(to);
+    for (const c of response.cookies.getAll()) redirect.cookies.set(c);
+    return redirect;
+  }
 
   return response;
 }

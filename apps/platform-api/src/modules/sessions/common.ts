@@ -184,9 +184,11 @@ export async function loadEntries(db: DbOrTrx, occurrenceId: string): Promise<En
   const rows = await db
     .selectFrom('activities.session_entries as e')
     .innerJoin('identity.participants as p', 'p.id', 'e.participant_id')
+    .leftJoin('identity.user_profiles as u', 'u.id', 'p.user_profile_id')
     .select([
       'e.participant_id',
       'p.display_name',
+      'u.avatar_url',
       'p.source',
       'p.skill_rating',
       'e.attendance_status',
@@ -200,6 +202,7 @@ export async function loadEntries(db: DbOrTrx, occurrenceId: string): Promise<En
   return rows.map((r) => ({
     participantId: r.participant_id,
     displayName: r.display_name,
+    avatarUrl: r.avatar_url ?? null,
     source: r.source,
     skillRating: r.skill_rating === null ? null : Number(r.skill_rating),
     attendanceStatus: r.attendance_status,

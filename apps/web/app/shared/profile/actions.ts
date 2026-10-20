@@ -16,3 +16,15 @@ export async function updateProfile(
     return { error: describeError(error) };
   }
 }
+
+/** Stores the uploaded photo's public URL on the profile, or removes it. */
+export async function updateAvatar(url: string | null): Promise<{ error?: string }> {
+  try {
+    await apiForUser().updateMe({ avatarUrl: url });
+    revalidatePath('/profile');
+    revalidatePath('/dashboard');
+    return {};
+  } catch (error) {
+    return { error: describeError(error) };
+  }
+}

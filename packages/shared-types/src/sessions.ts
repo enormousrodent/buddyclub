@@ -159,6 +159,8 @@ export const ListOccurrencesQuerySchema = z.object({
 export const EntrySchema = z.object({
   participantId: UuidSchema,
   displayName: DisplayNameSchema,
+  /** Profile photo of the linked account, when the participant has one. */
+  avatarUrl: z.string().nullable(),
   source: ParticipantSourceSchema,
   skillRating: z.number().nullable(),
   attendanceStatus: AttendanceStatusSchema,
@@ -198,7 +200,7 @@ export const PairLockSchema = z.object({
   id: UuidSchema,
   participantA: UuidSchema,
   participantB: UuidSchema,
-  kind: z.enum(['hard', 'soft']),
+  kind: z.enum(['hard', 'soft', 'avoid']),
   untilRound: z.int().nullable(),
   createdAt: IsoDateTimeSchema,
 });
@@ -208,7 +210,7 @@ export const CreatePairLockBodySchema = z
   .object({
     participantA: UuidSchema,
     participantB: UuidSchema,
-    kind: z.enum(['hard', 'soft']).default('hard'),
+    kind: z.enum(['hard', 'soft', 'avoid']).default('hard'),
     untilRound: z.int().min(1).optional(),
   })
   .refine((b) => b.participantA !== b.participantB, {
@@ -356,6 +358,19 @@ export const MySessionSchema = z.object({
 export type MySession = z.infer<typeof MySessionSchema>;
 
 /** A saved way of running a session: the series' defaults, startable with one tap. */
+/** A person usually in a session preset. */
+export const RegularSchema = z.object({
+  participantId: UuidSchema,
+  displayName: DisplayNameSchema,
+  avatarUrl: z.string().nullable(),
+});
+export type Regular = z.infer<typeof RegularSchema>;
+
+export const SetRegularsBodySchema = z.object({
+  participantIds: z.array(UuidSchema).max(200),
+});
+export type SetRegularsBody = z.infer<typeof SetRegularsBodySchema>;
+
 export const PresetSchema = z.object({
   seriesId: UuidSchema,
   name: z.string(),
@@ -372,6 +387,8 @@ export const PresetSchema = z.object({
   lastStartedAt: IsoDateTimeSchema.nullable(),
   /** An occurrence that is open or live right now, if any. */
   activeOccurrenceId: UuidSchema.nullable(),
+  /** How many people are registered automatically when this preset starts. */
+  regulars: z.int(),
 });
 export type Preset = z.infer<typeof PresetSchema>;
 

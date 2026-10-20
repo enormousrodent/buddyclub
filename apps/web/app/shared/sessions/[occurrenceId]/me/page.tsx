@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { MyCourtHero } from '../../../../../components/court';
 import { Countdown } from '../../../../../components/live';
 import { LiveSubscription } from '../../../../../components/live-subscription';
+import { OfflineBanner } from '../../../../../components/offline-banner';
 import { Button, Card, Icon, Muted, Page, StateBadge } from '../../../../../components/ui';
 import { apiForUser } from '../../../../../lib/api';
 import { getSessionUser } from '../../../../../lib/supabase/server';
@@ -87,6 +88,7 @@ export default async function MyGamePage({
       action={<StateBadge state={occ.state} />}
     >
       <LiveSubscription occurrenceId={occurrenceId} />
+      <OfflineBanner since={schedule.serverTime} />
       {schedule.attendanceStatus !== 'checked_in' && liveState ? (
         <form action={checkIn.bind(null, occurrenceId, undefined)} className="mb-4">
           <Button type="submit" size="lg" className="w-full">
@@ -104,7 +106,7 @@ export default async function MyGamePage({
             resting={current.resting}
             topLeft={`Now · round ${current.sequenceNo}`}
             topRight={
-              <span className="text-on-ink">
+              <span className="tnum font-display text-2xl font-extrabold">
                 <Countdown
                   timer={current.timer}
                   serverTime={schedule.serverTime}

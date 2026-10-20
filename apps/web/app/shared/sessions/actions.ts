@@ -156,6 +156,10 @@ export async function issueSessionGuestLink(
   }
 }
 
+function pairKind(value: string): 'hard' | 'soft' | 'avoid' {
+  return value === 'soft' || value === 'avoid' ? value : 'hard';
+}
+
 export async function addPairLock(
   occurrenceId: string,
   _prev: ActionResult,
@@ -165,7 +169,7 @@ export async function addPairLock(
     await apiForUser().occurrences.createPairLock(occurrenceId, {
       participantA: text(formData, 'participantA'),
       participantB: text(formData, 'participantB'),
-      kind: 'hard',
+      kind: pairKind(text(formData, 'kind')),
     });
     revalidatePath(`/sessions/${occurrenceId}`);
     return { ok: true };
@@ -228,4 +232,60 @@ export async function setOccurrencePublicAccess(
   } catch (error) {
     return { error: describeError(error) };
   }
+}
+
+/**
+ * Rally's session builder (designs B3 and A6). Creates the series (a preset) and, when "start it
+ * now" is ticked, tonight's occurrence opened for check-in. From onboarding it also marks the
+ * person as onboarded so the dashboard stops redirecting them.
+ */
+export async function setUpSession(
+  orgId: string,
+  fromWelcome: boolean,
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  let to: string;
+  try {
+    const api = apiForUser();
+    const venueId = optional(formData, 'venueId');
+    const series = await api.sessions.create(orgId, {
+      name: text(formData, 'name'),
+      sportId: text(formData, 'sportId') || 'badminton',
+      ...(venueId ? { venueId } : {}),
+      defaultRoundMinutes: Number(formData.get('roundMinutes') || 12),
+      defaultDurationMinutes: Number(formData.get('durationMinutes') || 120),
+    });
+    if (formData.get('startNow') === 'on') {
+      const occurrence = await api.sessions.createOccurrence(series.id, {
+        startsAt: new Date().toISOString(),
+      });
+      await api.occurrences.transition(occurrence.id, 'open');
+      to = `/sessions/${occurrence.id}/players`;
+    } else {
+      to = `/presets/${series.id}`;
+    }
+  } catch (error) {
+    return { error: describeError(error) };
+  }
+  if (fromWelcome) {
+    const { cookies } = await import('next/headers');
+    (await cookies()).set('rally-onboarded', '1', {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: 'lax',
+    });
+  }
+  redirect(to);
+}
+
+/** Checks in everyone who is registered but not here yet (design B4, "Check everyone in"). */
+export async function checkInEveryone(occurrenceId: string): Promise<void> {
+  await run(async () => {
+    const api = apiForUser();
+    const board = await api.occurrences.board(occurrenceId);
+    for (const e of board.entries)
+      if (e.attendanceStatus === 'registered')
+        await api.occurrences.checkIn(occurrenceId, e.participantId);
+  }, `/sessions/${occurrenceId}`);
 }

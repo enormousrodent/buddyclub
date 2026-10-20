@@ -32,6 +32,7 @@ export interface EnsureProfileInput {
 export interface UpdateProfileInput {
   displayName?: string;
   locale?: string;
+  avatarUrl?: string | null;
 }
 
 /** Persistence port for the identity module. Implemented by Postgres (prod) and memory (tests). */

@@ -2,6 +2,8 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { Product } from '../lib/env';
 import { getSessionUser } from '../lib/supabase/server';
+import { apiForUser } from '../lib/api';
+import { Avatar } from './ui';
 import { Lockup } from './brand';
 import { BottomNav } from './nav';
 
@@ -15,24 +17,28 @@ import { BottomNav } from './nav';
 export async function AppShell({ product, children }: { product: Product; children: ReactNode }) {
   const user = await getSessionUser();
   const wide = !user && product === 'buddyclub';
+  const me = user
+    ? await apiForUser()
+        .me()
+        .catch(() => null)
+    : null;
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-10 border-b border-hairline bg-paper/92 shadow-raised backdrop-blur">
         <div
           className={`mx-auto flex h-14 items-center justify-between gap-4 px-5 ${wide ? 'max-w-5xl' : 'max-w-xl'}`}
         >
-          <Link href="/" className="text-ink">
-            <Lockup product={product} size={26} />
+          <Link href={product === 'rally' && user ? '/dashboard' : '/'} className="text-ink">
+            <Lockup product={product} size={36} />
           </Link>
           {user ? (
-            <form action="/sign-out" method="post">
-              <button
-                type="submit"
-                className="inline-flex min-h-9 items-center rounded-full border border-hairline bg-surface px-3 text-xs font-bold text-ink hover:bg-surface-2"
-              >
-                Sign out
-              </button>
-            </form>
+            <Link href="/profile" aria-label="Profile" className="inline-flex items-center">
+              <Avatar
+                name={me?.profile.displayName ?? 'Me'}
+                src={me?.profile.avatarUrl}
+                size={34}
+              />
+            </Link>
           ) : (
             <div className="flex items-center gap-2">
               {wide ? (

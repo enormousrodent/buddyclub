@@ -12,6 +12,8 @@ export const ALGORITHM_VERSION = 'social_doubles_v1';
 
 const GENDER_WEIGHT = 1.5;
 const SOFT_LOCK_BONUS = 2;
+/** A keep-apart pair sharing a court outweighs every other preference. */
+const AVOID_WEIGHT = 1000;
 
 type Unit = string[]; // 1 or 2 participant ids that must stay together
 
@@ -45,12 +47,13 @@ function mutualHistory(
 function buildUnits(
   ctx: Ctx,
   eligible: RotationParticipant[],
-): { units: Unit[]; softLocks: PairLock[] } {
+): { units: Unit[]; softLocks: PairLock[]; avoidPairs: Set<string> } {
   const { input, warnings } = ctx;
   const eligibleIds = new Set(eligible.map((p) => p.id));
   const locked = new Set<string>();
   const units: Unit[] = [];
   const softLocks: PairLock[] = [];
+  const avoidPairs = new Set<string>();
 
   const active = input.pairLocks.filter(
     (lock) => lock.untilRound === undefined || input.sequence <= lock.untilRound,
@@ -59,6 +62,11 @@ function buildUnits(
     if (lock.a === lock.b) continue;
     if (lock.kind === 'soft') {
       if (eligibleIds.has(lock.a) && eligibleIds.has(lock.b)) softLocks.push(lock);
+      continue;
+    }
+    if (lock.kind === 'avoid') {
+      if (eligibleIds.has(lock.a) && eligibleIds.has(lock.b))
+        avoidPairs.add(pairKey(lock.a, lock.b));
       continue;
     }
     if (input.format === 'singles') {
@@ -91,7 +99,17 @@ function buildUnits(
     units.push([lock.a, lock.b]);
   }
   for (const p of eligible) if (!locked.has(p.id)) units.push([p.id]);
-  return { units, softLocks };
+  // A keep-apart pair that is also hard-locked together cannot be honoured; the lock wins.
+  for (const unit of units) {
+    if (unit.length === 2 && avoidPairs.has(pairKey(unit[0] as string, unit[1] as string))) {
+      avoidPairs.delete(pairKey(unit[0] as string, unit[1] as string));
+      warnings.push({
+        code: 'AVOID_CONFLICT',
+        detail: `Keep-apart ${unit[0]}/${unit[1]} contradicts a partner lock; the lock wins`,
+      });
+    }
+  }
+  return { units, softLocks, avoidPairs };
 }
 
 /**
@@ -186,6 +204,7 @@ interface Candidate {
   opponentPenalty: number;
   skillImbalance: number;
   genderPenalty: number;
+  avoidViolations: number;
   valid: boolean;
 }
 
@@ -193,6 +212,7 @@ function scoreCandidate(
   ctx: Ctx,
   teams: string[][],
   softLocks: PairLock[],
+  avoidPairs: Set<string>,
   courtIds: string[],
 ): Candidate {
   const { weights, genderMode } = ctx.input.rules;
@@ -225,11 +245,19 @@ function scoreCandidate(
   const assignments: RotationAssignment[] = [];
   let opponentPenalty = 0;
   let skillImbalance = 0;
+  let avoidViolations = 0;
   for (let i = 0; i + 1 < teams.length; i += 2) {
     const t1 = teams[i] as string[];
     const t2 = teams[i + 1] as string[];
     for (const a of t1)
       for (const b of t2) opponentPenalty += mutualHistory(ctx.byId, a, b, 'opponentHistory');
+    if (avoidPairs.size) {
+      const onCourt = [...t1, ...t2];
+      for (let x = 0; x < onCourt.length; x++)
+        for (let y = x + 1; y < onCourt.length; y++)
+          if (avoidPairs.has(pairKey(onCourt[x] as string, onCourt[y] as string)))
+            avoidViolations++;
+    }
     const s1 = t1.reduce((s, id) => s + skillOf(id), 0);
     const s2 = t2.reduce((s, id) => s + skillOf(id), 0);
     skillImbalance += Math.abs(s1 - s2) / ctx.teamSize;
@@ -240,7 +268,8 @@ function scoreCandidate(
     weights.partners * partnerPenalty +
     weights.opponents * opponentPenalty +
     weights.skill * skillImbalance +
-    GENDER_WEIGHT * genderPenalty;
+    GENDER_WEIGHT * genderPenalty +
+    AVOID_WEIGHT * avoidViolations;
   return {
     assignments,
     score,
@@ -248,6 +277,7 @@ function scoreCandidate(
     opponentPenalty,
     skillImbalance,
     genderPenalty,
+    avoidViolations,
     valid,
   };
 }
@@ -310,7 +340,7 @@ export function generateRotation(input: RotationInput): RotationResult {
     );
   }
 
-  const { units, softLocks } = buildUnits(ctx, eligible);
+  const { units, softLocks, avoidPairs } = buildUnits(ctx, eligible);
   const priority = restPriority(ctx, eligible);
 
   let capacity = Math.min(
@@ -347,7 +377,7 @@ export function generateRotation(input: RotationInput): RotationResult {
   let best: Candidate | null = null;
   for (let i = 0; i < budget; i++) {
     const teams = randomTeams(ctx, chosen.playingUnits);
-    const candidate = scoreCandidate(ctx, teams, softLocks, courtIds);
+    const candidate = scoreCandidate(ctx, teams, softLocks, avoidPairs, courtIds);
     if (!candidate.valid) continue;
     if (!best || candidate.score < best.score) best = candidate;
     if (best.score <= 0 && best.genderPenalty === 0) break;
@@ -360,6 +390,12 @@ export function generateRotation(input: RotationInput): RotationResult {
     return finish([], [], { candidatesEvaluated: budget });
   }
 
+  if (best.avoidViolations > 0) {
+    ctx.warnings.push({
+      code: 'AVOID_VIOLATED',
+      detail: `${best.avoidViolations} keep-apart pair(s) share a court; no arrangement avoided it with the players available`,
+    });
+  }
   const rests = [...chosen.resting].sort();
   const restCounts = eligible.map((p) => p.restCount + (chosen.resting.has(p.id) ? 1 : 0));
   const mean = restCounts.reduce((a, b) => a + b, 0) / restCounts.length;
@@ -372,6 +408,7 @@ export function generateRotation(input: RotationInput): RotationResult {
     repeatOpponentPenalty: best.opponentPenalty,
     skillImbalance: best.skillImbalance,
     genderPenalty: best.genderPenalty,
+    avoidViolations: best.avoidViolations,
     restVariance,
     courtsUsed,
   });

@@ -17,6 +17,8 @@ import {
   OccurrenceIdParamsSchema,
   OccurrenceSchema,
   PresetSchema,
+  RegularSchema,
+  SetRegularsBodySchema,
   StartPresetBodySchema,
   OrgIdParamsSchema,
   PairLockSchema,
@@ -47,6 +49,7 @@ import * as rotation from './rotation.js';
 import { myPresets } from './home.js';
 import { transitionRound, type RoundAction } from './rounds.js';
 import * as series from './series.js';
+import * as regulars from './regulars.js';
 
 export interface SessionRoutesOptions {
   getDb: () => Db;
@@ -705,6 +708,46 @@ export async function sessionRoutes(app: FastifyInstance, options: SessionRoutes
     },
     async (request) => ({ items: await myPresets(db(), request.actor!) }),
   );
+  typed.get(
+    '/v1/sessions/:seriesId/regulars',
+    {
+      preHandler: app.requireActor,
+      schema: {
+        tags: ['sessions'],
+        summary: 'People usually in this session; registered automatically when it starts',
+        operationId: 'listRegulars',
+        security: AUTH,
+        params: SeriesIdParamsSchema,
+        response: { 200: listOf(RegularSchema), ...PROBLEMS },
+      },
+    },
+    async (request) => ({
+      items: await regulars.listRegulars(db(), request.actor!, request.params.seriesId),
+    }),
+  );
+  typed.put(
+    '/v1/sessions/:seriesId/regulars',
+    {
+      preHandler: manage,
+      schema: {
+        tags: ['sessions'],
+        summary: 'Replace the regulars of a session',
+        operationId: 'setRegulars',
+        security: AUTH,
+        params: SeriesIdParamsSchema,
+        body: SetRegularsBodySchema,
+        response: { 200: listOf(RegularSchema), ...PROBLEMS },
+      },
+    },
+    async (request) => ({
+      items: await regulars.setRegulars(
+        db(),
+        request.actor!,
+        request.params.seriesId,
+        request.body.participantIds,
+      ),
+    }),
+  );
   typed.post(
     '/v1/sessions/:seriesId/start',
     {
@@ -727,6 +770,7 @@ export async function sessionRoutes(app: FastifyInstance, options: SessionRoutes
         { startsAt: request.body.startsAt ?? new Date().toISOString() },
         ctx(request),
       );
+      await regulars.registerRegulars(db(), request.params.seriesId, created.id);
       const result = request.body.open
         ? await occurrences.transitionOccurrence(
             db(),

@@ -71,8 +71,9 @@ export async function updateMe(
   body: UpdateMeBody,
 ): Promise<MeResponse> {
   const profile = await ensureProfileFor(repo, principal);
-  const patch: { displayName?: string; locale?: string } = {};
+  const patch: { displayName?: string; locale?: string; avatarUrl?: string | null } = {};
   if (body.displayName !== undefined) patch.displayName = body.displayName;
   if (body.locale !== undefined) patch.locale = body.locale;
+  if (body.avatarUrl !== undefined) patch.avatarUrl = body.avatarUrl;
   return toMe(repo, await repo.updateProfile(profile.id, patch));
 }

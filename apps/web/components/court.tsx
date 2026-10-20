@@ -67,9 +67,9 @@ export function MyCourtHero({
   topRight: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-2.5 rounded-sheet bg-ink px-5 pb-5 pt-5 text-on-ink">
+    <div className="flex flex-col gap-2.5 rounded-sheet border-2 border-live bg-surface px-5 pb-5 pt-5 text-ink">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold uppercase tracking-[0.08em] text-on-ink-accent">
+        <span className="font-display text-[13px] font-bold uppercase tracking-[0.12em] text-primary">
           {topLeft}
         </span>
         {topRight}
@@ -77,31 +77,31 @@ export function MyCourtHero({
       {resting ? (
         <div className="py-4">
           <div className="font-display text-[40px] font-bold leading-tight">Sit this one out</div>
-          <div className="mt-1 text-on-ink-muted">Back on court next round.</div>
+          <div className="mt-1 text-muted">Back on court next round.</div>
         </div>
       ) : (
         <div className="flex items-baseline gap-3">
-          <span className="text-xl font-semibold text-on-ink-muted">Court</span>
+          <span className="text-xl font-semibold text-muted">Court</span>
           <span className="font-display text-[120px] font-extrabold leading-[0.92] tracking-[-0.05em]">
             {courtCode ?? '?'}
           </span>
         </div>
       )}
       {!resting ? (
-        <div className="flex flex-col gap-1.5 border-t border-on-ink-hairline pt-2.5">
+        <div className="flex flex-col gap-1.5 border-t border-hairline pt-2.5">
           {partners.length ? (
             <div className="flex items-center gap-2.5">
-              <span className="w-16 text-xs font-bold uppercase tracking-[0.06em] text-on-ink-muted">
+              <span className="w-16 text-xs font-bold uppercase tracking-[0.06em] text-muted">
                 With
               </span>
               <span className="text-xl font-bold">{partners.join(' & ')}</span>
             </div>
           ) : null}
           <div className="flex items-center gap-2.5">
-            <span className="w-16 text-xs font-bold uppercase tracking-[0.06em] text-on-ink-muted">
+            <span className="w-16 text-xs font-bold uppercase tracking-[0.06em] text-muted">
               Against
             </span>
-            <span className="text-[17px] font-semibold text-on-ink/90">
+            <span className="text-[17px] font-semibold text-ink-2">
               {opponents.join(' & ') || '—'}
             </span>
           </div>

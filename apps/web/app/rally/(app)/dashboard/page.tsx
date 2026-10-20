@@ -1,7 +1,7 @@
 import type { MySession, Preset } from '@buddyclub/shared-types';
 import Link from 'next/link';
-import { IconTile } from '../../components/brand';
-import { Countdown } from '../../components/live';
+import { IconTile } from '../../../../components/brand';
+import { Countdown } from '../../../../components/live';
 import {
   Button,
   Card,
@@ -14,11 +14,14 @@ import {
   Row,
   SectionHeading,
   StateBadge,
-} from '../../components/ui';
-import { apiForUser } from '../../lib/api';
-import { getSessionUser } from '../../lib/supabase/server';
-import { startPreset } from './actions';
-import { JoinCodeForm } from './join-code';
+} from '../../../../components/ui';
+import { apiForUser } from '../../../../lib/api';
+import { getSessionUser } from '../../../../lib/supabase/server';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { ONBOARDED_COOKIE } from '../welcome/cookies';
+import { startPreset } from '../../actions';
+import { JoinCodeForm } from '../../join-code';
 
 function when(iso: string): string {
   return new Date(iso).toLocaleString('en-GB', {
@@ -85,7 +88,8 @@ function PresetCard({ p }: { p: Preset }) {
       <div className="text-[15px] font-bold leading-5">{p.name}</div>
       <div className="text-xs leading-4 text-muted">
         {p.sportId} · {p.courts} court{p.courts === 1 ? '' : 's'} · {p.defaultRoundMinutes} min
-        rounds{p.venueName ? ` · ${p.venueName}` : ''}
+        rounds{p.venueName ? ` · ${p.venueName}` : ''} · {p.regulars} regular
+        {p.regulars === 1 ? '' : 's'}
       </div>
       {p.activeOccurrenceId ? (
         <LinkButton href={`/sessions/${p.activeOccurrenceId}`} variant="tonal" size="sm">
@@ -99,42 +103,89 @@ function PresetCard({ p }: { p: Preset }) {
           </Button>
         </form>
       )}
+      <Link
+        href={`/presets/${p.seriesId}`}
+        className="text-center text-[12px] font-bold text-primary"
+      >
+        Regulars and settings
+      </Link>
     </div>
   );
 }
 
-export default async function RallyHomePage() {
+export default async function RallyHomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ welcome?: string }>;
+}) {
   const user = await getSessionUser();
   if (!user) {
+    // Design A1: the welcome screen. Get started goes to sign-in; a code goes straight to a session.
     return (
-      <Page title="Run the session" lead="Fair rotations, live court boards and league nights.">
-        <Card className="flex flex-col items-start gap-4">
-          <IconTile product="rally" size={64} />
-          <p className="text-[15px] leading-6 text-ink-2">
-            Sign in to start a session in under a minute, run it from your phone, and let every
-            player see their court on theirs. No club needed.
-          </p>
-          <LinkButton href="/sign-in" size="lg" className="w-full">
-            Sign in
+      <main className="relative mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-xl flex-col justify-end gap-5 overflow-hidden px-5 pb-12 pt-6">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              'linear-gradient(var(--bc-live) 1px, transparent 1px), linear-gradient(90deg, var(--bc-live) 1px, transparent 1px)',
+            backgroundSize: '56px 56px',
+            maskImage: 'radial-gradient(ellipse at 50% 20%, black 10%, transparent 65%)',
+          }}
+        />
+        <div className="relative">
+          <IconTile product="rally" size={72} />
+        </div>
+        <h1 className="relative font-display text-[64px] font-extrabold uppercase leading-[0.92]">
+          Run the
+          <br />
+          session.
+        </h1>
+        <p className="relative text-base leading-6 text-ink-2">
+          Fair rotations, a live court board and one timer everyone agrees with.
+        </p>
+        <div className="relative flex flex-col gap-2.5 pt-2">
+          <LinkButton
+            href="/sign-in?next=/dashboard"
+            size="lg"
+            className="w-full font-display text-[22px] uppercase tracking-[0.06em]"
+          >
+            Get started
           </LinkButton>
-          <Muted>
-            Got a code or a link from an organiser? Open it on this phone and it just works.
-          </Muted>
-        </Card>
-        <SectionHeading>Join a session</SectionHeading>
-        <Card>
-          <JoinCodeForm />
-        </Card>
-      </Page>
+          <details className="group rounded-card border border-hairline bg-surface p-3">
+            <summary className="cursor-pointer list-none text-center text-[15px] font-bold text-primary">
+              Got a code? Join a session
+            </summary>
+            <div className="mt-3">
+              <JoinCodeForm />
+            </div>
+          </details>
+        </div>
+        <p className="relative text-center text-xs text-muted">Rally by Buddy Club</p>
+      </main>
     );
   }
 
+  // First visit after signing in: the three onboarding screens, once.
+  const jar = await cookies();
+  const { welcome } = await searchParams;
+  if (!jar.get(ONBOARDED_COOKIE) && welcome !== 'done') redirect('/welcome');
+  if (welcome === 'done' && !jar.get(ONBOARDED_COOKIE)) {
+    // A player who picked "turn up and play" skips the preset step; mark them done.
+    redirect('/welcome/done');
+  }
+
   const api = apiForUser();
-  const [me, sessions, presets] = await Promise.all([
+  const [me, sessions, presets, competitions] = await Promise.all([
     api.me(),
     api.sessions.mine(),
     api.sessions.presets(),
+    api.competitions.mine(),
   ]);
+  const meets = competitions.meets
+    .filter((m) => m.state !== 'completed' && m.state !== 'cancelled')
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+    .slice(0, 3);
   // Anyone can start a session: /start creates a personal workspace when there is no club (ADR-017).
   const canStart = true;
   const live = sessions.items.filter((s) => s.state === 'live' || s.state === 'open');
@@ -213,16 +264,36 @@ export default async function RallyHomePage() {
         </Muted>
       </Card>
 
-      {section('Upcoming', upcoming.concat(live.filter((s) => s !== resume)))}
+      {section('Tonight and upcoming', upcoming.concat(live.filter((s) => s !== resume)))}
 
-      <SectionHeading>Competitions</SectionHeading>
+      <SectionHeading
+        action={
+          <Link href="/league" className="text-[13px] font-semibold text-primary">
+            All
+          </Link>
+        }
+      >
+        Competitions
+      </SectionHeading>
       <List>
-        <Row
-          href="/league"
-          leading={<Icon name="trophy" size={22} className="text-primary" />}
-          title="Leagues and tournaments"
-          subtitle="Your fixtures, standings and the ones you run"
-        />
+        {meets.map((m) => (
+          <Row
+            key={m.meetId}
+            href={`/league/meets/${m.meetId}`}
+            leading={<Icon name="trophy" size={22} className="text-primary" />}
+            title={m.competitionName}
+            subtitle={`${m.name} · ${when(m.startsAt)}${m.myFixtures[0] ? ` · v ${m.myFixtures[0].opponent}` : ''}`}
+            right={<StateBadge state={m.state} />}
+          />
+        ))}
+        {meets.length === 0 ? (
+          <Row
+            href="/league"
+            leading={<Icon name="trophy" size={22} className="text-primary" />}
+            title="Leagues and tournaments"
+            subtitle="Your fixtures, standings and the ones you run"
+          />
+        ) : null}
       </List>
 
       {sessions.items.length === 0 && presets.items.length === 0 ? (

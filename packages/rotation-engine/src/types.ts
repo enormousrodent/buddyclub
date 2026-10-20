@@ -24,7 +24,8 @@ export interface RotationCourt {
 export interface PairLock {
   a: string;
   b: string;
-  kind: 'hard' | 'soft';
+  /** hard: always partners. soft: partners when it costs little. avoid: never on the same court. */
+  kind: 'hard' | 'soft' | 'avoid';
   /** Inclusive: the lock applies to rounds with sequence <= untilRound. */
   untilRound?: number;
 }
@@ -71,7 +72,9 @@ export interface RotationWarning {
     | 'LOCK_IGNORED_SINGLES'
     | 'MAX_CONSECUTIVE_RESTS_EXCEEDED'
     | 'COURT_LEFT_IDLE'
-    | 'UNSATISFIABLE';
+    | 'UNSATISFIABLE'
+    | 'AVOID_CONFLICT'
+    | 'AVOID_VIOLATED';
   detail: string;
 }
 

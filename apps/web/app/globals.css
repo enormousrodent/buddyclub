@@ -140,11 +140,12 @@
   }
 
   :root:not([data-theme='light'])[data-product='rally'] {
-    --bc-primary: #8fb0ff;
-    --bc-primary-strong: #a9c2ff;
-    --bc-tint: #1c2a52;
-    --bc-tint-ink: #bccbff;
-    --bc-highlight: #d9f74d;
+    --bc-primary: #d9f74d;
+    --bc-primary-strong: #e6ff70;
+    --bc-primary-ink: #101a2e;
+    --bc-tint: #2f3d12;
+    --bc-tint-ink: #e3ff85;
+    --bc-highlight: #8fb0ff;
   }
 }
 
@@ -195,11 +196,12 @@
 }
 
 :root[data-theme='dark'][data-product='rally'] {
-  --bc-primary: #8fb0ff;
-  --bc-primary-strong: #a9c2ff;
-  --bc-tint: #1c2a52;
-  --bc-tint-ink: #bccbff;
-  --bc-highlight: #d9f74d;
+  --bc-primary: #d9f74d;
+  --bc-primary-strong: #e6ff70;
+  --bc-primary-ink: #101a2e;
+  --bc-tint: #2f3d12;
+  --bc-tint-ink: #e3ff85;
+  --bc-highlight: #8fb0ff;
 }
 
 @theme inline {
@@ -283,6 +285,8 @@ body {
   scrollbar-width: none;
   -ms-overflow-style: none;
   scroll-snap-type: x proximity;
+  /* Snap to the inside of the row's own padding, so the first item keeps the gutter. */
+  scroll-padding-inline: 20px;
 }
 .scroll-hide::-webkit-scrollbar,
 .scroll-row::-webkit-scrollbar {
@@ -582,6 +586,69 @@ body {
     animation: none;
     opacity: 0;
   }
+}
+
+/*
+ * Rally's own brand: condensed display face, and `.theme-night` for its marketing pages, which
+ * are night-court dark whatever the visitor's theme (same values as the dark theme, scoped).
+ */
+[data-product='rally'] {
+  --font-display: var(--font-barlow), var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+}
+[data-product='rally'] .font-display {
+  letter-spacing: 0;
+}
+.theme-night {
+  color-scheme: dark;
+
+  --bc-paper: #0f1729;
+  --bc-surface: #141e33;
+  --bc-surface-2: #1e2b47;
+  --bc-hairline: #2b3a5c;
+  --bc-hairline-strong: #4b5b82;
+  --bc-ink: #f6f8ff;
+  --bc-ink-2: #cbd3e6;
+  --bc-muted: #a3afcb;
+
+  --bc-primary: #ff7fa3;
+  --bc-primary-strong: #ff9db9;
+  --bc-primary-ink: #0f1729;
+  --bc-tint: #4a1a2b;
+  --bc-tint-ink: #ffb8cc;
+  --bc-highlight: #ffc24d;
+
+  --bc-info: #2a1f5c;
+  --bc-info-ink: #cdbfff;
+  --bc-warning: #3a2c0f;
+  --bc-warning-ink: #f3cd7a;
+  --bc-danger: #ff8a65;
+  --bc-danger-soft: #3b1f14;
+  --bc-success: #163a2a;
+  --bc-success-ink: #a9e2c1;
+
+  --bc-on-ink: #0f1729;
+  --bc-on-ink-muted: #4b5b82;
+  --bc-on-ink-hairline: #cbd3e6;
+  --bc-on-ink-accent: #b2371f;
+
+  --bc-swatch-1: #245c43;
+  --bc-swatch-2: #5a3328;
+  --bc-swatch-3: #253e7a;
+  --bc-swatch-4: #5a4a14;
+  --bc-swatch-5: #3e5a1e;
+  --bc-swatch-6: #45336e;
+
+  --bc-brand-rally: #8fb0ff;
+
+  --bc-shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35);
+  --bc-shadow-sheet: 0 12px 32px rgba(0, 0, 0, 0.6);
+
+  --bc-primary: #8fb0ff;
+  --bc-primary-strong: #a9c2ff;
+  --bc-primary-ink: #0f1729;
+  --bc-tint: #1c2a52;
+  --bc-tint-ink: #bccbff;
+  --bc-highlight: #d9f74d;
 }
 
 /* Native controls follow the theme; keep the focus ring visible and on-brand. */

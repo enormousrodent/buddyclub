@@ -63,6 +63,7 @@ export class MemoryIdentityRepository implements IdentityRepository {
     if (!profile) throw new Error('profile not found');
     if (input.displayName !== undefined) profile.displayName = input.displayName;
     if (input.locale !== undefined) profile.locale = input.locale;
+    if (input.avatarUrl !== undefined) profile.avatarUrl = input.avatarUrl;
     return { ...profile };
   }
 

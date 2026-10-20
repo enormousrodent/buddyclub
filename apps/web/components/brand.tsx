@@ -4,7 +4,7 @@ import type { Product } from '../lib/env';
  * Brand marks (docs/design/README.md, "Brand identity").
  * Buddy Club: the owner's logo (2026-10-20), a tilted rounded ring in pink with two orange
  * bars; it carries its own colours, or one colour when `mono` is set (white on a tile, for
- * instance). Rally: a racket and a ball drawn with one stroke weight, taking the current colour.
+ * instance). Rally: the owner's lime tile logo, served as a file.
  */
 
 export const BUDDY_CLUB_LOGO = {
@@ -47,10 +47,38 @@ export function BuddyClubMark({
   );
 }
 
+/**
+ * Rally's logo (owner, 2026-10-20): a lime tile with the dark R and ball, served from
+ * public/icons/rally-logo.svg. It carries its own colours; `color` and `ball` are accepted for
+ * older call sites and ignored.
+ */
+/**
+ * Rally's logo (owner, 2026-10-20): a lime tile with the dark R and ball, served from
+ * public/icons/rally-logo.svg. It carries its own colours; `color` and `ball` are accepted for
+ * older call sites and ignored.
+ */
+/**
+ * Rally's logo (owner, 2026-10-20): a lime tile with the dark R and ball, served from
+ * public/icons/rally-logo.svg. It carries its own colours; `color` and `ball` are accepted for
+ * older call sites and ignored.
+ */
+/**
+ * Rally's logo (owner, 2026-10-20): a lime tile with the dark R and ball, served from
+ * public/icons/rally-logo.svg. It carries its own colours; `color` and `ball` are accepted for
+ * older call sites and ignored.
+ */
+/**
+ * Rally's logo (owner, 2026-10-20): a lime tile with the dark R and ball, served from
+ * public/icons/rally-logo.svg. It carries its own colours; `color` and `ball` are accepted for
+ * older call sites and ignored.
+ */
+/**
+ * Rally's logo (owner, 2026-10-20): a lime tile with the dark R and ball, served from
+ * public/icons/rally-logo.svg. It carries its own colours; `color` and `ball` are accepted for
+ * older call sites and ignored.
+ */
 export function RallyMark({
   size = 28,
-  color = 'currentColor',
-  ball = 'var(--bc-ink)',
   title,
 }: {
   size?: number;
@@ -59,19 +87,14 @@ export function RallyMark({
   title?: string;
 }) {
   return (
-    <svg
+    <img
+      src="/icons/rally-logo.svg"
       width={size}
       height={size}
-      viewBox="0 0 100 100"
-      fill="none"
-      role={title ? 'img' : undefined}
-      aria-label={title}
+      alt={title ?? ''}
       aria-hidden={title ? undefined : true}
-    >
-      <circle cx="42" cy="42" r="23" stroke={color} strokeWidth="11" />
-      <path d="M59 59l24 24" stroke={color} strokeWidth="13" strokeLinecap="round" />
-      <circle cx="79" cy="25" r="9" fill={ball} />
-    </svg>
+      style={{ borderRadius: size * 0.22 }}
+    />
   );
 }
 
@@ -100,7 +123,11 @@ export function Lockup({ product, size = 28 }: { product: Product; size?: number
   return (
     <span className="inline-flex items-center gap-2">
       <ProductMark product={product} size={size} title={name} />
-      <span className="font-display text-xl font-bold leading-none">{name}</span>
+      <span
+        className={`font-display leading-none ${product === 'rally' ? 'text-[24px] font-extrabold uppercase tracking-[0.04em]' : 'text-xl font-bold'}`}
+      >
+        {name}
+      </span>
       {product === 'rally' ? (
         <span className="mt-1 text-xs font-medium text-muted">by Buddy Club</span>
       ) : null}
@@ -110,16 +137,7 @@ export function Lockup({ product, size = 28 }: { product: Product; size?: number
 
 /** App-icon tile used on sign-in and empty states. Buddy Club's logo sits on white in its own colours. */
 export function IconTile({ product, size = 72 }: { product: Product; size?: number }) {
-  if (product === 'rally') {
-    return (
-      <span
-        className="inline-flex items-center justify-center"
-        style={{ width: size, height: size, borderRadius: size / 4, background: '#2350d6' }}
-      >
-        <RallyMark size={size * 0.62} color="#ffffff" ball="#d9f74d" />
-      </span>
-    );
-  }
+  if (product === 'rally') return <RallyMark size={size} title="Rally" />;
   return (
     <span
       className="inline-flex items-center justify-center border border-hairline bg-white"

@@ -428,6 +428,18 @@
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 16
+                  },
+                  "avatarUrl": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500,
+                        "format": "uri"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 }
               }
@@ -25032,6 +25044,12 @@
                       "minLength": 1,
                       "maxLength": 120
                     },
+                    "avatarUrl": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "source": {
                       "type": "string",
                       "enum": [
@@ -25088,6 +25106,7 @@
                   "required": [
                     "participantId",
                     "displayName",
+                    "avatarUrl",
                     "source",
                     "skillRating",
                     "attendanceStatus",
@@ -25553,6 +25572,12 @@
                             "minLength": 1,
                             "maxLength": 120
                           },
+                          "avatarUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
                           "source": {
                             "type": "string",
                             "enum": [
@@ -25609,6 +25634,7 @@
                         "required": [
                           "participantId",
                           "displayName",
+                          "avatarUrl",
                           "source",
                           "skillRating",
                           "attendanceStatus",
@@ -26095,6 +26121,12 @@
                       "minLength": 1,
                       "maxLength": 120
                     },
+                    "avatarUrl": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "source": {
                       "type": "string",
                       "enum": [
@@ -26151,6 +26183,7 @@
                   "required": [
                     "participantId",
                     "displayName",
+                    "avatarUrl",
                     "source",
                     "skillRating",
                     "attendanceStatus",
@@ -26650,6 +26683,12 @@
                           "minLength": 1,
                           "maxLength": 120
                         },
+                        "avatarUrl": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
                         "source": {
                           "type": "string",
                           "enum": [
@@ -26706,6 +26745,7 @@
                       "required": [
                         "participantId",
                         "displayName",
+                        "avatarUrl",
                         "source",
                         "skillRating",
                         "attendanceStatus",
@@ -27223,6 +27263,12 @@
                       "minLength": 1,
                       "maxLength": 120
                     },
+                    "avatarUrl": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "source": {
                       "type": "string",
                       "enum": [
@@ -27279,6 +27325,7 @@
                   "required": [
                     "participantId",
                     "displayName",
+                    "avatarUrl",
                     "source",
                     "skillRating",
                     "attendanceStatus",
@@ -28286,7 +28333,8 @@
                     "type": "string",
                     "enum": [
                       "hard",
-                      "soft"
+                      "soft",
+                      "avoid"
                     ]
                   },
                   "untilRound": {
@@ -28347,7 +28395,8 @@
                       "type": "string",
                       "enum": [
                         "hard",
-                        "soft"
+                        "soft",
+                        "avoid"
                       ]
                     },
                     "untilRound": {
@@ -28843,7 +28892,8 @@
                             "type": "string",
                             "enum": [
                               "hard",
-                              "soft"
+                              "soft",
+                              "avoid"
                             ]
                           },
                           "untilRound": {
@@ -34664,6 +34714,12 @@
                             "minLength": 1,
                             "maxLength": 120
                           },
+                          "avatarUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
                           "source": {
                             "type": "string",
                             "enum": [
@@ -34720,6 +34776,7 @@
                         "required": [
                           "participantId",
                           "displayName",
+                          "avatarUrl",
                           "source",
                           "skillRating",
                           "attendanceStatus",
@@ -34754,7 +34811,8 @@
                             "type": "string",
                             "enum": [
                               "hard",
-                              "soft"
+                              "soft",
+                              "avoid"
                             ]
                           },
                           "untilRound": {
@@ -37710,6 +37768,11 @@
                                 "type": "null"
                               }
                             ]
+                          },
+                          "regulars": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
                           }
                         },
                         "required": [
@@ -37726,7 +37789,8 @@
                           "defaultRoundMinutes",
                           "defaultDurationMinutes",
                           "lastStartedAt",
-                          "activeOccurrenceId"
+                          "activeOccurrenceId",
+                          "regulars"
                         ],
                         "additionalProperties": false
                       }
@@ -37741,6 +37805,986 @@
             }
           },
           "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "URN identifying the problem class, e.g. urn:buddyclub:problem:not-found"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "minimum": 400,
+                      "maximum": 599
+                    },
+                    "detail": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "UNAUTHENTICATED",
+                        "FORBIDDEN",
+                        "NOT_FOUND",
+                        "VALIDATION_FAILED",
+                        "CONFLICT",
+                        "VERSION_CONFLICT",
+                        "IDEMPOTENCY_CONFLICT",
+                        "RULE_UNSATISFIABLE",
+                        "COURT_CONFLICT",
+                        "PLAYER_CONFLICT",
+                        "INVALID_SCORE",
+                        "UNRESOLVED_TIE",
+                        "RATE_LIMITED",
+                        "NOT_IMPLEMENTED",
+                        "INTERNAL"
+                      ]
+                    },
+                    "correlationId": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "description": "JSON pointer-ish path to the offending field, e.g. body/displayName"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "title",
+                    "status",
+                    "code",
+                    "correlationId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sessions/{seriesId}/regulars": {
+      "get": {
+        "operationId": "listRegulars",
+        "summary": "People usually in this session; registered automatically when it starts",
+        "tags": [
+          "sessions"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "seriesId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "participantId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          },
+                          "avatarUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "participantId",
+                          "displayName",
+                          "avatarUrl"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "URN identifying the problem class, e.g. urn:buddyclub:problem:not-found"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "minimum": 400,
+                      "maximum": 599
+                    },
+                    "detail": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "UNAUTHENTICATED",
+                        "FORBIDDEN",
+                        "NOT_FOUND",
+                        "VALIDATION_FAILED",
+                        "CONFLICT",
+                        "VERSION_CONFLICT",
+                        "IDEMPOTENCY_CONFLICT",
+                        "RULE_UNSATISFIABLE",
+                        "COURT_CONFLICT",
+                        "PLAYER_CONFLICT",
+                        "INVALID_SCORE",
+                        "UNRESOLVED_TIE",
+                        "RATE_LIMITED",
+                        "NOT_IMPLEMENTED",
+                        "INTERNAL"
+                      ]
+                    },
+                    "correlationId": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "description": "JSON pointer-ish path to the offending field, e.g. body/displayName"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "title",
+                    "status",
+                    "code",
+                    "correlationId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "URN identifying the problem class, e.g. urn:buddyclub:problem:not-found"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "minimum": 400,
+                      "maximum": 599
+                    },
+                    "detail": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "UNAUTHENTICATED",
+                        "FORBIDDEN",
+                        "NOT_FOUND",
+                        "VALIDATION_FAILED",
+                        "CONFLICT",
+                        "VERSION_CONFLICT",
+                        "IDEMPOTENCY_CONFLICT",
+                        "RULE_UNSATISFIABLE",
+                        "COURT_CONFLICT",
+                        "PLAYER_CONFLICT",
+                        "INVALID_SCORE",
+                        "UNRESOLVED_TIE",
+                        "RATE_LIMITED",
+                        "NOT_IMPLEMENTED",
+                        "INTERNAL"
+                      ]
+                    },
+                    "correlationId": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "description": "JSON pointer-ish path to the offending field, e.g. body/displayName"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "title",
+                    "status",
+                    "code",
+                    "correlationId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "URN identifying the problem class, e.g. urn:buddyclub:problem:not-found"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "minimum": 400,
+                      "maximum": 599
+                    },
+                    "detail": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "UNAUTHENTICATED",
+                        "FORBIDDEN",
+                        "NOT_FOUND",
+                        "VALIDATION_FAILED",
+                        "CONFLICT",
+                        "VERSION_CONFLICT",
+                        "IDEMPOTENCY_CONFLICT",
+                        "RULE_UNSATISFIABLE",
+                        "COURT_CONFLICT",
+                        "PLAYER_CONFLICT",
+                        "INVALID_SCORE",
+                        "UNRESOLVED_TIE",
+                        "RATE_LIMITED",
+                        "NOT_IMPLEMENTED",
+                        "INTERNAL"
+                      ]
+                    },
+                    "correlationId": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "description": "JSON pointer-ish path to the offending field, e.g. body/displayName"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "title",
+                    "status",
+                    "code",
+                    "correlationId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "URN identifying the problem class, e.g. urn:buddyclub:problem:not-found"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "minimum": 400,
+                      "maximum": 599
+                    },
+                    "detail": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "UNAUTHENTICATED",
+                        "FORBIDDEN",
+                        "NOT_FOUND",
+                        "VALIDATION_FAILED",
+                        "CONFLICT",
+                        "VERSION_CONFLICT",
+                        "IDEMPOTENCY_CONFLICT",
+                        "RULE_UNSATISFIABLE",
+                        "COURT_CONFLICT",
+                        "PLAYER_CONFLICT",
+                        "INVALID_SCORE",
+                        "UNRESOLVED_TIE",
+                        "RATE_LIMITED",
+                        "NOT_IMPLEMENTED",
+                        "INTERNAL"
+                      ]
+                    },
+                    "correlationId": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "description": "JSON pointer-ish path to the offending field, e.g. body/displayName"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "title",
+                    "status",
+                    "code",
+                    "correlationId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "URN identifying the problem class, e.g. urn:buddyclub:problem:not-found"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "minimum": 400,
+                      "maximum": 599
+                    },
+                    "detail": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "UNAUTHENTICATED",
+                        "FORBIDDEN",
+                        "NOT_FOUND",
+                        "VALIDATION_FAILED",
+                        "CONFLICT",
+                        "VERSION_CONFLICT",
+                        "IDEMPOTENCY_CONFLICT",
+                        "RULE_UNSATISFIABLE",
+                        "COURT_CONFLICT",
+                        "PLAYER_CONFLICT",
+                        "INVALID_SCORE",
+                        "UNRESOLVED_TIE",
+                        "RATE_LIMITED",
+                        "NOT_IMPLEMENTED",
+                        "INTERNAL"
+                      ]
+                    },
+                    "correlationId": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "description": "JSON pointer-ish path to the offending field, e.g. body/displayName"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "title",
+                    "status",
+                    "code",
+                    "correlationId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "setRegulars",
+        "summary": "Replace the regulars of a session",
+        "tags": [
+          "sessions"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "participantIds": {
+                    "maxItems": 200,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  }
+                },
+                "required": [
+                  "participantIds"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "seriesId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "participantId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          },
+                          "avatarUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "participantId",
+                          "displayName",
+                          "avatarUrl"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "URN identifying the problem class, e.g. urn:buddyclub:problem:not-found"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "minimum": 400,
+                      "maximum": 599
+                    },
+                    "detail": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "UNAUTHENTICATED",
+                        "FORBIDDEN",
+                        "NOT_FOUND",
+                        "VALIDATION_FAILED",
+                        "CONFLICT",
+                        "VERSION_CONFLICT",
+                        "IDEMPOTENCY_CONFLICT",
+                        "RULE_UNSATISFIABLE",
+                        "COURT_CONFLICT",
+                        "PLAYER_CONFLICT",
+                        "INVALID_SCORE",
+                        "UNRESOLVED_TIE",
+                        "RATE_LIMITED",
+                        "NOT_IMPLEMENTED",
+                        "INTERNAL"
+                      ]
+                    },
+                    "correlationId": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "description": "JSON pointer-ish path to the offending field, e.g. body/displayName"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "title",
+                    "status",
+                    "code",
+                    "correlationId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "URN identifying the problem class, e.g. urn:buddyclub:problem:not-found"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "minimum": 400,
+                      "maximum": 599
+                    },
+                    "detail": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "UNAUTHENTICATED",
+                        "FORBIDDEN",
+                        "NOT_FOUND",
+                        "VALIDATION_FAILED",
+                        "CONFLICT",
+                        "VERSION_CONFLICT",
+                        "IDEMPOTENCY_CONFLICT",
+                        "RULE_UNSATISFIABLE",
+                        "COURT_CONFLICT",
+                        "PLAYER_CONFLICT",
+                        "INVALID_SCORE",
+                        "UNRESOLVED_TIE",
+                        "RATE_LIMITED",
+                        "NOT_IMPLEMENTED",
+                        "INTERNAL"
+                      ]
+                    },
+                    "correlationId": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "description": "JSON pointer-ish path to the offending field, e.g. body/displayName"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "title",
+                    "status",
+                    "code",
+                    "correlationId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "URN identifying the problem class, e.g. urn:buddyclub:problem:not-found"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "minimum": 400,
+                      "maximum": 599
+                    },
+                    "detail": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "UNAUTHENTICATED",
+                        "FORBIDDEN",
+                        "NOT_FOUND",
+                        "VALIDATION_FAILED",
+                        "CONFLICT",
+                        "VERSION_CONFLICT",
+                        "IDEMPOTENCY_CONFLICT",
+                        "RULE_UNSATISFIABLE",
+                        "COURT_CONFLICT",
+                        "PLAYER_CONFLICT",
+                        "INVALID_SCORE",
+                        "UNRESOLVED_TIE",
+                        "RATE_LIMITED",
+                        "NOT_IMPLEMENTED",
+                        "INTERNAL"
+                      ]
+                    },
+                    "correlationId": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "description": "JSON pointer-ish path to the offending field, e.g. body/displayName"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "title",
+                    "status",
+                    "code",
+                    "correlationId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "URN identifying the problem class, e.g. urn:buddyclub:problem:not-found"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "minimum": 400,
+                      "maximum": 599
+                    },
+                    "detail": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "UNAUTHENTICATED",
+                        "FORBIDDEN",
+                        "NOT_FOUND",
+                        "VALIDATION_FAILED",
+                        "CONFLICT",
+                        "VERSION_CONFLICT",
+                        "IDEMPOTENCY_CONFLICT",
+                        "RULE_UNSATISFIABLE",
+                        "COURT_CONFLICT",
+                        "PLAYER_CONFLICT",
+                        "INVALID_SCORE",
+                        "UNRESOLVED_TIE",
+                        "RATE_LIMITED",
+                        "NOT_IMPLEMENTED",
+                        "INTERNAL"
+                      ]
+                    },
+                    "correlationId": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "description": "JSON pointer-ish path to the offending field, e.g. body/displayName"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "title",
+                    "status",
+                    "code",
+                    "correlationId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
             "description": "Default Response",
             "content": {
               "application/json": {

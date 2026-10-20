@@ -63,9 +63,10 @@ export class PgIdentityRepository implements IdentityRepository {
   }
 
   async updateProfile(profileId: string, input: UpdateProfileInput): Promise<UserProfileRecord> {
-    const patch: { display_name?: string; locale?: string } = {};
+    const patch: { display_name?: string; locale?: string; avatar_url?: string | null } = {};
     if (input.displayName !== undefined) patch.display_name = input.displayName;
     if (input.locale !== undefined) patch.locale = input.locale;
+    if (input.avatarUrl !== undefined) patch.avatar_url = input.avatarUrl;
     const row = await this.db
       .updateTable('identity.user_profiles')
       .set(patch)

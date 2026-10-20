@@ -1,18 +1,30 @@
 import type { Metadata, Viewport } from 'next';
-import { Poppins } from 'next/font/google';
+import { Barlow_Condensed, Poppins } from 'next/font/google';
 import { headers } from 'next/headers';
 import type { ReactNode } from 'react';
 import { PRODUCTS } from '../lib/brand';
 import type { Product } from '../lib/env';
+import type { Theme } from '../lib/theme';
 import { readTheme } from '../lib/theme-server';
 import './globals.css';
 
+const barlow = Barlow_Condensed({
+  subsets: ['latin'],
+  weight: ['600', '700', '800'],
+  variable: '--font-barlow',
+  display: 'swap',
+});
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],
   variable: '--font-poppins',
   display: 'swap',
 });
+
+/** Rally is night-court dark unless the person chose otherwise; Buddy Club follows the device. */
+function effectiveTheme(product: Product, chosen: Theme): Theme {
+  return chosen === 'system' && product === 'rally' ? 'dark' : chosen;
+}
 
 async function currentProduct(): Promise<Product> {
   const value = (await headers()).get('x-buddyclub-product');
@@ -38,7 +50,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export async function generateViewport(): Promise<Viewport> {
-  const [product, theme] = await Promise.all([currentProduct(), readTheme()]);
+  const [product, chosen] = await Promise.all([currentProduct(), readTheme()]);
+  const theme = effectiveTheme(product, chosen);
   const brand = PRODUCTS[product];
   const themeColor =
     theme === 'system'
@@ -58,13 +71,14 @@ export async function generateViewport(): Promise<Viewport> {
 }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const [product, theme] = await Promise.all([currentProduct(), readTheme()]);
+  const [product, chosen] = await Promise.all([currentProduct(), readTheme()]);
+  const theme = effectiveTheme(product, chosen);
   return (
     <html
       lang="en-GB"
       data-product={product}
       {...(theme === 'system' ? {} : { 'data-theme': theme })}
-      className={poppins.variable}
+      className={`${poppins.variable} ${barlow.variable}`}
     >
       <body className="min-h-dvh antialiased">{children}</body>
     </html>

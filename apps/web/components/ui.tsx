@@ -404,13 +404,33 @@ export function StateBadge({ state }: { state: string }) {
   );
 }
 
-export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
+export function Avatar({
+  name,
+  size = 40,
+  src,
+}: {
+  name: string;
+  size?: number;
+  /** Profile photo; initials when absent. */
+  src?: string | null | undefined;
+}) {
   const initials = name
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase() ?? '')
     .join('');
+  if (src)
+    return (
+      <img
+        src={src}
+        alt=""
+        width={size}
+        height={size}
+        className="shrink-0 rounded-full object-cover"
+        style={{ width: size, height: size }}
+      />
+    );
   return (
     <span
       aria-hidden
