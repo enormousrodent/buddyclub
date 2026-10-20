@@ -1,5 +1,11 @@
 # Design system: Buddy Club and Rally
 
+> **Palette update 2026-10-20.** The owner chose "White with Cobalt and Coral" from the colour
+> studies (canvas "Buddy Club palettes"): white ground, cobalt #1D4FC4 actions, coral #FF6B57 as
+> the decorative highlight, lime #D9F74D for live, navy #141E33 ink and night. Colour values in the
+> sections below describe the original paper-and-forest palette; the current tokens are in
+> `tokens.json` 2.0.0 and `apps/web/app/globals.css`. Everything else on this page still applies.
+
 **Status:** First pass, 2026-10-19. Canvas with directions, screens and states:
 <https://claude.ai/artifact/X91kJW7YfYuU5SzL6nzxrZ> (private until shared). Decision record: ADR-015.
 Tokens: [`tokens.json`](tokens.json). Implementation: `apps/web/app/globals.css`,

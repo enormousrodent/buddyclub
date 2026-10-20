@@ -623,7 +623,7 @@ export default async function MeetPage({
               {standings.divisions
                 .filter((d) => d.rows.length)
                 .map((d) => (
-                  <Card key={d.divisionId} className="mb-3 overflow-x-auto">
+                  <Card key={d.divisionId} className="scroll-x mb-3">
                     <div className="mb-1 flex items-center justify-between">
                       <h3 className="font-semibold">{d.divisionName}</h3>
                       <Muted>

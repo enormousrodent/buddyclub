@@ -1,14 +1,15 @@
 @import 'tailwindcss';
 
 /*
- * Design tokens: "Paper & Path" (docs/design/README.md, ADR-015).
- * Shared ground, ink and type for both products; the accent switches per product via
- * [data-product] on <html>, set by the root layout from the request hostname.
+ * Design tokens: "Paper & Path" layout and type with the "White with Cobalt and Coral" palette
+ * (docs/design/README.md, ADR-015, owner decision 2026-10-20). Shared ground, ink and type for
+ * both products; the accent switches per product via [data-product] on <html>, set by the root
+ * layout from the request hostname.
  *
- * Themes: light is the default. The dark theme ("Clubhouse", direction C: deep forest, cream,
- * gold) applies when the system prefers dark and the user has not chosen light, or when the user
- * chose dark. The choice is stored in the `bc-theme` cookie and mirrored as [data-theme] on
- * <html> by the root layout, so the server renders the right theme with no flash.
+ * Themes: light is the default. The dark theme applies when the system prefers dark and the user
+ * has not chosen light, or when the user chose dark. The choice is stored in the `bc-theme`
+ * cookie and mirrored as [data-theme] on <html> by the root layout, so the server renders the
+ * right theme with no flash.
  *
  * Rules for screens: never pair a `bg-ink` surface with `text-night-*`. Use the `on-ink-*`
  * tokens, which flip with the theme. The `night-*` tokens are fixed dark values for the venue
@@ -17,53 +18,53 @@
 :root {
   color-scheme: light;
 
-  --bc-paper: #f6f3ec;
+  --bc-paper: #ffffff;
   --bc-surface: #ffffff;
-  --bc-surface-2: #efebe2;
-  --bc-hairline: #e3ded3;
-  --bc-hairline-strong: #c9c2b4;
-  --bc-ink: #172019;
-  --bc-ink-2: #3e4a42;
-  --bc-muted: #66716a;
+  --bc-surface-2: #f3f5fa;
+  --bc-hairline: #e3e7ef;
+  --bc-hairline-strong: #bfc7d6;
+  --bc-ink: #141e33;
+  --bc-ink-2: #33405c;
+  --bc-muted: #5d6a85;
 
-  --bc-primary: #1f5f43;
-  --bc-primary-strong: #174a34;
+  --bc-primary: #1d4fc4;
+  --bc-primary-strong: #163c96;
   --bc-primary-ink: #ffffff;
-  --bc-tint: #e3efe7;
-  --bc-tint-ink: #1f5f43;
-  --bc-highlight: #e7a33a;
+  --bc-tint: #e1eaff;
+  --bc-tint-ink: #163c96;
+  --bc-highlight: #ff6b57;
 
-  --bc-live: #c9f24a;
-  --bc-live-ink: #172019;
-  --bc-info: #e4eafb;
-  --bc-info-ink: #1b3fae;
+  --bc-live: #d9f74d;
+  --bc-live-ink: #141e33;
+  --bc-info: #ece6ff;
+  --bc-info-ink: #4b2aa6;
   --bc-warning: #fff1d6;
   --bc-warning-ink: #7a4d00;
   --bc-danger: #b3261e;
   --bc-danger-soft: #fbe9e7;
-  --bc-success: #e3efe7;
-  --bc-success-ink: #1f5f43;
+  --bc-success: #ddf5e6;
+  --bc-success-ink: #176a3b;
 
   /* Text and lines on an ink-coloured surface (player hero, ink cards, selected chips). */
-  --bc-on-ink: #f3f0e8;
-  --bc-on-ink-muted: #a9b5ad;
-  --bc-on-ink-hairline: #2e3d34;
-  --bc-on-ink-accent: #c9f24a;
+  --bc-on-ink: #f6f8ff;
+  --bc-on-ink-muted: #a9b5d1;
+  --bc-on-ink-hairline: #34436a;
+  --bc-on-ink-accent: #d9f74d;
 
   /* Fixed night palette for the venue board; identical in both themes. */
-  --bc-night: #0f1a14;
-  --bc-night-surface: #16241c;
-  --bc-night-hairline: #2e3d34;
-  --bc-night-ink: #f3f0e8;
-  --bc-night-muted: #a9b5ad;
+  --bc-night: #141e33;
+  --bc-night-surface: #1e2b47;
+  --bc-night-hairline: #34436a;
+  --bc-night-ink: #f6f8ff;
+  --bc-night-muted: #a9b5d1;
 
   /* Decorative swatches for covers and tiles; never carry text that must pass contrast. */
-  --bc-swatch-1: #cfd9cc;
-  --bc-swatch-2: #e6d9c4;
-  --bc-swatch-3: #e4eafb;
-  --bc-swatch-4: #fbefd9;
-  --bc-swatch-5: #e6edd6;
-  --bc-swatch-6: #f3e6d2;
+  --bc-swatch-1: #d6f5e3;
+  --bc-swatch-2: #ffe0d6;
+  --bc-swatch-3: #dcebff;
+  --bc-swatch-4: #fff1b3;
+  --bc-swatch-5: #e9f7d2;
+  --bc-swatch-6: #f0e2ff;
 
   /* Rally's brand blue where it appears inside Buddy Club ("Powered by Rally"). */
   --bc-brand-rally: #2350d6;
@@ -71,8 +72,8 @@
   --bc-radius-control: 12px;
   --bc-radius-card: 16px;
   --bc-radius-sheet: 24px;
-  --bc-shadow-raised: 0 1px 2px rgba(23, 32, 25, 0.06), 0 4px 12px rgba(23, 32, 25, 0.06);
-  --bc-shadow-sheet: 0 12px 32px rgba(23, 32, 25, 0.14);
+  --bc-shadow-raised: 0 1px 2px rgba(20, 30, 51, 0.06), 0 4px 12px rgba(20, 30, 51, 0.06);
+  --bc-shadow-sheet: 0 12px 32px rgba(20, 30, 51, 0.14);
 
   /* Legacy aliases kept so untouched screens keep rendering. */
   --bc-bg: var(--bc-paper);
@@ -84,121 +85,121 @@
   --bc-primary-strong: #1b3fae;
   --bc-tint: #e4eafb;
   --bc-tint-ink: #1b3fae;
-  --bc-highlight: #c9f24a;
+  --bc-highlight: #d9f74d;
 }
 
 /*
- * Dark theme, "Clubhouse". Deep forest ground, cream ink, gold highlight. Accents are lifted so
- * they pass 4.5:1 as text on the ground and take dark ink as buttons.
+ * Dark theme. Navy ground, cool white ink, lifted cobalt and coral so they pass 4.5:1 as text on
+ * the ground and take dark ink as buttons.
  */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
 
-    --bc-paper: #0f1a14;
-    --bc-surface: #16241c;
-    --bc-surface-2: #1e2f25;
-    --bc-hairline: #2a3b31;
-    --bc-hairline-strong: #4a5e52;
-    --bc-ink: #f3f0e8;
-    --bc-ink-2: #cdd5cf;
-    --bc-muted: #9db0a3;
+    --bc-paper: #0f1729;
+    --bc-surface: #141e33;
+    --bc-surface-2: #1e2b47;
+    --bc-hairline: #2b3a5c;
+    --bc-hairline-strong: #4b5b82;
+    --bc-ink: #f6f8ff;
+    --bc-ink-2: #cbd3e6;
+    --bc-muted: #a3afcb;
 
-    --bc-primary: #5cbd87;
-    --bc-primary-strong: #78cf9f;
-    --bc-primary-ink: #0f1a14;
-    --bc-tint: #1d3729;
-    --bc-tint-ink: #a9e2c1;
-    --bc-highlight: #e7a33a;
+    --bc-primary: #8fb0ff;
+    --bc-primary-strong: #a9c2ff;
+    --bc-primary-ink: #0f1729;
+    --bc-tint: #1c2a52;
+    --bc-tint-ink: #bccbff;
+    --bc-highlight: #ff8a78;
 
-    --bc-info: #1c2a4f;
-    --bc-info-ink: #bccbff;
+    --bc-info: #2a1f5c;
+    --bc-info-ink: #cdbfff;
     --bc-warning: #3a2c0f;
     --bc-warning-ink: #f3cd7a;
     --bc-danger: #ff8f85;
     --bc-danger-soft: #3b1b19;
-    --bc-success: #1d3729;
+    --bc-success: #163a2a;
     --bc-success-ink: #a9e2c1;
 
-    --bc-on-ink: #0f1a14;
-    --bc-on-ink-muted: #55655b;
-    --bc-on-ink-hairline: #d6d0c2;
-    --bc-on-ink-accent: #7a4d00;
+    --bc-on-ink: #0f1729;
+    --bc-on-ink-muted: #4b5b82;
+    --bc-on-ink-hairline: #cbd3e6;
+    --bc-on-ink-accent: #b2371f;
 
-    --bc-swatch-1: #243a2e;
-    --bc-swatch-2: #3a3222;
-    --bc-swatch-3: #1f2b4a;
-    --bc-swatch-4: #3b2f16;
+    --bc-swatch-1: #1e3a2e;
+    --bc-swatch-2: #3b2a24;
+    --bc-swatch-3: #1c2a52;
+    --bc-swatch-4: #3b3416;
     --bc-swatch-5: #2b3a22;
-    --bc-swatch-6: #3a2e1e;
+    --bc-swatch-6: #2e2447;
 
-    --bc-brand-rally: #7b9dff;
+    --bc-brand-rally: #8fb0ff;
 
     --bc-shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35);
     --bc-shadow-sheet: 0 12px 32px rgba(0, 0, 0, 0.6);
   }
 
   :root:not([data-theme='light'])[data-product='rally'] {
-    --bc-primary: #7b9dff;
-    --bc-primary-strong: #97b2ff;
-    --bc-tint: #1c2a4f;
+    --bc-primary: #8fb0ff;
+    --bc-primary-strong: #a9c2ff;
+    --bc-tint: #1c2a52;
     --bc-tint-ink: #bccbff;
-    --bc-highlight: #c9f24a;
+    --bc-highlight: #d9f74d;
   }
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --bc-paper: #0f1a14;
-  --bc-surface: #16241c;
-  --bc-surface-2: #1e2f25;
-  --bc-hairline: #2a3b31;
-  --bc-hairline-strong: #4a5e52;
-  --bc-ink: #f3f0e8;
-  --bc-ink-2: #cdd5cf;
-  --bc-muted: #9db0a3;
+  --bc-paper: #0f1729;
+  --bc-surface: #141e33;
+  --bc-surface-2: #1e2b47;
+  --bc-hairline: #2b3a5c;
+  --bc-hairline-strong: #4b5b82;
+  --bc-ink: #f6f8ff;
+  --bc-ink-2: #cbd3e6;
+  --bc-muted: #a3afcb;
 
-  --bc-primary: #5cbd87;
-  --bc-primary-strong: #78cf9f;
-  --bc-primary-ink: #0f1a14;
-  --bc-tint: #1d3729;
-  --bc-tint-ink: #a9e2c1;
-  --bc-highlight: #e7a33a;
+  --bc-primary: #8fb0ff;
+  --bc-primary-strong: #a9c2ff;
+  --bc-primary-ink: #0f1729;
+  --bc-tint: #1c2a52;
+  --bc-tint-ink: #bccbff;
+  --bc-highlight: #ff8a78;
 
-  --bc-info: #1c2a4f;
-  --bc-info-ink: #bccbff;
+  --bc-info: #2a1f5c;
+  --bc-info-ink: #cdbfff;
   --bc-warning: #3a2c0f;
   --bc-warning-ink: #f3cd7a;
   --bc-danger: #ff8f85;
   --bc-danger-soft: #3b1b19;
-  --bc-success: #1d3729;
+  --bc-success: #163a2a;
   --bc-success-ink: #a9e2c1;
 
-  --bc-on-ink: #0f1a14;
-  --bc-on-ink-muted: #55655b;
-  --bc-on-ink-hairline: #d6d0c2;
-  --bc-on-ink-accent: #7a4d00;
+  --bc-on-ink: #0f1729;
+  --bc-on-ink-muted: #4b5b82;
+  --bc-on-ink-hairline: #cbd3e6;
+  --bc-on-ink-accent: #b2371f;
 
-  --bc-swatch-1: #243a2e;
-  --bc-swatch-2: #3a3222;
-  --bc-swatch-3: #1f2b4a;
-  --bc-swatch-4: #3b2f16;
+  --bc-swatch-1: #1e3a2e;
+  --bc-swatch-2: #3b2a24;
+  --bc-swatch-3: #1c2a52;
+  --bc-swatch-4: #3b3416;
   --bc-swatch-5: #2b3a22;
-  --bc-swatch-6: #3a2e1e;
+  --bc-swatch-6: #2e2447;
 
-  --bc-brand-rally: #7b9dff;
+  --bc-brand-rally: #8fb0ff;
 
   --bc-shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35);
   --bc-shadow-sheet: 0 12px 32px rgba(0, 0, 0, 0.6);
 }
 
 :root[data-theme='dark'][data-product='rally'] {
-  --bc-primary: #7b9dff;
-  --bc-primary-strong: #97b2ff;
-  --bc-tint: #1c2a4f;
+  --bc-primary: #8fb0ff;
+  --bc-primary-strong: #a9c2ff;
+  --bc-tint: #1c2a52;
   --bc-tint-ink: #bccbff;
-  --bc-highlight: #c9f24a;
+  --bc-highlight: #d9f74d;
 }
 
 @theme inline {
@@ -267,6 +268,228 @@ body {
 
 .tnum {
   font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Horizontal rows. `.scroll-hide` swipes with no scrollbar (chips, segmented controls);
+ * `.scroll-row` does the same on phones and wraps instead on wider screens, so desktop never
+ * shows a scrollbar for a row of chips. `.scroll-x` is for genuinely wide content (tables): it
+ * keeps a scrollbar, drawn thin and in the theme's hairline colour.
+ */
+.scroll-hide,
+.scroll-row {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-type: x proximity;
+}
+.scroll-hide::-webkit-scrollbar,
+.scroll-row::-webkit-scrollbar {
+  display: none;
+}
+.scroll-hide > *,
+.scroll-row > * {
+  scroll-snap-align: start;
+}
+@media (min-width: 640px) {
+  .scroll-row {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
+.scroll-x {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bc-hairline-strong) transparent;
+}
+.scroll-x::-webkit-scrollbar {
+  height: 8px;
+}
+.scroll-x::-webkit-scrollbar-thumb {
+  background: var(--bc-hairline-strong);
+  border-radius: 999px;
+}
+.scroll-x::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/*
+ * Marketing hero motion. `.rise` is a one-shot entrance; `.ribbon` glides left to right and
+ * pauses under the pointer or keyboard focus. Both stop under prefers-reduced-motion, and the
+ * ribbon then wraps as a static row with its duplicate copy hidden.
+ */
+.rise {
+  animation: bc-rise 0.6s ease-out both;
+}
+@keyframes bc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ribbon {
+  display: flex;
+  width: max-content;
+  animation: bc-ribbon 60s linear infinite;
+  will-change: transform;
+}
+.ribbon-copy {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding-right: 12px;
+}
+.ribbon-wrap:hover .ribbon,
+.ribbon-wrap:focus-within .ribbon {
+  animation-play-state: paused;
+}
+@keyframes bc-ribbon {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.search-pill {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0;
+  padding: 8px 8px 8px 24px;
+  background: var(--bc-surface);
+  border: 1.5px solid var(--bc-hairline);
+  border-radius: 999px;
+  box-shadow: var(--bc-shadow-sheet);
+}
+.search-pill:focus-within {
+  border-color: var(--bc-primary);
+}
+.search-pill-divider {
+  width: 1px;
+  height: 36px;
+  margin: 0 20px;
+  background: var(--bc-hairline);
+}
+@media (max-width: 639px) {
+  .search-pill {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 14px;
+    border-radius: 24px;
+  }
+  .search-pill-divider {
+    display: none;
+  }
+  .search-pill > button {
+    width: 100%;
+    border-radius: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+  .ribbon {
+    animation: none;
+    width: auto;
+  }
+  .ribbon-copy {
+    flex-wrap: wrap;
+  }
+  .ribbon-copy[aria-hidden='true'] {
+    display: none;
+  }
+}
+
+/*
+ * Interest mosaic. Each row is a flex strip; a tile's share at rest is its `--w`. Pointing at a
+ * tile grows it and its neighbours give way; the hidden "see more" line fades in. Touch screens
+ * (no hover) and reduced motion get the resting layout with no movement.
+ */
+.mosaic-row {
+  display: flex;
+  gap: 12px;
+}
+.mosaic-tile {
+  flex: var(--w, 1) 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4px;
+  min-height: 150px;
+  padding: 16px;
+  border-radius: 16px;
+  text-decoration: none;
+  overflow: hidden;
+  transition:
+    flex-grow 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.mosaic-label {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mosaic-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.35s ease-out 0.1s,
+    transform 0.35s ease-out 0.1s,
+    max-height 0.35s ease-out;
+}
+@media (hover: hover) {
+  .mosaic-row:hover .mosaic-tile,
+  .mosaic-row:focus-within .mosaic-tile {
+    flex-grow: 1;
+  }
+  .mosaic-row .mosaic-tile:hover,
+  .mosaic-row .mosaic-tile:focus-visible {
+    flex-grow: 3.2;
+  }
+  .mosaic-tile:hover .mosaic-more,
+  .mosaic-tile:focus-visible .mosaic-more {
+    opacity: 1;
+    max-height: 24px;
+    transform: none;
+  }
+}
+@media (max-width: 639px) {
+  .mosaic-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mosaic-tile {
+    min-height: 110px;
+    padding: 12px;
+  }
+  .mosaic-label {
+    font-size: 19px;
+    white-space: normal;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mosaic-tile,
+  .mosaic-more {
+    transition: none;
+  }
 }
 
 /* Native controls follow the theme; keep the focus ring visible and on-brand. */

@@ -51,7 +51,7 @@ export function InterestChips({
     </Link>
   );
   return (
-    <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
+    <div className="scroll-row -mx-5 flex gap-2 px-5 pb-1 sm:mx-0 sm:px-0">
       {chip('All', !current, href())}
       {interests.map((i) => chip(i.name, current === i.id, href(i.id)))}
     </div>

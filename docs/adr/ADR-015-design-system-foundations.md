@@ -38,6 +38,17 @@ Three directions were drawn and compared on a shared canvas (docs/design/README.
    rendered by the root layout as `html[data-theme]`, so there is no flash. New `on-ink-*`
    tokens replace `night-*` on ink surfaces; `night-*` remains fixed for the venue board.
 
+## Amendment 2026-10-20: palette "White with Cobalt and Coral"
+
+After colour studies on the chosen homepage (canvas "Buddy Club palettes"), the owner replaced the
+paper-and-forest palette with a white ground, cobalt actions, coral as the decorative highlight
+and lime for live. Layout, type, radii, spacing, the component contract and the theme mechanism are
+unchanged; only token values moved (`docs/design/tokens.json` 2.0.0, `globals.css`). Buddy Club
+and Rally now share a blue family (cobalt #1D4FC4 and court blue #2350D6), which ties the products
+together on purpose; the Rally mark keeps its own blue. The dark theme is navy rather than forest.
+The brand marks and PWA icons were regenerated in the new colours. Every text pair was checked at
+4.5:1 or better in both themes.
+
 ## Consequences
 
 - No API, schema or policy changes. Two web routes were added (`/sessions`, `/start`) that wrap

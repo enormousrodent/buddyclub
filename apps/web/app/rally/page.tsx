@@ -197,7 +197,7 @@ export default async function RallyHomePage() {
           >
             Presets
           </SectionHeading>
-          <div className="-mx-5 flex gap-2.5 overflow-x-auto px-5 pb-1">
+          <div className="scroll-row -mx-5 flex gap-2.5 px-5 pb-1 sm:mx-0 sm:px-0">
             {presets.items.map((p) => (
               <PresetCard key={p.seriesId} p={p} />
             ))}

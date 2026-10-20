@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { BuddyClubMark, RallyMark } from './brand';
 import { MyCourtHero } from './court';
 import { ActivityCard } from './discover';
-import { Button, Icon, Input, LinkButton } from './ui';
+import { Icon, LinkButton } from './ui';
 
 /*
  * Signed-out marketing pages (docs/design: "Buddy Club homepage" canvas, direction A with B's
@@ -23,18 +23,82 @@ function Eyebrow({ children, className = '' }: { children: ReactNode; className?
   );
 }
 
-const INTEREST_WORDS: { id: string; label: string; swatch: number; wide?: boolean }[] = [
-  { id: 'books', label: 'Books', swatch: 4, wide: true },
-  { id: 'dog_walking', label: 'Dog walking', swatch: 2 },
-  { id: 'running', label: 'Running', swatch: 5 },
-  { id: 'parent_toddler', label: 'Parent and toddler', swatch: 6 },
-  { id: 'board_games', label: 'Board games', swatch: 3 },
-  { id: 'walking', label: 'Walking and hiking', swatch: 1, wide: true },
-  { id: 'wellbeing', label: 'Wellbeing', swatch: 5 },
-  { id: 'food_drink', label: 'Food and drink', swatch: 4 },
-  { id: 'arts_crafts', label: 'Arts and crafts', swatch: 2 },
+/** Interest mosaic, in rows. `weight` is the tile's share of its row at rest. */
+const MOSAIC_ROWS: { id: string; label: string; swatch: number; weight: number }[][] = [
+  [
+    { id: 'books', label: 'Books', swatch: 4, weight: 2 },
+    { id: 'dog_walking', label: 'Dog walking', swatch: 2, weight: 1 },
+    { id: 'running', label: 'Running', swatch: 5, weight: 1 },
+  ],
+  [
+    { id: 'parent_toddler', label: 'Parent and toddler', swatch: 6, weight: 1 },
+    { id: 'board_games', label: 'Board games', swatch: 3, weight: 1 },
+    { id: 'walking', label: 'Walking and hiking', swatch: 1, weight: 2 },
+  ],
+  [
+    { id: 'wellbeing', label: 'Wellbeing', swatch: 5, weight: 1 },
+    { id: 'food_drink', label: 'Food and drink', swatch: 4, weight: 1 },
+    { id: 'arts_crafts', label: 'Arts and crafts', swatch: 2, weight: 1 },
+    { id: 'racket_sports', label: 'Racket sports', swatch: 0, weight: 1 },
+  ],
 ];
 
+/** Tile sizes for the interest ribbon, cycled so the row has a skyline rather than a grid. */
+const RIBBON_SHAPES: { h: number; w: number; swatch: number }[] = [
+  { h: 120, w: 200, swatch: 4 },
+  { h: 96, w: 170, swatch: 2 },
+  { h: 140, w: 150, swatch: 5 },
+  { h: 104, w: 220, swatch: 6 },
+  { h: 124, w: 170, swatch: 3 },
+  { h: 96, w: 160, swatch: 1 },
+  { h: 110, w: 180, swatch: 2 },
+  { h: 92, w: 160, swatch: 4 },
+];
+
+function RibbonTiles({
+  interests,
+  hidden = false,
+}: {
+  interests: DiscoverResult['interests'];
+  hidden?: boolean;
+}) {
+  return (
+    <div className="ribbon-copy" aria-hidden={hidden || undefined}>
+      {interests.map((i, n) => {
+        const shape = RIBBON_SHAPES[n % RIBBON_SHAPES.length]!;
+        const rally = i.id === 'racket_sports';
+        return (
+          <Link
+            key={i.id}
+            href={rally ? '/rally' : `/explore?interest=${encodeURIComponent(i.id)}`}
+            tabIndex={hidden ? -1 : undefined}
+            className={`flex shrink-0 flex-col items-start justify-end gap-0.5 rounded-[14px] p-3 font-display text-[20px] font-bold leading-tight transition hover:-translate-y-1 ${
+              rally ? 'bg-ink text-on-ink' : 'text-ink'
+            }`}
+            style={{
+              height: shape.h,
+              width: shape.w,
+              ...(rally ? {} : { background: `var(--bc-swatch-${shape.swatch})` }),
+            }}
+          >
+            {i.name}
+            {rally ? (
+              <span className="font-sans text-[12px] font-semibold text-on-ink-accent">
+                with Rally
+              </span>
+            ) : null}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * Hero: centred display headline, one search pill, and a ribbon of interest tiles that glides
+ * along by itself (pauses on hover or focus; static and wrapped when the visitor prefers reduced
+ * motion).
+ */
 export function LandingHero({
   interests,
   locality,
@@ -42,55 +106,79 @@ export function LandingHero({
   interests: DiscoverResult['interests'];
   locality?: string | undefined;
 }) {
+  const ribbon = interests.filter((i) => i.id !== 'other' && i.id !== 'sports');
   return (
-    <section className="pb-10 pt-12 sm:pt-20">
-      <div className="flex max-w-3xl flex-col gap-5">
-        <Eyebrow>Groups and gatherings near you</Eyebrow>
-        <h1 className="font-display text-[44px] font-extrabold leading-[1.02] sm:text-[64px]">
-          Find your people. Then actually go.
+    <section className="pb-8 pt-12 sm:pt-20">
+      <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 text-center">
+        <Eyebrow className="rise">Bring a buddy, or find one</Eyebrow>
+        <h1
+          className="rise font-display text-[48px] font-extrabold leading-[0.98] tracking-[-0.04em] sm:text-[88px] lg:text-[104px]"
+          style={{ animationDelay: '80ms' }}
+        >
+          Find your thing.
+          <br />
+          <span className="text-primary">Find your people.</span>
         </h1>
-        <p className="max-w-xl text-lg leading-7 text-ink-2 sm:text-xl">
-          Book clubs, dog walks, toddler mornings, badminton nights. Real groups in your town, each
-          with a place, a time and a button that says you&apos;re going.
+        <p
+          className="rise max-w-2xl text-lg leading-7 text-ink-2 sm:text-xl"
+          style={{ animationDelay: '160ms' }}
+        >
+          <span className="font-semibold text-ink">
+            Less &ldquo;we should do that sometime&rdquo;. More Tuesday at 7.
+          </span>{' '}
+          Real groups near you, each with a place, a time and a button that says you&apos;re going.
         </p>
-      </div>
-      <form
-        method="get"
-        action="/explore"
-        className="mt-8 grid gap-2.5 rounded-card border border-hairline bg-surface p-2.5 shadow-raised sm:grid-cols-[1.4fr_1fr_auto]"
-      >
-        <label className="flex min-w-0 flex-col gap-1">
-          <span className="pl-1 text-[11px] font-bold uppercase tracking-[0.06em] text-muted">
-            What do you fancy?
-          </span>
-          <Input id="landing-q" name="q" placeholder="Books, dogs, running, badminton…" />
-        </label>
-        <label className="flex min-w-0 flex-col gap-1">
-          <span className="pl-1 text-[11px] font-bold uppercase tracking-[0.06em] text-muted">
-            Where?
-          </span>
-          <Input
-            id="landing-locality"
-            name="locality"
-            defaultValue={locality ?? ''}
-            placeholder="Town or area"
-          />
-        </label>
-        <Button type="submit" className="self-end sm:min-h-12 sm:px-6">
-          Show me
-        </Button>
-      </form>
-      <div className="-mx-5 mt-4 flex gap-2 overflow-x-auto px-5 pb-1">
-        {interests.slice(0, 10).map((i) => (
-          <Link
-            key={i.id}
-            href={`/explore?interest=${encodeURIComponent(i.id)}`}
-            className="inline-flex h-9 shrink-0 items-center rounded-full border border-hairline bg-surface px-3.5 text-[13px] font-semibold text-ink hover:bg-surface-2"
+        <form
+          method="get"
+          action="/explore"
+          className="rise search-pill w-full max-w-3xl"
+          style={{ animationDelay: '240ms' }}
+        >
+          <label className="flex min-w-0 flex-col gap-0.5 text-left">
+            <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-muted">
+              What
+            </span>
+            <input
+              id="landing-q"
+              name="q"
+              placeholder="Books, dogs, running, badminton…"
+              className="min-w-0 bg-transparent text-[17px] text-ink outline-none placeholder:text-muted"
+            />
+          </label>
+          <span className="search-pill-divider" aria-hidden />
+          <label className="flex min-w-0 flex-col gap-0.5 text-left">
+            <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-muted">
+              Where
+            </span>
+            <input
+              id="landing-locality"
+              name="locality"
+              defaultValue={locality ?? ''}
+              placeholder="Town or area"
+              className="min-w-0 bg-transparent text-[17px] text-ink outline-none placeholder:text-muted"
+            />
+          </label>
+          <button
+            type="submit"
+            aria-label="Show me what's on"
+            className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary text-primary-ink transition hover:bg-primary-strong sm:ml-3"
           >
-            {i.name}
-          </Link>
-        ))}
+            <Icon name="chevron" size={26} />
+          </button>
+        </form>
       </div>
+      <div
+        className="ribbon-wrap rise -mx-5 mt-10 overflow-hidden"
+        style={{ animationDelay: '320ms' }}
+      >
+        <div className="ribbon items-end">
+          <RibbonTiles interests={ribbon} />
+          <RibbonTiles interests={ribbon} hidden />
+        </div>
+      </div>
+      <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.06em] text-muted">
+        No sport required. Tap anything to see what&apos;s on.
+      </p>
     </section>
   );
 }
@@ -175,30 +263,35 @@ export function InterestMosaic() {
       <Wide className="py-14">
         <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3">
           <h2 className="font-display text-[32px] font-extrabold leading-tight sm:text-[40px]">
-            No sport required.
+            One club. Everyone in.
           </h2>
-          <Eyebrow>Though sport is very welcome</Eyebrow>
+          <Eyebrow>No sport required</Eyebrow>
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {INTEREST_WORDS.map((w) => (
-            <Link
-              key={w.id}
-              href={`/explore?interest=${w.id}`}
-              className={`flex min-h-[120px] items-end rounded-card p-4 font-display text-[22px] font-bold text-ink sm:min-h-[150px] sm:text-[26px] ${
-                w.wide ? 'sm:col-span-2 sm:text-[32px]' : ''
-              }`}
-              style={{ background: `var(--bc-swatch-${w.swatch})` }}
-            >
-              {w.label}
-            </Link>
+        <div className="flex flex-col gap-3">
+          {MOSAIC_ROWS.map((row, r) => (
+            <div key={r} className="mosaic-row">
+              {row.map((t) => {
+                const rally = t.id === 'racket_sports';
+                return (
+                  <Link
+                    key={t.id}
+                    href={rally ? '/rally' : `/explore?interest=${t.id}`}
+                    className={`mosaic-tile ${rally ? 'bg-ink text-on-ink' : 'text-ink'}`}
+                    style={{
+                      ['--w' as string]: t.weight,
+                      ...(rally ? {} : { background: `var(--bc-swatch-${t.swatch})` }),
+                    }}
+                  >
+                    <span className="mosaic-label font-display">{t.label}</span>
+                    <span className="mosaic-more">
+                      {rally ? 'Run by Rally' : 'See groups and gatherings'}
+                      <Icon name="chevron" size={16} />
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
           ))}
-          <Link
-            href="/rally"
-            className="flex min-h-[120px] flex-col justify-end gap-1 rounded-card bg-night p-4 font-display text-[22px] font-bold text-night-ink sm:min-h-[150px] sm:text-[26px]"
-          >
-            Racket sports
-            <span className="font-sans text-[13px] font-semibold text-live">with Rally</span>
-          </Link>
         </div>
       </Wide>
     </section>
@@ -284,7 +377,7 @@ export function RallyBand({ rallyUrl }: { rallyUrl: string }) {
         <div className="grid items-center gap-10 md:grid-cols-2">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2.5">
-              <RallyMark size={28} color="#7b9dff" ball="#c9f24a" />
+              <RallyMark size={28} color="#8fb0ff" ball="#d9f74d" />
               <span className="font-display text-[22px] font-bold">Rally</span>
               <span className="text-[13px] text-night-muted">by Buddy Club</span>
             </div>
@@ -418,7 +511,7 @@ export function RallyLanding({ rallyUrl }: { rallyUrl: string }) {
           <div className="grid items-center gap-10 md:grid-cols-2">
             <div className="flex flex-col gap-5">
               <div className="flex items-center gap-2.5">
-                <RallyMark size={32} color="#7b9dff" ball="#c9f24a" />
+                <RallyMark size={32} color="#8fb0ff" ball="#d9f74d" />
                 <span className="font-display text-[26px] font-bold">Rally</span>
                 <span className="text-[13px] text-night-muted">by Buddy Club</span>
               </div>

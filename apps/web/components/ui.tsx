@@ -475,7 +475,7 @@ export function Tabs({
   current: string;
 }) {
   return (
-    <nav className="mb-4 flex gap-1 overflow-x-auto rounded-control bg-surface-2 p-1 text-sm">
+    <nav className="scroll-hide mb-4 flex gap-1 rounded-control bg-surface-2 p-1 text-sm">
       {items.map((item) => {
         const active = current === item.href;
         return (

@@ -98,16 +98,16 @@ export function Lockup({ product, size = 28 }: { product: Product; size?: number
 
 /** App-icon tile used on sign-in and empty states. */
 export function IconTile({ product, size = 72 }: { product: Product; size?: number }) {
-  const bg = product === 'rally' ? '#2350d6' : '#1f5f43';
+  const bg = product === 'rally' ? '#2350d6' : '#1d4fc4';
   return (
     <span
       className="inline-flex items-center justify-center"
       style={{ width: size, height: size, borderRadius: size / 4, background: bg }}
     >
       {product === 'rally' ? (
-        <RallyMark size={size * 0.62} color="#f6f3ec" ball="#c9f24a" />
+        <RallyMark size={size * 0.62} color="#ffffff" ball="#d9f74d" />
       ) : (
-        <BuddyClubMark size={size * 0.62} color="#f6f3ec" />
+        <BuddyClubMark size={size * 0.62} color="#ffffff" />
       )}
     </span>
   );
