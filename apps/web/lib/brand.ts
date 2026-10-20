@@ -19,7 +19,7 @@ export const PRODUCTS: Record<
     name: 'Buddy Club',
     shortName: 'Buddy Club',
     tagline: 'Do things together. Clubs, groups and meetups near you.',
-    themeColor: '#1d4fc4',
+    themeColor: '#d62e5a',
     themeColorDark: '#0f1729',
     backgroundColor: '#ffffff',
   },

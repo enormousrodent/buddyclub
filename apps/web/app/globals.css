@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /*
- * Design tokens: "Paper & Path" layout and type with the "White with Cobalt and Coral" palette
+ * Design tokens: "Paper & Path" layout with the raspberry palette and Poppins
  * (docs/design/README.md, ADR-015, owner decision 2026-10-20). Shared ground, ink and type for
  * both products; the accent switches per product via [data-product] on <html>, set by the root
  * layout from the request hostname.
@@ -20,19 +20,19 @@
 
   --bc-paper: #ffffff;
   --bc-surface: #ffffff;
-  --bc-surface-2: #f3f5fa;
+  --bc-surface-2: #f6f7fb;
   --bc-hairline: #e3e7ef;
   --bc-hairline-strong: #bfc7d6;
   --bc-ink: #141e33;
   --bc-ink-2: #33405c;
   --bc-muted: #5d6a85;
 
-  --bc-primary: #1d4fc4;
-  --bc-primary-strong: #163c96;
+  --bc-primary: #d62e5a;
+  --bc-primary-strong: #b0224a;
   --bc-primary-ink: #ffffff;
-  --bc-tint: #e1eaff;
-  --bc-tint-ink: #163c96;
-  --bc-highlight: #ff6b57;
+  --bc-tint: #fbe3ea;
+  --bc-tint-ink: #9c1c42;
+  --bc-highlight: #ffb020;
 
   --bc-live: #d9f74d;
   --bc-live-ink: #141e33;
@@ -40,8 +40,8 @@
   --bc-info-ink: #4b2aa6;
   --bc-warning: #fff1d6;
   --bc-warning-ink: #7a4d00;
-  --bc-danger: #b3261e;
-  --bc-danger-soft: #fbe9e7;
+  --bc-danger: #c2410c;
+  --bc-danger-soft: #fdeee8;
   --bc-success: #ddf5e6;
   --bc-success-ink: #176a3b;
 
@@ -59,12 +59,12 @@
   --bc-night-muted: #a9b5d1;
 
   /* Decorative swatches for covers and tiles; never carry text that must pass contrast. */
-  --bc-swatch-1: #d6f5e3;
-  --bc-swatch-2: #ffe0d6;
-  --bc-swatch-3: #dcebff;
-  --bc-swatch-4: #fff1b3;
-  --bc-swatch-5: #e9f7d2;
-  --bc-swatch-6: #f0e2ff;
+  --bc-swatch-1: #a8ebc7;
+  --bc-swatch-2: #ffc2ae;
+  --bc-swatch-3: #b3ceff;
+  --bc-swatch-4: #ffe27a;
+  --bc-swatch-5: #d9f57f;
+  --bc-swatch-6: #dcc4ff;
 
   /* Rally's brand blue where it appears inside Buddy Club ("Powered by Rally"). */
   --bc-brand-rally: #2350d6;
@@ -105,19 +105,19 @@
     --bc-ink-2: #cbd3e6;
     --bc-muted: #a3afcb;
 
-    --bc-primary: #8fb0ff;
-    --bc-primary-strong: #a9c2ff;
+    --bc-primary: #ff7fa3;
+    --bc-primary-strong: #ff9db9;
     --bc-primary-ink: #0f1729;
-    --bc-tint: #1c2a52;
-    --bc-tint-ink: #bccbff;
-    --bc-highlight: #ff8a78;
+    --bc-tint: #4a1a2b;
+    --bc-tint-ink: #ffb8cc;
+    --bc-highlight: #ffc24d;
 
     --bc-info: #2a1f5c;
     --bc-info-ink: #cdbfff;
     --bc-warning: #3a2c0f;
     --bc-warning-ink: #f3cd7a;
-    --bc-danger: #ff8f85;
-    --bc-danger-soft: #3b1b19;
+    --bc-danger: #ff8a65;
+    --bc-danger-soft: #3b1f14;
     --bc-success: #163a2a;
     --bc-success-ink: #a9e2c1;
 
@@ -126,12 +126,12 @@
     --bc-on-ink-hairline: #cbd3e6;
     --bc-on-ink-accent: #b2371f;
 
-    --bc-swatch-1: #1e3a2e;
-    --bc-swatch-2: #3b2a24;
-    --bc-swatch-3: #1c2a52;
-    --bc-swatch-4: #3b3416;
-    --bc-swatch-5: #2b3a22;
-    --bc-swatch-6: #2e2447;
+    --bc-swatch-1: #245c43;
+    --bc-swatch-2: #5a3328;
+    --bc-swatch-3: #253e7a;
+    --bc-swatch-4: #5a4a14;
+    --bc-swatch-5: #3e5a1e;
+    --bc-swatch-6: #45336e;
 
     --bc-brand-rally: #8fb0ff;
 
@@ -160,19 +160,19 @@
   --bc-ink-2: #cbd3e6;
   --bc-muted: #a3afcb;
 
-  --bc-primary: #8fb0ff;
-  --bc-primary-strong: #a9c2ff;
+  --bc-primary: #ff7fa3;
+  --bc-primary-strong: #ff9db9;
   --bc-primary-ink: #0f1729;
-  --bc-tint: #1c2a52;
-  --bc-tint-ink: #bccbff;
-  --bc-highlight: #ff8a78;
+  --bc-tint: #4a1a2b;
+  --bc-tint-ink: #ffb8cc;
+  --bc-highlight: #ffc24d;
 
   --bc-info: #2a1f5c;
   --bc-info-ink: #cdbfff;
   --bc-warning: #3a2c0f;
   --bc-warning-ink: #f3cd7a;
-  --bc-danger: #ff8f85;
-  --bc-danger-soft: #3b1b19;
+  --bc-danger: #ff8a65;
+  --bc-danger-soft: #3b1f14;
   --bc-success: #163a2a;
   --bc-success-ink: #a9e2c1;
 
@@ -181,12 +181,12 @@
   --bc-on-ink-hairline: #cbd3e6;
   --bc-on-ink-accent: #b2371f;
 
-  --bc-swatch-1: #1e3a2e;
-  --bc-swatch-2: #3b2a24;
-  --bc-swatch-3: #1c2a52;
-  --bc-swatch-4: #3b3416;
-  --bc-swatch-5: #2b3a22;
-  --bc-swatch-6: #2e2447;
+  --bc-swatch-1: #245c43;
+  --bc-swatch-2: #5a3328;
+  --bc-swatch-3: #253e7a;
+  --bc-swatch-4: #5a4a14;
+  --bc-swatch-5: #3e5a1e;
+  --bc-swatch-6: #45336e;
 
   --bc-brand-rally: #8fb0ff;
 
@@ -238,8 +238,8 @@
   --color-night-muted: var(--bc-night-muted);
   --color-brand-rally: var(--bc-brand-rally);
 
-  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-bricolage), var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
 
   --radius-control: var(--bc-radius-control);
   --radius-card: var(--bc-radius-card);
@@ -432,6 +432,71 @@ body {
     flex-grow 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
     transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
+.mosaic-tile {
+  position: relative;
+}
+.mosaic-tile > .mosaic-label,
+.mosaic-tile > .mosaic-more {
+  position: relative;
+  z-index: 1;
+}
+.ribbon-tile {
+  position: relative;
+  overflow: hidden;
+}
+/* A scrim in the tile's own colour keeps the label legible over the darker parts of a photo. */
+.mosaic-tile::after,
+.ribbon-tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to top right,
+    var(--tile) 22%,
+    color-mix(in srgb, var(--tile) 55%, transparent) 48%,
+    transparent 72%
+  );
+}
+/*
+ * Background art. A photo is drawn as luminance only, so it takes the tile's own colour
+ * (duotone) and never competes with the label. The pictogram is the same ink at low opacity.
+ * Both drift slightly as the tile grows.
+ */
+.mosaic-art {
+  position: absolute;
+  pointer-events: none;
+  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.mosaic-photo {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 70% 40%;
+  filter: grayscale(1) contrast(1.15);
+  mix-blend-mode: luminosity;
+  opacity: 0.55;
+}
+.mosaic-icon {
+  right: -4%;
+  top: -6%;
+  width: 58%;
+  height: auto;
+  opacity: 0.22;
+  transform: rotate(-6deg);
+}
+.mosaic-tile.bg-ink .mosaic-icon {
+  opacity: 0.28;
+}
+.mosaic-tile:hover .mosaic-photo,
+.mosaic-tile:focus-visible .mosaic-photo {
+  transform: scale(1.04);
+}
+.mosaic-tile:hover .mosaic-icon,
+.mosaic-tile:focus-visible .mosaic-icon {
+  transform: rotate(-4deg) scale(1.06);
+}
 .mosaic-label {
   font-size: 24px;
   font-weight: 700;
@@ -489,6 +554,33 @@ body {
   .mosaic-tile,
   .mosaic-more {
     transition: none;
+  }
+}
+
+/* Typing caret for the rotating headline word. */
+.caret {
+  display: inline-block;
+  width: 0.06em;
+  height: 0.9em;
+  margin-left: 0.04em;
+  vertical-align: -0.08em;
+  background: currentColor;
+  border-radius: 2px;
+  animation: bc-caret 1s steps(2, start) infinite;
+}
+.caret-still {
+  animation: none;
+  opacity: 0;
+}
+@keyframes bc-caret {
+  to {
+    visibility: hidden;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .caret {
+    animation: none;
+    opacity: 0;
   }
 }
 

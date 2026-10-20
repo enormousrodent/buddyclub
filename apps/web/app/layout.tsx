@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Bricolage_Grotesque, Figtree } from 'next/font/google';
+import { Poppins } from 'next/font/google';
 import { headers } from 'next/headers';
 import type { ReactNode } from 'react';
 import { PRODUCTS } from '../lib/brand';
@@ -7,10 +7,10 @@ import type { Product } from '../lib/env';
 import { readTheme } from '../lib/theme-server';
 import './globals.css';
 
-const figtree = Figtree({ subsets: ['latin'], variable: '--font-figtree', display: 'swap' });
-const bricolage = Bricolage_Grotesque({
+const poppins = Poppins({
   subsets: ['latin'],
-  variable: '--font-bricolage',
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-poppins',
   display: 'swap',
 });
 
@@ -64,7 +64,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       lang="en-GB"
       data-product={product}
       {...(theme === 'system' ? {} : { 'data-theme': theme })}
-      className={`${figtree.variable} ${bricolage.variable}`}
+      className={poppins.variable}
     >
       <body className="min-h-dvh antialiased">{children}</body>
     </html>

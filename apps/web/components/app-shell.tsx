@@ -9,7 +9,7 @@ import { BottomNav } from './nav';
  * Product shell: top bar with the lockup, bottom tab bar when signed in.
  * Pages add their own title; the bar never repeats it. Signed-out visitors on Buddy Club get the
  * wider marketing pages, so the bar widens with them and offers the two marketing actions.
- * The bar carries a coral brand stripe, a hairline and a soft shadow so it reads as a header on a
+ * The bar has a hairline and a soft shadow so it reads as a header on a
  * white ground.
  */
 export async function AppShell({ product, children }: { product: Product; children: ReactNode }) {
@@ -18,7 +18,6 @@ export async function AppShell({ product, children }: { product: Product; childr
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-10 border-b border-hairline bg-paper/92 shadow-raised backdrop-blur">
-        <div className="h-[3px] bg-highlight" aria-hidden />
         <div
           className={`mx-auto flex h-14 items-center justify-between gap-4 px-5 ${wide ? 'max-w-5xl' : 'max-w-xl'}`}
         >

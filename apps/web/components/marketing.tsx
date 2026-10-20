@@ -4,6 +4,8 @@ import type { ReactNode } from 'react';
 import { BuddyClubMark, RallyMark } from './brand';
 import { MyCourtHero } from './court';
 import { ActivityCard } from './discover';
+import { RotatingWord } from './rotating-word';
+import { INTEREST_PHOTOS, InterestArt } from './interest-art';
 import { Icon, LinkButton } from './ui';
 
 /*
@@ -22,6 +24,9 @@ function Eyebrow({ children, className = '' }: { children: ReactNode; className?
     </div>
   );
 }
+
+/** The word that rotates in the headline; the first is what screen readers get. */
+const HERO_WORDS = ['people', 'buddies', 'community', 'crew', 'team'] as const;
 
 /** Interest mosaic, in rows. `weight` is the tile's share of its row at rest. */
 const MOSAIC_ROWS: { id: string; label: string; swatch: number; weight: number }[][] = [
@@ -72,18 +77,29 @@ function RibbonTiles({
             key={i.id}
             href={rally ? '/rally' : `/explore?interest=${encodeURIComponent(i.id)}`}
             tabIndex={hidden ? -1 : undefined}
-            className={`flex shrink-0 flex-col items-start justify-end gap-0.5 rounded-[14px] p-3 font-display text-[20px] font-bold leading-tight transition hover:-translate-y-1 ${
+            className={`ribbon-tile flex shrink-0 flex-col items-start justify-end gap-0.5 rounded-[14px] p-3 font-display text-[20px] font-bold leading-tight transition hover:-translate-y-1 ${
               rally ? 'bg-ink text-on-ink' : 'text-ink'
             }`}
             style={{
               height: shape.h,
               width: shape.w,
-              ...(rally ? {} : { background: `var(--bc-swatch-${shape.swatch})` }),
+              ['--tile' as string]: rally ? 'var(--bc-ink)' : `var(--bc-swatch-${shape.swatch})`,
+              background: 'var(--tile)',
             }}
           >
-            {i.name}
+            {INTEREST_PHOTOS.has(i.id) ? (
+              <img
+                src={`/interests/${i.id}.jpg`}
+                alt=""
+                loading="lazy"
+                className="mosaic-art mosaic-photo"
+              />
+            ) : (
+              <InterestArt id={i.id} className="mosaic-art mosaic-icon" />
+            )}
+            <span className="relative z-[1]">{i.name}</span>
             {rally ? (
-              <span className="font-sans text-[12px] font-semibold text-on-ink-accent">
+              <span className="relative z-[1] font-sans text-[12px] font-semibold text-on-ink-accent">
                 with Rally
               </span>
             ) : null}
@@ -117,7 +133,8 @@ export function LandingHero({
         >
           Find your thing.
           <br />
-          <span className="text-primary">Find your people.</span>
+          Find your
+          <RotatingWord words={HERO_WORDS} className="block text-primary" />
         </h1>
         <p
           className="rise max-w-2xl text-lg leading-7 text-ink-2 sm:text-xl"
@@ -279,9 +296,22 @@ export function InterestMosaic() {
                     className={`mosaic-tile ${rally ? 'bg-ink text-on-ink' : 'text-ink'}`}
                     style={{
                       ['--w' as string]: t.weight,
-                      ...(rally ? {} : { background: `var(--bc-swatch-${t.swatch})` }),
+                      ['--tile' as string]: rally
+                        ? 'var(--bc-ink)'
+                        : `var(--bc-swatch-${t.swatch})`,
+                      background: 'var(--tile)',
                     }}
                   >
+                    {INTEREST_PHOTOS.has(t.id) ? (
+                      <img
+                        src={`/interests/${t.id}.jpg`}
+                        alt=""
+                        loading="lazy"
+                        className="mosaic-art mosaic-photo"
+                      />
+                    ) : (
+                      <InterestArt id={t.id} className="mosaic-art mosaic-icon" />
+                    )}
                     <span className="mosaic-label font-display">{t.label}</span>
                     <span className="mosaic-more">
                       {rally ? 'Run by Rally' : 'See groups and gatherings'}
@@ -449,7 +479,7 @@ export function MarketingFooter() {
     <footer className="border-t border-hairline">
       <Wide className="flex flex-wrap items-center justify-between gap-4 py-7 text-sm text-muted">
         <span className="inline-flex items-center gap-2">
-          <BuddyClubMark size={18} color="var(--bc-primary)" />
+          <BuddyClubMark size={18} />
           Buddy Club · Rally by Buddy Club
         </span>
         <nav aria-label="Footer" className="flex flex-wrap gap-4">
@@ -605,7 +635,7 @@ export function RallyLanding({ rallyUrl }: { rallyUrl: string }) {
         <div className="grid items-center gap-8 rounded-sheet bg-tint p-6 sm:p-10 md:grid-cols-[1fr_auto]">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
-              <BuddyClubMark size={22} color="var(--bc-primary)" />
+              <BuddyClubMark size={22} />
               <span className="font-display text-lg font-bold text-tint-ink">With Buddy Club</span>
             </div>
             <h2 className="font-display text-[28px] font-extrabold leading-tight text-tint-ink sm:text-[32px]">

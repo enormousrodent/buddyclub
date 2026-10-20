@@ -49,6 +49,14 @@ together on purpose; the Rally mark keeps its own blue. The dark theme is navy r
 The brand marks and PWA icons were regenerated in the new colours. Every text pair was checked at
 4.5:1 or better in both themes.
 
+## Amendment 2026-10-20 (evening): raspberry accent and Poppins
+
+The owner replaced the cobalt accent with raspberry #D62E5A for Buddy Club (white text 4.8:1), moved
+the decorative highlight from coral to amber #FFB020 so the header stripe no longer sits next to a
+near-identical accent, shifted the error colour to orange-red #C2410C so errors cannot be read as
+buttons, and chose Poppins for both display and body in place of Bricolage Grotesque and Figtree.
+Rally keeps court blue #2350D6. Interest tiles use the mid-saturation swatch set. Tokens 2.1.0.
+
 ## Consequences
 
 - No API, schema or policy changes. Two web routes were added (`/sessions`, `/start`) that wrap
