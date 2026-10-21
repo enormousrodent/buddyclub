@@ -20,7 +20,7 @@
 
 ### A. Identity (section 4, criteria 1 to 3)
 
-- **Apple and Google sign-in are not enabled.** The web sign-in offers password and magic link only. Work: enable the providers in the Supabase project (needs your Apple Services ID and Google OAuth client), add the two buttons to the sign-in page, keep email as the global fallback. No API change: the verifier already accepts any token from the project.
+- **Google sign-in is live (2026-10-21); Apple is not.** The sign-in page shows Google's own button (Identity Services, ID token into `signInWithIdToken`) above the email link and password forms, so Google's prompt is branded Buddy Club rather than the Supabase host. The public client ID is `NEXT_PUBLIC_GOOGLE_CLIENT_ID`; the secret lives only in the Supabase provider settings. Google emails are verified, so existing email accounts link automatically. Apple still needs an Apple Services ID. No API change: the verifier already accepts any token from the project.
 - **Account linking policy is undecided.** Supabase will refuse an Apple sign-in whose email already exists under Google unless automatic linking is on. The addendum forbids unsafe automatic merges, so we need ADR-017: manual linking from a signed-in session (Supabase `linkIdentity`) with an audit event, and a clear "this email is already used with Google" message. Tests: hermetic verifier tests for `provider` claims; a Postgres test that two providers for one auth user resolve to one profile.
 - **"Continue with Buddy Club"** is the same hosted login in the web world; for native apps it becomes a documented OIDC flow to the same project. Nothing to build now beyond naming the button.
 

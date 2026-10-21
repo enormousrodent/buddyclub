@@ -15,6 +15,8 @@ export const env = {
   /** API base URL for browser calls (guest pages). */
   publicApiUrl: () => process.env['NEXT_PUBLIC_API_URL'] ?? 'http://127.0.0.1:4000',
   rallyHostPrefix: () => process.env['RALLY_HOST_PREFIX'] ?? 'rally.',
+  /** Google OAuth client ID (public). Unset hides the Google button. */
+  googleClientId: () => process.env['NEXT_PUBLIC_GOOGLE_CLIENT_ID'] || undefined,
   cookieDomain: () => process.env['COOKIE_DOMAIN'] || undefined,
 };
 

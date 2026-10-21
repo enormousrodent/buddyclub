@@ -1,8 +1,9 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { IconTile } from '../../../components/brand';
+import { GoogleSignIn } from '../../../components/google-sign-in';
 import { Card, Icon, Muted, Page } from '../../../components/ui';
-import type { Product } from '../../../lib/env';
+import { env, type Product } from '../../../lib/env';
 import { getSessionUser } from '../../../lib/supabase/server';
 import { SignInForm } from './sign-in-form';
 
@@ -19,6 +20,7 @@ export default async function SignInPage({
   const fallback = rally ? '/dashboard' : '/';
   const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : fallback;
   if (await getSessionUser()) redirect(safeNext);
+  const googleClientId = env.googleClientId();
   return (
     <Page
       title={rally ? 'Your email is your login.' : 'Welcome back'}
@@ -31,6 +33,19 @@ export default async function SignInPage({
       action={<IconTile product={product} size={48} />}
     >
       <Card>
+        {googleClientId ? (
+          <>
+            <GoogleSignIn clientId={googleClientId} next={safeNext} />
+            <div
+              className="my-4 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.12em] text-muted"
+              aria-hidden
+            >
+              <span className="h-px flex-1 bg-hairline" />
+              or with email
+              <span className="h-px flex-1 bg-hairline" />
+            </div>
+          </>
+        ) : null}
         <SignInForm next={safeNext} rally={rally} />
       </Card>
       {rally ? (
@@ -43,7 +58,7 @@ export default async function SignInPage({
         </Card>
       ) : (
         <p className="mt-4 text-center text-xs text-muted">
-          One account works in Buddy Club and Rally. Apple and Google sign-in are coming.
+          One account works in Buddy Club and Rally. Apple sign-in is coming.
         </p>
       )}
     </Page>
