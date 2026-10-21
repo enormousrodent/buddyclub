@@ -9,7 +9,7 @@ import type {
 import type { Db } from '../../db/index.js';
 import type { Actor } from '../../platform/actor.js';
 import { recordAudit } from '../../platform/audit.js';
-import { assertOrgAction } from '../../platform/authz.js';
+import { assertManageSeries } from '../../platform/authz.js';
 import { toIso } from '../../platform/tokens.js';
 import { AppError, forbidden, notFound } from '../../problems.js';
 import { loadMeet, loadSeason, randomSlug, type DbOrTrx } from '../competitions/common.js';
@@ -383,7 +383,7 @@ export async function setOccurrencePublicAccess(
 ): Promise<PublicAccess> {
   return db.transaction().execute(async (trx) => {
     const occ = await loadOccurrence(trx, occurrenceId, true);
-    assertOrgAction(actor, occ.organisation_id, 'session.manage');
+    assertManageSeries(actor, occ.organisation_id, occ.series_id);
     const slug = enabled ? (occ.public_slug ?? randomSlug()) : null;
     await trx
       .updateTable('activities.session_occurrences')

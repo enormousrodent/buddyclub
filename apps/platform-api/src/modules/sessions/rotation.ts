@@ -2,7 +2,9 @@ import { randomUUID } from 'node:crypto';
 import {
   ALGORITHM_VERSION,
   generateRotation,
+  kingOfTheCourt,
   participantsFromHistory,
+  type PlayedMatch,
   type PlayedRound,
   type RotationInput,
   type RotationResult,
@@ -11,7 +13,7 @@ import type { Round, RotationPreview, RotationPreviewRequest } from '@buddyclub/
 import type { Db } from '../../db/index.js';
 import type { Actor } from '../../platform/actor.js';
 import { recordAudit } from '../../platform/audit.js';
-import { assertOrgAction } from '../../platform/authz.js';
+import { assertManageSeries } from '../../platform/authz.js';
 import { versionConflict } from '../../platform/if-match.js';
 import { emitEvent } from '../../platform/outbox.js';
 import { toIso } from '../../platform/tokens.js';
@@ -101,6 +103,39 @@ async function playedRounds(
   return { rounds: history, nextSequence: Number(last?.n ?? 0) + 1 };
 }
 
+/** The last round that was played (or is being played), with its results, for king of the court. */
+async function lastPlayedMatches(db: DbOrTrx, occurrenceId: string): Promise<PlayedMatch[] | null> {
+  const last = await db
+    .selectFrom('activities.social_rounds')
+    .select('id')
+    .where('occurrence_id', '=', occurrenceId)
+    .where('status', 'in', ['in_progress', 'paused', 'completed'])
+    .orderBy('sequence_no', 'desc')
+    .limit(1)
+    .executeTakeFirst();
+  if (!last) return null;
+  const placement = await loadPlacement(db, last.id);
+  return placement.assignments.map((a) => ({
+    courtId: a.courtId,
+    teams: a.teams.map((t) => t.map((p) => p.participantId)),
+    winnerSide: a.winnerSide,
+  }));
+}
+
+/** Longest wait first: consecutive rests, then rests, then least minutes, then a stable id order. */
+function restPriority(input: RotationInput): string[] {
+  return input.participants
+    .filter((p) => p.available)
+    .sort(
+      (a, b) =>
+        b.consecutiveRests - a.consecutiveRests ||
+        b.restCount - a.restCount ||
+        a.minutesPlayed - b.minutesPlayed ||
+        a.id.localeCompare(b.id),
+    )
+    .map((p) => p.id);
+}
+
 function buildInput(
   occ: OccurrenceRow,
   seed: string,
@@ -186,6 +221,7 @@ async function previewDto(
       courtCode: codes.get(a.courtId) ?? '?',
       matchId: null,
       teams: a.teams.map((t) => t.map(named)),
+      winnerSide: null,
     })),
     resting: result.rests.map(named),
     warnings: result.warnings,
@@ -202,7 +238,7 @@ export async function previewRotation(
   ctx: CommandContext,
 ): Promise<RotationPreview> {
   const occ = await loadOccurrence(db, occurrenceId);
-  assertOrgAction(actor, occ.organisation_id, 'session.manage');
+  assertManageSeries(actor, occ.organisation_id, occ.series_id);
   assertState(occ, ['open', 'live'], 'generate a round');
 
   const [courts, players, locks, { rounds, nextSequence }] = await Promise.all([
@@ -232,7 +268,19 @@ export async function previewRotation(
       ...(l.until_round !== null ? { untilRound: l.until_round } : {}),
     })),
   );
-  const result = generateRotation(input);
+  // King of the court from the second round: move teams by the last results. The first round
+  // (and any round without a played one before it) is a fair mix.
+  const mode = parseSocialRules(occ.rules_json).rotation.mode;
+  const previous = mode === 'king_of_the_court' ? await lastPlayedMatches(db, occurrenceId) : null;
+  const result =
+    previous && previous.length
+      ? kingOfTheCourt({
+          courts: input.courts.map((c) => c.id),
+          available: restPriority(input),
+          previous,
+          teamSize: input.format === 'singles' ? 1 : 2,
+        })
+      : generateRotation(input);
 
   const row = await db
     .insertInto('activities.rotation_previews')
@@ -283,7 +331,7 @@ export async function commitRotation(
 ): Promise<Round> {
   return db.transaction().execute(async (trx) => {
     const occ = await loadOccurrence(trx, occurrenceId, true);
-    assertOrgAction(actor, occ.organisation_id, 'session.manage');
+    assertManageSeries(actor, occ.organisation_id, occ.series_id);
     assertState(occ, ['open', 'live'], 'commit a round');
     if (expectedVersion !== null && occ.version !== expectedVersion)
       throw versionConflict('Session occurrence');

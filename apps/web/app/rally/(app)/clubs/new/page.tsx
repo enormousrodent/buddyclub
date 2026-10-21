@@ -8,7 +8,7 @@ export const metadata = { title: 'New club' };
 
 /**
  * New club (first-run flow): the place your players sign up to. One form, then straight into the
- * preset builder for that club.
+ * session builder for that club.
  */
 export default async function NewClubPage({
   searchParams,
@@ -22,7 +22,7 @@ export default async function NewClubPage({
     <Page
       title="Your club"
       back={fromWelcome ? '/welcome?step=3' : '/start'}
-      lead="Players join it with one link and see their court on their own phone. Your presets and regulars live inside it."
+      lead="Players join it with one link and see their court on their own phone. Your sessions and regulars live inside it."
     >
       <Card>
         <ActionForm

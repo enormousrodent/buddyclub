@@ -8,7 +8,7 @@ const text = (formData: FormData, key: string) => String(formData.get(key) ?? ''
 
 /**
  * A club in one form: name, optionally where you play and how many courts. Players join it with
- * an invite link; sessions, presets and regulars live inside it. Continues to the preset builder.
+ * an invite link; sessions and regulars live inside it. Continues to the session builder.
  */
 export async function createRallyClub(
   fromWelcome: boolean,

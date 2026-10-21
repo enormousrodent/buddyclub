@@ -134,6 +134,8 @@ describe.skipIf(!databaseUrl)('Phase 2: social session rotation', () => {
       sportId: 'badminton',
       venueId,
       defaultRoundMinutes: 10,
+      // The occurrence below starts in an hour; let members check in from two hours before.
+      checkInWindowMinutes: 120,
       rules: { rotation: { candidates: 120 } },
     });
     expect(created.statusCode).toBe(201);

@@ -6,7 +6,7 @@ import type {
 import type { Db } from '../../db/index.js';
 import type { Actor } from '../../platform/actor.js';
 import { recordAudit } from '../../platform/audit.js';
-import { assertOrgAction, assertOrgMember } from '../../platform/authz.js';
+import { assertManageSeries, assertOrgMember } from '../../platform/authz.js';
 import { versionConflict } from '../../platform/if-match.js';
 import { emitEvent } from '../../platform/outbox.js';
 import { AppError } from '../../problems.js';
@@ -84,7 +84,7 @@ export async function createOccurrence(
   ctx: CommandContext,
 ): Promise<Occurrence> {
   const series = await loadSeries(db, seriesId);
-  assertOrgAction(actor, series.organisation_id, 'session.manage');
+  assertManageSeries(actor, series.organisation_id, series.id);
 
   const startsAt = new Date(body.startsAt);
   const endsAt = body.endsAt
@@ -126,6 +126,7 @@ export async function createOccurrence(
       rulesetId = rs.id;
     }
   }
+  if (body.mode) rules = { ...rules, rotation: { ...rules.rotation, mode: body.mode } };
 
   return db.transaction().execute(async (trx) => {
     const row = await trx
@@ -164,6 +165,25 @@ export async function createOccurrence(
     });
     return toOccurrenceDto(trx, row);
   });
+}
+
+/** The non-cancelled night of a series at exactly this start, for the "set up" race. */
+export async function findOccurrenceAt(
+  db: Db,
+  actor: Actor,
+  seriesId: string,
+  startsAt: string,
+): Promise<Occurrence> {
+  const row = await db
+    .selectFrom('activities.session_occurrences')
+    .select(OCCURRENCE_COLUMNS)
+    .where('series_id', '=', seriesId)
+    .where('starts_at', '=', new Date(startsAt))
+    .where('cancelled_at', 'is', null)
+    .executeTakeFirst();
+  if (!row) throw new AppError(404, 'NOT_FOUND', 'Session occurrence not found');
+  assertOrgMember(actor, row.organisation_id);
+  return toOccurrenceDto(db, row);
 }
 
 export async function listOccurrences(
@@ -210,13 +230,35 @@ export async function updateOccurrence(
 ): Promise<Occurrence> {
   return db.transaction().execute(async (trx) => {
     const before = await loadOccurrence(trx, occurrenceId, true);
-    assertOrgAction(actor, before.organisation_id, 'session.manage');
+    assertManageSeries(actor, before.organisation_id, before.series_id);
     if (expectedVersion !== null && before.version !== expectedVersion)
       throw versionConflict('Session occurrence');
     assertState(before, ['draft', 'open', 'live'], 'update the session');
 
     const venueId = body.venueId ?? before.venue_id;
     if (body.courtIds) await validateCourts(trx, venueId, body.courtIds);
+    let rulesPatch: Record<string, unknown> = {};
+    if (body.mode !== undefined) {
+      const round = await trx
+        .selectFrom('activities.social_rounds')
+        .select('id')
+        .where('occurrence_id', '=', occurrenceId)
+        .where('status', '!=', 'cancelled')
+        .executeTakeFirst();
+      if (round)
+        throw new AppError(
+          409,
+          'CONFLICT',
+          'The format cannot change once a round has been called',
+        );
+      const rules = parseSocialRules(before.rules_json);
+      rulesPatch = {
+        rules_json: JSON.stringify({
+          ...rules,
+          rotation: { ...rules.rotation, mode: body.mode },
+        }),
+      };
+    }
     const startsAt = body.startsAt ? new Date(body.startsAt) : before.starts_at;
     const endsAt = body.endsAt ? new Date(body.endsAt) : before.ends_at;
     if (endsAt <= startsAt) {
@@ -235,6 +277,7 @@ export async function updateOccurrence(
           ? { round_duration_seconds: body.roundMinutes * 60 }
           : {}),
         ...(body.notes !== undefined ? { notes: body.notes } : {}),
+        ...rulesPatch,
         version: before.version + 1,
       })
       .where('id', '=', occurrenceId)
@@ -269,7 +312,7 @@ export async function transitionOccurrence(
 ): Promise<Occurrence> {
   return db.transaction().execute(async (trx) => {
     const before = await loadOccurrence(trx, occurrenceId, true);
-    assertOrgAction(actor, before.organisation_id, 'session.manage');
+    assertManageSeries(actor, before.organisation_id, before.series_id);
     const now = new Date();
     let patch: Record<string, unknown>;
     if (action === 'open') {

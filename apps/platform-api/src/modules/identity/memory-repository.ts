@@ -16,6 +16,7 @@ export class MemoryIdentityRepository implements IdentityRepository {
   private readonly profiles = new Map<string, UserProfileRecord>();
   private readonly memberships = new Map<string, MembershipRecord[]>();
   private readonly participants = new Map<string, MyParticipantRecord[]>();
+  private readonly hosted = new Map<string, string[]>();
 
   seedProfile(input: Partial<UserProfileRecord> & { authUserId: string }): UserProfileRecord {
     const profile: UserProfileRecord = {
@@ -71,6 +72,14 @@ export class MemoryIdentityRepository implements IdentityRepository {
     return [...(this.memberships.get(profileId) ?? [])].sort((a, b) =>
       a.organisationName.localeCompare(b.organisationName),
     );
+  }
+
+  seedHostedSeries(profileId: string, seriesIds: string[]): void {
+    this.hosted.set(profileId, seriesIds);
+  }
+
+  async listHostedSeries(profileId: string): Promise<string[]> {
+    return [...(this.hosted.get(profileId) ?? [])];
   }
 
   async listParticipants(profileId: string): Promise<MyParticipantRecord[]> {

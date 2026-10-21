@@ -107,7 +107,7 @@ const STEPS: [string, string, string][] = [
   [
     '01',
     'Open a session',
-    'Pick a preset or set courts, round length and who is in. Share the code or the QR.',
+    'Pick a session or set courts, round length and who is in. Share the code or the QR.',
   ],
   [
     '02',

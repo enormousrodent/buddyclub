@@ -25,3 +25,20 @@ export function canOrgAction(actor: Actor, organisationId: string, action: OrgAc
   const membership = actor.memberships.get(organisationId);
   return !!membership && membership.status === 'active' && roleAllows(membership.role, action);
 }
+
+/**
+ * Running a night (Addendum 1.2): organisation `session.manage`, or being a host of the series.
+ * Hosts are always active members (they are added from the member list), so the membership
+ * check stays.
+ */
+export function canManageSeries(actor: Actor, organisationId: string, seriesId: string): boolean {
+  if (canOrgAction(actor, organisationId, 'session.manage')) return true;
+  const membership = actor.memberships.get(organisationId);
+  return !!membership && membership.status === 'active' && actor.hostedSeries.has(seriesId);
+}
+
+export function assertManageSeries(actor: Actor, organisationId: string, seriesId: string): void {
+  if (canManageSeries(actor, organisationId, seriesId)) return;
+  const role = assertOrgMember(actor, organisationId);
+  throw forbidden(`Your role (${role}) does not allow session.manage, and you are not a host`);
+}

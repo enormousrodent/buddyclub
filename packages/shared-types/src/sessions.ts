@@ -27,6 +27,9 @@ export const CreateRulesetBodySchema = z.object({
 });
 export type CreateRulesetBody = z.infer<typeof CreateRulesetBodySchema>;
 
+export const RotationModeSchema = z.enum(['mix', 'king_of_the_court']);
+export type RotationMode = z.infer<typeof RotationModeSchema>;
+
 export const OccurrenceStateSchema = z.enum(['draft', 'open', 'live', 'completed', 'cancelled']);
 export type OccurrenceState = z.infer<typeof OccurrenceStateSchema>;
 export const AttendanceStatusSchema = z.enum(['registered', 'checked_in', 'left', 'no_show']);
@@ -39,6 +42,34 @@ export const RoundStatusSchema = z.enum([
   'cancelled',
 ]);
 export type RoundStatus = z.infer<typeof RoundStatusSchema>;
+
+/** IANA zone name the browser reports (`Intl.DateTimeFormat().resolvedOptions().timeZone`). */
+export const TimezoneSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(64)
+  .refine(
+    (tz) => {
+      try {
+        new Intl.DateTimeFormat('en-GB', { timeZone: tz });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    { message: 'unknown time zone' },
+  );
+
+/** Weekly schedule of a session (Addendum 1.2): "Mondays at 19:30, Europe/London". */
+export const ScheduleSchema = z.object({
+  /** 0 = Sunday .. 6 = Saturday. */
+  weekday: z.int().min(0).max(6),
+  /** `HH:MM`, 24-hour, local to `timezone`. */
+  time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'HH:MM'),
+  timezone: TimezoneSchema,
+});
+export type Schedule = z.infer<typeof ScheduleSchema>;
 
 export const SessionSeriesSchema = z.object({
   id: UuidSchema,
@@ -56,6 +87,17 @@ export const SessionSeriesSchema = z.object({
   defaultRules: RulesJsonSchema.nullable(),
   defaultDurationMinutes: z.int(),
   defaultRoundMinutes: z.int(),
+  schedule: ScheduleSchema.nullable(),
+  /** The next scheduled start, computed from the schedule; null without one. */
+  nextAt: IsoDateTimeSchema.nullable(),
+  /** Minutes before the start from which attendees may check themselves in. */
+  checkInWindowMinutes: z.int(),
+  /** Owner switch: hosts may run nights only while this is on. */
+  hostsEnabled: z.boolean(),
+  /** True for the organisation's organisers and, while enabled, its hosts. */
+  canRun: z.boolean(),
+  /** True for the organisation's organisers: may edit the session and its hosts. */
+  canEdit: z.boolean(),
   archivedAt: IsoDateTimeSchema.nullable(),
   version: z.int().min(1),
   createdAt: IsoDateTimeSchema,
@@ -73,6 +115,8 @@ export const CreateSessionSeriesBodySchema = z.object({
   rules: RulesJsonSchema.optional(),
   defaultDurationMinutes: z.int().min(15).max(720).default(120),
   defaultRoundMinutes: z.int().min(3).max(120).default(12),
+  schedule: ScheduleSchema.optional(),
+  checkInWindowMinutes: z.int().min(0).max(180).optional(),
   /** Defaults to `personal` in a personal workspace, `buddy_group` when groupId is set. */
   ownerScope: z.enum(['personal', 'organisation', 'buddy_group']).optional(),
 });
@@ -87,6 +131,10 @@ export const UpdateSessionSeriesBodySchema = z
     rules: RulesJsonSchema.optional(),
     defaultDurationMinutes: z.int().min(15).max(720).optional(),
     defaultRoundMinutes: z.int().min(3).max(120).optional(),
+    /** null clears the schedule. */
+    schedule: ScheduleSchema.nullable().optional(),
+    checkInWindowMinutes: z.int().min(0).max(180).optional(),
+    hostsEnabled: z.boolean().optional(),
   })
   .refine((b) => Object.keys(b).length > 0, { message: 'nothing to update' });
 export type UpdateSessionSeriesBody = z.infer<typeof UpdateSessionSeriesBodySchema>;
@@ -134,6 +182,8 @@ export const CreateOccurrenceBodySchema = z.object({
   courtIds: z.array(UuidSchema).max(50).optional(),
   roundMinutes: z.int().min(1).max(120).optional(),
   rules: RulesJsonSchema.optional(),
+  /** Tonight's format; overrides the series default's rotation mode. */
+  mode: RotationModeSchema.optional(),
   notes: z.string().trim().max(2000).optional(),
 });
 export type CreateOccurrenceBody = z.infer<typeof CreateOccurrenceBodySchema>;
@@ -145,6 +195,8 @@ export const UpdateOccurrenceBodySchema = z
     venueId: UuidSchema.optional(),
     courtIds: z.array(UuidSchema).max(50).optional(),
     roundMinutes: z.int().min(1).max(120).optional(),
+    /** Tonight's format; only before the first round is published. */
+    mode: RotationModeSchema.optional(),
     notes: z.string().trim().max(2000).nullable().optional(),
   })
   .refine((b) => Object.keys(b).length > 0, { message: 'nothing to update' });
@@ -228,7 +280,18 @@ export const AssignmentSchema = z.object({
   courtCode: z.string(),
   matchId: UuidSchema.nullable(),
   teams: z.array(z.array(NamedParticipantSchema)).length(2),
+  /** Recorded result, when the organiser entered one (king of the court needs it). */
+  winnerSide: z
+    .union([z.literal(1), z.literal(2)])
+    .nullable()
+    .default(null),
 });
+
+export const RecordResultBodySchema = z.object({
+  /** null clears a mistaken result. */
+  winnerSide: z.union([z.literal(1), z.literal(2)]).nullable(),
+});
+export type RecordResultBody = z.infer<typeof RecordResultBodySchema>;
 export type Assignment = z.infer<typeof AssignmentSchema>;
 
 export const RotationWarningSchema = z.object({ code: z.string(), detail: z.string() });
@@ -295,7 +358,12 @@ export const BoardSchema = z.object({
     venueName: z.string().nullable(),
     /** Set when the organiser enabled the public board and QR join. */
     publicSlug: z.string().nullable(),
+    /** Attendees may check themselves in from this moment; hosts at any time. */
+    checkInOpensAt: IsoDateTimeSchema,
+    mode: RotationModeSchema,
   }),
+  /** The viewer may run this night: an organiser of the club, or a host of the session. */
+  canManage: z.boolean(),
   courts: z.array(SessionCourtSchema),
   entries: z.array(EntrySchema),
   pairLocks: z.array(PairLockSchema),
@@ -324,6 +392,7 @@ export const MyScheduleSchema = z.object({
     name: z.string(),
     state: OccurrenceStateSchema,
     startsAt: IsoDateTimeSchema,
+    checkInOpensAt: IsoDateTimeSchema,
   }),
   participant: NamedParticipantSchema,
   attendanceStatus: AttendanceStatusSchema.nullable(),
@@ -331,6 +400,24 @@ export const MyScheduleSchema = z.object({
   next: MyGameSchema.nullable(),
 });
 export type MySchedule = z.infer<typeof MyScheduleSchema>;
+
+/**
+ * A scheduled session as a member sees it (Addendum 1.2): its next date, whether that night
+ * exists yet, and whether the caller may set it up.
+ */
+export const ScheduledSessionSchema = z.object({
+  seriesId: UuidSchema,
+  name: z.string(),
+  organisationId: UuidSchema,
+  organisationName: z.string(),
+  venueName: z.string().nullable(),
+  schedule: ScheduleSchema.nullable(),
+  nextAt: IsoDateTimeSchema.nullable(),
+  /** The night already set up for the next date (or on now), if any. */
+  nextOccurrenceId: UuidSchema.nullable(),
+  canRun: z.boolean(),
+});
+export type ScheduledSession = z.infer<typeof ScheduledSessionSchema>;
 
 export const MySessionSchema = z.object({
   occurrenceId: UuidSchema,
@@ -371,6 +458,19 @@ export const SetRegularsBodySchema = z.object({
 });
 export type SetRegularsBody = z.infer<typeof SetRegularsBodySchema>;
 
+/** A host (Addendum 1.2): a club member who may set up and run any night of the session. */
+export const HostSchema = z.object({
+  profileId: UuidSchema,
+  displayName: DisplayNameSchema,
+  avatarUrl: z.string().nullable(),
+});
+export type Host = z.infer<typeof HostSchema>;
+
+export const SetHostsBodySchema = z.object({
+  profileIds: z.array(UuidSchema).max(50),
+});
+export type SetHostsBody = z.infer<typeof SetHostsBodySchema>;
+
 export const PresetSchema = z.object({
   seriesId: UuidSchema,
   name: z.string(),
@@ -385,20 +485,136 @@ export const PresetSchema = z.object({
   defaultRoundMinutes: z.int(),
   defaultDurationMinutes: z.int(),
   lastStartedAt: IsoDateTimeSchema.nullable(),
-  /** An occurrence that is open or live right now, if any. */
+  /** A night that is live, or open and about to start, if any. */
   activeOccurrenceId: UuidSchema.nullable(),
-  /** How many people are registered automatically when this preset starts. */
+  /** A night already set up for later (open or draft, starts in the future), if any. */
+  upcomingOccurrenceId: UuidSchema.nullable(),
+  upcomingStartsAt: IsoDateTimeSchema.nullable(),
+  /** The next scheduled start, computed from the schedule; null without one. */
+  nextAt: IsoDateTimeSchema.nullable(),
+  schedule: ScheduleSchema.nullable(),
+  /** How many people are registered automatically when this session starts. */
   regulars: z.int(),
+  hosts: z.int(),
+  /** The caller is a host rather than an organiser of the club. */
+  asHost: z.boolean(),
 });
 export type Preset = z.infer<typeof PresetSchema>;
 
 export const StartPresetBodySchema = z.object({
-  /** Defaults to now. */
+  /**
+   * Defaults to now. "Set up" passes the next scheduled start; when a night already exists for
+   * that start (another host got there first) it is returned instead of a duplicate.
+   */
   startsAt: IsoDateTimeSchema.optional(),
   /** Open for check-in straight away (default true). */
   open: z.boolean().default(true),
+  /** Tonight's format; defaults to the session's usual one. */
+  mode: RotationModeSchema.optional(),
+  roundMinutes: z.int().min(1).max(120).optional(),
 });
 export type StartPresetBody = z.infer<typeof StartPresetBodySchema>;
+
+/** Keep-apart defaults (Addendum 1.2 step 2): copied onto each night as `avoid` pair locks. */
+export const KeepApartPairSchema = z.object({
+  participantA: UuidSchema,
+  participantB: UuidSchema,
+  displayNameA: DisplayNameSchema,
+  displayNameB: DisplayNameSchema,
+});
+export type KeepApartPair = z.infer<typeof KeepApartPairSchema>;
+
+export const SetKeepApartBodySchema = z.object({
+  pairs: z
+    .array(
+      z
+        .object({ participantA: UuidSchema, participantB: UuidSchema })
+        .refine((p) => p.participantA !== p.participantB, {
+          message: 'a participant cannot be kept apart from themselves',
+        }),
+    )
+    .max(100),
+});
+export type SetKeepApartBody = z.infer<typeof SetKeepApartBodySchema>;
+
+/** Night ratings (Addendum 1.2 step 3): a score and tags, never free text, never shown singly. */
+export const RATING_TAGS = {
+  positive: [
+    { id: 'good_mix', label: 'Good mix of players' },
+    { id: 'right_level', label: 'Right level for me' },
+    { id: 'fair_rest', label: 'Fair rest' },
+    { id: 'well_organised', label: 'Well organised' },
+    { id: 'good_courts', label: 'Good courts' },
+    { id: 'right_pace', label: 'Right pace' },
+    { id: 'friendly', label: 'Friendly crowd' },
+  ],
+  negative: [
+    { id: 'too_much_sitting', label: 'Too much sitting out' },
+    { id: 'uneven_levels', label: 'Levels too uneven' },
+    { id: 'started_late', label: 'Started late' },
+    { id: 'too_crowded', label: 'Too crowded' },
+    { id: 'poor_courts', label: 'Courts not great' },
+    { id: 'rounds_too_short', label: 'Rounds too short' },
+    { id: 'rounds_too_long', label: 'Rounds too long' },
+    { id: 'disorganised', label: 'Felt disorganised' },
+  ],
+} as const;
+/** 3 stars and up is positive. */
+export const RATING_POSITIVE_FROM = 3;
+/** Attendees may rate for this long after a night completes. */
+export const RATING_WINDOW_DAYS = 7;
+/** Aggregates are shown only from this many ratings, so no single rating can be read back. */
+export const RATING_MIN_FOR_SUMMARY = 3;
+
+export const RateOccurrenceBodySchema = z
+  .object({
+    score: z.int().min(0).max(5),
+    tags: z
+      .array(z.string().regex(/^[a-z_]{1,32}$/))
+      .max(8)
+      .default([]),
+  })
+  .refine(
+    (b) => {
+      const allowed = new Set<string>(
+        (b.score >= RATING_POSITIVE_FROM ? RATING_TAGS.positive : RATING_TAGS.negative).map(
+          (t) => t.id,
+        ),
+      );
+      return b.tags.every((t) => allowed.has(t));
+    },
+    { message: 'tags must match the score: positive tags from 3 stars, negative below' },
+  );
+export type RateOccurrenceBody = z.infer<typeof RateOccurrenceBodySchema>;
+
+export const RatingSummarySchema = z.object({
+  count: z.int(),
+  /** Withheld (null) until enough people have rated. */
+  average: z.number().nullable(),
+  tags: z.record(z.string(), z.int()).nullable(),
+  /** The caller's own rating, if they gave one. */
+  myRating: z.object({ score: z.int(), tags: z.array(z.string()) }).nullable(),
+  /** The caller attended, the night is done, the window is open and they have not rated yet. */
+  canRate: z.boolean(),
+});
+export type RatingSummary = z.infer<typeof RatingSummarySchema>;
+
+export const SeriesRatingSummarySchema = z.object({
+  count: z.int(),
+  nights: z.int(),
+  average: z.number().nullable(),
+  tags: z.record(z.string(), z.int()).nullable(),
+});
+export type SeriesRatingSummary = z.infer<typeof SeriesRatingSummarySchema>;
+
+export const PendingRatingSchema = z.object({
+  occurrenceId: UuidSchema,
+  seriesName: z.string(),
+  organisationName: z.string(),
+  startsAt: IsoDateTimeSchema,
+  completedAt: IsoDateTimeSchema,
+});
+export type PendingRating = z.infer<typeof PendingRatingSchema>;
 
 export const OccurrenceIdParamsSchema = z.object({ occurrenceId: UuidSchema });
 export const SeriesIdParamsSchema = z.object({ seriesId: UuidSchema });

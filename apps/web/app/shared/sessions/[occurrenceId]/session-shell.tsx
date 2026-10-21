@@ -1,4 +1,3 @@
-import { roleAllows } from '@buddyclub/auth';
 import type { Board } from '@buddyclub/shared-types';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -34,7 +33,8 @@ export async function loadSession(occurrenceId: string, path = ''): Promise<Sess
     api.organisations.get(board.occurrence.organisationId),
     api.me(),
   ]);
-  const canManage = org.myRole ? roleAllows(org.myRole, 'session.manage') : false;
+  // Organisers of the club, and hosts of the session while hosting is switched on.
+  const canManage = board.canManage;
   const product = (await headers()).get('x-buddyclub-product');
   const state = board.occurrence.state;
   return {

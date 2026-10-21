@@ -28,8 +28,18 @@ import {
   MyScheduleSchema,
   MySessionSchema,
   OccurrenceSchema,
+  HostSchema,
+  KeepApartPairSchema,
+  PendingRatingSchema,
+  type RateOccurrenceBody,
+  RatingSummarySchema,
+  type RecordResultBody,
+  SeriesRatingSummarySchema,
+  type SetKeepApartBody,
   PresetSchema,
   RegularSchema,
+  ScheduledSessionSchema,
+  type SetHostsBody,
   type SetRegularsBody,
   OrganisationSchema,
   PairLockSchema,
@@ -412,6 +422,36 @@ export function createApiClient(options: ApiClientOptions) {
           ...o,
           body,
         }),
+      hosts: (seriesId: string, o?: RequestOptions) =>
+        request('GET', `/v1/sessions/${enc(seriesId)}/hosts`, listOf(HostSchema), o ?? {}),
+      keepApart: (seriesId: string, o?: RequestOptions) =>
+        request(
+          'GET',
+          `/v1/sessions/${enc(seriesId)}/keep-apart`,
+          listOf(KeepApartPairSchema),
+          o ?? {},
+        ),
+      setKeepApart: (seriesId: string, body: SetKeepApartBody, o?: RequestOptions) =>
+        request('PUT', `/v1/sessions/${enc(seriesId)}/keep-apart`, listOf(KeepApartPairSchema), {
+          ...o,
+          body,
+        }),
+      ratingSummary: (seriesId: string, o?: RequestOptions) =>
+        request(
+          'GET',
+          `/v1/sessions/${enc(seriesId)}/ratings/summary`,
+          SeriesRatingSummarySchema,
+          o ?? {},
+        ),
+      scheduled: (o?: RequestOptions) =>
+        request('GET', '/v1/me/scheduled-sessions', listOf(ScheduledSessionSchema), o ?? {}),
+      pendingRatings: (o?: RequestOptions) =>
+        request('GET', '/v1/me/ratings/pending', listOf(PendingRatingSchema), o ?? {}),
+      setHosts: (seriesId: string, body: SetHostsBody, o?: RequestOptions) =>
+        request('PUT', `/v1/sessions/${enc(seriesId)}/hosts`, listOf(HostSchema), {
+          ...o,
+          body,
+        }),
       create: (orgId: string, body: CreateSessionSeriesBody, o?: RequestOptions) =>
         command(`/v1/organisations/${enc(orgId)}/sessions`, SessionSeriesSchema, o, body),
       list: (orgId: string, o?: RequestOptions) =>
@@ -456,6 +496,27 @@ export function createApiClient(options: ApiClientOptions) {
         action: 'open' | 'complete' | 'cancel',
         o?: RequestOptions,
       ) => command(`/v1/occurrences/${enc(occurrenceId)}/${action}`, OccurrenceSchema, o),
+      rate: (occurrenceId: string, body: RateOccurrenceBody, o?: RequestOptions) =>
+        command(`/v1/occurrences/${enc(occurrenceId)}/ratings`, RatingSummarySchema, o, body),
+      ratingSummary: (occurrenceId: string, o?: RequestOptions) =>
+        request(
+          'GET',
+          `/v1/occurrences/${enc(occurrenceId)}/ratings/summary`,
+          RatingSummarySchema,
+          o ?? {},
+        ),
+      recordResult: (
+        occurrenceId: string,
+        matchId: string,
+        body: RecordResultBody,
+        o?: RequestOptions,
+      ) =>
+        command(
+          `/v1/occurrences/${enc(occurrenceId)}/matches/${enc(matchId)}/result`,
+          RoundSchema,
+          o,
+          body,
+        ),
       board: (occurrenceId: string, o?: RequestOptions) =>
         request('GET', `/v1/occurrences/${enc(occurrenceId)}/board`, BoardSchema, o ?? {}),
       setPublicAccess: (occurrenceId: string, enabled: boolean, o?: RequestOptions) =>

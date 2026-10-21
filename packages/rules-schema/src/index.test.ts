@@ -7,6 +7,21 @@ import {
 } from './index';
 
 describe('rules-schema', () => {
+  it('defaults the rotation mode to mix and accepts king of the court', () => {
+    expect(
+      RulesetDefinitionSchema.parse({ schemaVersion: 1, kind: 'social_session' }),
+    ).toMatchObject({
+      rotation: { mode: 'mix' },
+    });
+    expect(
+      RulesetDefinitionSchema.parse({
+        schemaVersion: 1,
+        kind: 'social_session',
+        rotation: { mode: 'king_of_the_court' },
+      }),
+    ).toMatchObject({ rotation: { mode: 'king_of_the_court', format: 'doubles' } });
+  });
+
   it('does not assume win-by-two or a cap for a 21-point game', () => {
     const rules = ScoringRulesSchema.parse({ targetPoints: 21 });
     expect(rules.winBy).toBe(1);

@@ -74,7 +74,8 @@ export interface RotationWarning {
     | 'COURT_LEFT_IDLE'
     | 'UNSATISFIABLE'
     | 'AVOID_CONFLICT'
-    | 'AVOID_VIOLATED';
+    | 'AVOID_VIOLATED'
+    | 'RESULT_MISSING';
   detail: string;
 }
 

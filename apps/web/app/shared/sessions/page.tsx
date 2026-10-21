@@ -10,7 +10,9 @@ import {
   SectionHeading,
   StateBadge,
 } from '../../../components/ui';
+import { UpcomingList } from '../../../components/upcoming-list';
 import { apiForUser } from '../../../lib/api';
+import { isHappeningNow, isUpcoming } from '../../../lib/sessions';
 import { getSessionUser } from '../../../lib/supabase/server';
 
 export const metadata = { title: 'Sessions' };
@@ -28,14 +30,19 @@ function when(iso: string): string {
 /** Every session the signed-in person is part of, in any club, grouped by state. */
 export default async function MySessionsPage() {
   if (!(await getSessionUser())) redirect('/sign-in?next=/sessions');
-  const sessions = await apiForUser().sessions.mine();
+  const api = apiForUser();
+  const [sessions, scheduled] = await Promise.all([api.sessions.mine(), api.sessions.scheduled()]);
   const rally = (await headers()).get('x-buddyclub-product') === 'rally';
   const startHref = rally ? '/start' : '/clubs';
+  const now = sessions.items.filter((s) => isHappeningNow(s));
+  const upcoming = sessions.items.filter((s) => isUpcoming(s));
+  const past = sessions.items.filter((s) => s.state === 'completed' || s.state === 'cancelled');
   const groups: [string, typeof sessions.items][] = [
-    ['Now', sessions.items.filter((s) => s.state === 'live' || s.state === 'open')],
-    ['Upcoming', sessions.items.filter((s) => s.state === 'draft')],
-    ['Past', sessions.items.filter((s) => s.state === 'completed' || s.state === 'cancelled')],
+    ['Now', now],
+    ['Past', past],
   ];
+  const nothing =
+    sessions.items.length === 0 && !scheduled.items.some((s) => s.nextAt && !s.nextOccurrenceId);
   return (
     <Page
       title="Sessions"
@@ -47,7 +54,7 @@ export default async function MySessionsPage() {
         </LinkButton>
       }
     >
-      {sessions.items.length === 0 ? (
+      {nothing ? (
         <Empty
           title="Nothing yet"
           action={
@@ -59,7 +66,19 @@ export default async function MySessionsPage() {
           Start one yourself, or wait for an organiser to schedule one in your club.
         </Empty>
       ) : null}
-      {groups.map(([title, items]) =>
+      {now.length ? (
+        <section className="mt-6 first:mt-0">
+          <SectionHeading>Now</SectionHeading>
+          <UpcomingList nights={now} scheduled={[]} />
+        </section>
+      ) : null}
+      {upcoming.length || scheduled.items.some((s) => s.nextAt && !s.nextOccurrenceId) ? (
+        <section className="mt-6 first:mt-0">
+          <SectionHeading>Upcoming</SectionHeading>
+          <UpcomingList nights={upcoming} scheduled={scheduled.items} />
+        </section>
+      ) : null}
+      {groups.slice(1).map(([title, items]) =>
         items.length ? (
           <section key={title} className="mt-6 first:mt-0">
             <SectionHeading>{title}</SectionHeading>

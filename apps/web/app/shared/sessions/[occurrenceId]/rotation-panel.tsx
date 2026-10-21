@@ -5,14 +5,79 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { CourtCard, RestingStrip } from '../../../../components/court';
 import { Alert, Badge, Button, Card, Muted } from '../../../../components/ui';
-import { commitRotation, previewRotation } from '../actions';
+import { commitRotation, previewRotation, recordResult } from '../actions';
 
-export function AssignmentGrid({ round }: { round: Pick<Round, 'assignments' | 'resting'> }) {
+/** "Who won?" on a court card: two taps, the recorded side stays lit, tap again to clear. */
+function ResultButtons({
+  occurrenceId,
+  matchId,
+  teams,
+  winnerSide,
+}: {
+  occurrenceId: string;
+  matchId: string;
+  teams: Round['assignments'][number]['teams'];
+  winnerSide: 1 | 2 | null;
+}) {
+  const label = (i: number) => teams[i]?.map((p) => p.displayName.split(' ')[0]).join(' & ') || '—';
+  return (
+    <div className="mt-1 grid grid-cols-2 gap-1.5">
+      {([1, 2] as const).map((side) => (
+        <form
+          key={side}
+          action={recordResult.bind(null, occurrenceId, matchId, winnerSide === side ? null : side)}
+        >
+          <button
+            type="submit"
+            aria-pressed={winnerSide === side}
+            className={`w-full truncate rounded-control border px-2 py-1.5 text-[12px] font-bold ${
+              winnerSide === side
+                ? 'border-primary bg-primary text-primary-ink'
+                : 'border-hairline-strong text-ink'
+            }`}
+          >
+            {winnerSide === side ? '✓ ' : ''}
+            {label(side - 1)}
+          </button>
+        </form>
+      ))}
+    </div>
+  );
+}
+
+export function AssignmentGrid({
+  round,
+  occurrenceId,
+  canRecord = false,
+}: {
+  round: Pick<Round, 'assignments' | 'resting'>;
+  occurrenceId?: string;
+  /** Show "who won" on each court (organisers and hosts, once a round is under way). */
+  canRecord?: boolean;
+}) {
   return (
     <div className="space-y-2.5">
       <div className="grid grid-cols-2 gap-2.5">
         {round.assignments.map((a) => (
-          <CourtCard key={a.courtId} code={a.courtCode} teams={a.teams} />
+          <CourtCard
+            key={a.courtId}
+            code={a.courtCode}
+            teams={a.teams}
+            footer={
+              canRecord && occurrenceId && a.matchId ? (
+                <ResultButtons
+                  occurrenceId={occurrenceId}
+                  matchId={a.matchId}
+                  teams={a.teams}
+                  winnerSide={a.winnerSide}
+                />
+              ) : a.winnerSide ? (
+                <div className="mt-1 text-[12px] font-bold text-primary">
+                  ✓ {a.teams[a.winnerSide - 1]?.map((p) => p.displayName).join(' & ')} won
+                </div>
+              ) : undefined
+            }
+          />
         ))}
       </div>
       <RestingStrip names={round.resting.map((p) => p.displayName)} />

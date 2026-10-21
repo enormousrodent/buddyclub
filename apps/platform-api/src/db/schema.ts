@@ -256,11 +256,42 @@ export interface SessionSeriesTable {
   default_rules_json: JSONColumnType<Record<string, unknown>> | null;
   default_duration_minutes: Generated<number>;
   default_round_minutes: Generated<number>;
+  /** Weekly schedule (Addendum 1.2): all three set, or none. 0 = Sunday. */
+  schedule_weekday: number | null;
+  /** `HH:MM:SS` as Postgres `time`. */
+  schedule_time: string | null;
+  schedule_timezone: string | null;
+  check_in_window_minutes: Generated<number>;
+  hosts_enabled: Generated<boolean>;
   archived_at: NullableTimestamp;
   version: Generated<number>;
   created_by_profile_id: string | null;
   created_at: Timestamp;
   updated_at: Timestamp;
+}
+
+export interface SessionHostsTable {
+  series_id: string;
+  profile_id: string;
+  added_by_profile_id: string | null;
+  created_at: Generated<Timestamp>;
+}
+
+export interface SessionKeepApartTable {
+  series_id: string;
+  participant_a: string;
+  participant_b: string;
+  created_by_profile_id: string | null;
+  created_at: Generated<Timestamp>;
+}
+
+export interface SessionRatingsTable {
+  id: Generated<string>;
+  occurrence_id: string;
+  rater_profile_id: string;
+  score: number;
+  tags: string[];
+  created_at: Generated<Timestamp>;
 }
 
 export interface SessionRegularsTable {
@@ -621,6 +652,9 @@ export interface Database {
   'platform.rulesets': RulesetsTable;
   'activities.session_series': SessionSeriesTable;
   'activities.session_regulars': SessionRegularsTable;
+  'activities.session_hosts': SessionHostsTable;
+  'activities.session_keep_apart': SessionKeepApartTable;
+  'activities.session_ratings': SessionRatingsTable;
   'activities.session_occurrences': SessionOccurrencesTable;
   'activities.session_courts': SessionCourtsTable;
   'activities.session_entries': SessionEntriesTable;

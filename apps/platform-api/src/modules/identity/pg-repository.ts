@@ -95,6 +95,18 @@ export class PgIdentityRepository implements IdentityRepository {
       .execute();
   }
 
+  async listHostedSeries(profileId: string): Promise<string[]> {
+    const rows = await this.db
+      .selectFrom('activities.session_hosts as h')
+      .innerJoin('activities.session_series as s', 's.id', 'h.series_id')
+      .select('h.series_id')
+      .where('h.profile_id', '=', profileId)
+      .where('s.hosts_enabled', '=', true)
+      .where('s.archived_at', 'is', null)
+      .execute();
+    return rows.map((r) => r.series_id);
+  }
+
   async listParticipants(profileId: string): Promise<MyParticipantRecord[]> {
     return this.db
       .selectFrom('identity.participants')

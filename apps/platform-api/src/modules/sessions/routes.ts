@@ -10,6 +10,14 @@ import {
   CreateSessionSeriesBodySchema,
   EntrySchema,
   GuestGrantCreatedSchema,
+  HostSchema,
+  KeepApartPairSchema,
+  PendingRatingSchema,
+  RateOccurrenceBodySchema,
+  RatingSummarySchema,
+  RecordResultBodySchema,
+  SeriesRatingSummarySchema,
+  SetKeepApartBodySchema,
   listOf,
   ListOccurrencesQuerySchema,
   MyScheduleSchema,
@@ -18,6 +26,8 @@ import {
   OccurrenceSchema,
   PresetSchema,
   RegularSchema,
+  ScheduledSessionSchema,
+  SetHostsBodySchema,
   SetRegularsBodySchema,
   StartPresetBodySchema,
   OrgIdParamsSchema,
@@ -40,16 +50,21 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import type { Db } from '../../db/index.js';
 import { expectedVersion } from '../../platform/if-match.js';
+import { isPgCode, PG_UNIQUE_VIOLATION } from '../../platform/pg-errors.js';
 import { createGuestGrant } from '../participants/service.js';
 import { createRuleset, listRulesets } from '../rulesets/service.js';
 import * as occurrences from './occurrences.js';
 import * as readModels from './read-models.js';
 import * as roster from './roster.js';
 import * as rotation from './rotation.js';
-import { myPresets } from './home.js';
+import { myPresets, myScheduledSessions } from './home.js';
 import { transitionRound, type RoundAction } from './rounds.js';
 import * as series from './series.js';
 import * as regulars from './regulars.js';
+import * as hosts from './hosts.js';
+import * as keepApart from './keep-apart.js';
+import * as ratings from './ratings.js';
+import { recordResult } from './results.js';
 
 export interface SessionRoutesOptions {
   getDb: () => Db;
@@ -693,6 +708,22 @@ export async function sessionRoutes(app: FastifyInstance, options: SessionRoutes
     async (request) => ({ items: await readModels.mySessions(db(), request.actor!) }),
   );
 
+  typed.get(
+    '/v1/me/scheduled-sessions',
+    {
+      preHandler: app.requireActor,
+      schema: {
+        tags: ['sessions'],
+        summary:
+          'Scheduled sessions in your clubs: next date, whether it is set up, whether you may',
+        operationId: 'listMyScheduledSessions',
+        security: AUTH,
+        response: { 200: listOf(ScheduledSessionSchema), 401: ProblemDetailsSchema },
+      },
+    },
+    async (request) => ({ items: await myScheduledSessions(db(), request.actor!) }),
+  );
+
   // Rally home (Addendum 1.1): presets and one-tap start
   typed.get(
     '/v1/me/presets',
@@ -748,29 +779,231 @@ export async function sessionRoutes(app: FastifyInstance, options: SessionRoutes
       ),
     }),
   );
+  typed.get(
+    '/v1/sessions/:seriesId/hosts',
+    {
+      preHandler: app.requireActor,
+      schema: {
+        tags: ['sessions'],
+        summary: 'Hosts: members who may set up and run any night of this session',
+        operationId: 'listHosts',
+        security: AUTH,
+        params: SeriesIdParamsSchema,
+        response: { 200: listOf(HostSchema), ...PROBLEMS },
+      },
+    },
+    async (request) => ({
+      items: await hosts.listHosts(db(), request.actor!, request.params.seriesId),
+    }),
+  );
+  typed.put(
+    '/v1/sessions/:seriesId/hosts',
+    {
+      preHandler: manage,
+      schema: {
+        tags: ['sessions'],
+        summary: 'Replace the hosts of a session (organisers only)',
+        operationId: 'setHosts',
+        security: AUTH,
+        params: SeriesIdParamsSchema,
+        body: SetHostsBodySchema,
+        response: { 200: listOf(HostSchema), ...PROBLEMS },
+      },
+    },
+    async (request) => ({
+      items: await hosts.setHosts(
+        db(),
+        request.actor!,
+        request.params.seriesId,
+        request.body.profileIds,
+      ),
+    }),
+  );
+  typed.get(
+    '/v1/sessions/:seriesId/keep-apart',
+    {
+      preHandler: app.requireActor,
+      schema: {
+        tags: ['sessions'],
+        summary: 'Keep-apart defaults: pairs copied onto every night as avoid locks',
+        operationId: 'listKeepApart',
+        security: AUTH,
+        params: SeriesIdParamsSchema,
+        response: { 200: listOf(KeepApartPairSchema), ...PROBLEMS },
+      },
+    },
+    async (request) => ({
+      items: await keepApart.listKeepApart(db(), request.actor!, request.params.seriesId),
+    }),
+  );
+  typed.put(
+    '/v1/sessions/:seriesId/keep-apart',
+    {
+      preHandler: manage,
+      schema: {
+        tags: ['sessions'],
+        summary: 'Replace the keep-apart defaults of a session (organisers only)',
+        operationId: 'setKeepApart',
+        security: AUTH,
+        params: SeriesIdParamsSchema,
+        body: SetKeepApartBodySchema,
+        response: { 200: listOf(KeepApartPairSchema), ...PROBLEMS },
+      },
+    },
+    async (request) => ({
+      items: await keepApart.setKeepApart(
+        db(),
+        request.actor!,
+        request.params.seriesId,
+        request.body.pairs,
+      ),
+    }),
+  );
+  typed.get(
+    '/v1/sessions/:seriesId/ratings/summary',
+    {
+      preHandler: app.requireActor,
+      schema: {
+        tags: ['sessions'],
+        summary:
+          'Aggregate ratings across the nights of a session; withheld until enough people rated',
+        operationId: 'seriesRatingSummary',
+        security: AUTH,
+        params: SeriesIdParamsSchema,
+        response: { 200: SeriesRatingSummarySchema, ...PROBLEMS },
+      },
+    },
+    async (request) => ratings.seriesSummary(db(), request.actor!, request.params.seriesId),
+  );
+  typed.post(
+    '/v1/occurrences/:occurrenceId/ratings',
+    {
+      preHandler: manage,
+      schema: {
+        tags: ['sessions'],
+        summary: 'Rate a completed night you attended: stars and tags, once, no text',
+        operationId: 'rateOccurrence',
+        security: AUTH,
+        params: OccurrenceIdParamsSchema,
+        body: RateOccurrenceBodySchema,
+        response: { 201: RatingSummarySchema, ...PROBLEMS },
+      },
+    },
+    async (request, reply) =>
+      reply
+        .status(201)
+        .send(
+          await ratings.rate(
+            db(),
+            request.actor!,
+            request.params.occurrenceId,
+            request.body,
+            ctx(request),
+          ),
+        ),
+  );
+  typed.get(
+    '/v1/occurrences/:occurrenceId/ratings/summary',
+    {
+      preHandler: app.requireActor,
+      schema: {
+        tags: ['sessions'],
+        summary: 'Aggregate ratings of a night (never individual ones) and whether you can rate it',
+        operationId: 'occurrenceRatingSummary',
+        security: AUTH,
+        params: OccurrenceIdParamsSchema,
+        response: { 200: RatingSummarySchema, ...PROBLEMS },
+      },
+    },
+    async (request) => ratings.summary(db(), request.actor!, request.params.occurrenceId),
+  );
+  typed.get(
+    '/v1/me/ratings/pending',
+    {
+      preHandler: app.requireActor,
+      schema: {
+        tags: ['sessions'],
+        summary: 'Completed nights you attended this week and have not rated',
+        operationId: 'pendingRatings',
+        security: AUTH,
+        response: { 200: listOf(PendingRatingSchema), 401: ProblemDetailsSchema },
+      },
+    },
+    async (request) => ({ items: await ratings.pending(db(), request.actor!) }),
+  );
+  typed.post(
+    '/v1/occurrences/:occurrenceId/matches/:matchId/result',
+    {
+      preHandler: manage,
+      schema: {
+        tags: ['sessions'],
+        summary: 'Record who won on a court (king of the court moves teams by these)',
+        operationId: 'recordSocialResult',
+        security: AUTH,
+        params: z.object({ occurrenceId: UuidSchema, matchId: UuidSchema }),
+        body: RecordResultBodySchema,
+        response: { 200: RoundSchema, ...PROBLEMS },
+      },
+    },
+    async (request) =>
+      recordResult(
+        db(),
+        request.actor!,
+        request.params.occurrenceId,
+        request.params.matchId,
+        request.body.winnerSide,
+        ctx(request),
+      ),
+  );
   typed.post(
     '/v1/sessions/:seriesId/start',
     {
       preHandler: manage,
       schema: {
         tags: ['sessions'],
-        summary: 'Start a session from a preset now: creates an occurrence and opens check-in',
+        summary:
+          'Start a session now, or set up its next night: creates the occurrence, registers the regulars and opens check-in. A night that already exists for the same start is returned instead.',
         operationId: 'startPreset',
         security: AUTH,
         params: SeriesIdParamsSchema,
         body: StartPresetBodySchema,
-        response: { 201: OccurrenceSchema, ...PROBLEMS },
+        response: { 200: OccurrenceSchema, 201: OccurrenceSchema, ...PROBLEMS },
       },
     },
     async (request, reply) => {
-      const created = await occurrences.createOccurrence(
-        db(),
-        request.actor!,
-        request.params.seriesId,
-        { startsAt: request.body.startsAt ?? new Date().toISOString() },
-        ctx(request),
-      );
+      const startsAt = request.body.startsAt ?? new Date().toISOString();
+      let created;
+      try {
+        created = await occurrences.createOccurrence(
+          db(),
+          request.actor!,
+          request.params.seriesId,
+          {
+            startsAt,
+            ...(request.body.mode ? { mode: request.body.mode } : {}),
+            ...(request.body.roundMinutes ? { roundMinutes: request.body.roundMinutes } : {}),
+          },
+          ctx(request),
+        );
+      } catch (error) {
+        if (!isPgCode(error, PG_UNIQUE_VIOLATION, 'session_occurrences_series_start_unique'))
+          throw error;
+        // Another host set this night up first: hand back theirs.
+        const existing = await occurrences.findOccurrenceAt(
+          db(),
+          request.actor!,
+          request.params.seriesId,
+          startsAt,
+        );
+        return reply.status(200).send(existing);
+      }
       await regulars.registerRegulars(db(), request.params.seriesId, created.id);
+      await keepApart.applyKeepApart(
+        db(),
+        request.params.seriesId,
+        created.id,
+        request.actor!.profileId,
+      );
       const result = request.body.open
         ? await occurrences.transitionOccurrence(
             db(),

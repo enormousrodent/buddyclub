@@ -2,7 +2,7 @@ import { roleAllows } from '@buddyclub/auth';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ActionForm } from '../../../../components/action-form';
-import { PresetCard } from '../../../../components/preset-card';
+import { SessionCard } from '../../../../components/session-card';
 import { Kicker } from '../../../../components/rally-kit';
 import { Card, Field, Icon, Input, LinkButton, Page, Select } from '../../../../components/ui';
 import { apiForUser } from '../../../../lib/api';
@@ -13,8 +13,8 @@ import { startOnMyOwn } from '../../actions';
 export const metadata = { title: 'Start a session' };
 
 /**
- * Start a session (designs B2 and B3). Presets first, one tap each; then the builder for a new
- * one. From onboarding (`from=welcome`) the builder saves the preset without starting it.
+ * Start a session (designs B2 and B3). Your sessions first, one tap each; then the builder for
+ * a new one. From onboarding (`from=welcome`) the builder saves the session without starting it.
  */
 export default async function StartSessionPage({
   searchParams,
@@ -46,24 +46,24 @@ export default async function StartSessionPage({
         showPresets ? (
           <LinkButton href="/start?new=1" size="sm" variant="secondary">
             <Icon name="plus" size={14} />
-            New preset
+            New session
           </LinkButton>
         ) : undefined
       }
       lead={
         fromWelcome
-          ? 'Saved as a preset you start with one tap. Change anything on the night.'
+          ? 'Saved as a session you run every week. Change anything on the night.'
           : showPresets
-            ? 'Pick a preset or build tonight from scratch.'
+            ? 'Pick a session or build tonight from scratch.'
             : 'Set the courts and round length. Players check in once it is open.'
       }
     >
       {showPresets ? (
         <>
-          <Kicker className="mb-2">Presets</Kicker>
+          <Kicker className="mb-2">Your sessions</Kicker>
           <div className="mb-6 flex flex-col gap-3">
-            {presets.items.map((p, i) => (
-              <PresetCard key={p.seriesId} p={p} featured={i === 0} />
+            {presets.items.map((p) => (
+              <SessionCard key={p.seriesId} p={p} />
             ))}
           </div>
           <Kicker className="mb-2">Or set up a new one</Kicker>
@@ -121,7 +121,7 @@ export default async function StartSessionPage({
         <Card>
           <ActionForm
             action={setUpSession.bind(null, chosen.organisationId, fromWelcome)}
-            submitLabel={fromWelcome ? 'Save preset' : 'Open session'}
+            submitLabel="Save session"
             size="lg"
           >
             <Field label="Session name">
@@ -181,17 +181,12 @@ export default async function StartSessionPage({
             </div>
             <label className="flex min-h-11 items-center justify-between gap-3 rounded-control bg-surface-2 px-3.5 text-sm">
               <span>
-                <span className="block font-semibold">Start it now</span>
+                <span className="block font-semibold">Also start a night now</span>
                 <span className="block text-xs text-muted">
-                  Opens for check-in straight away. Untick to save the preset for later.
+                  For a one-off tonight. Scheduled nights are set up from Tonight and upcoming.
                 </span>
               </span>
-              <input
-                type="checkbox"
-                name="startNow"
-                defaultChecked={!fromWelcome}
-                className="h-5 w-5"
-              />
+              <input type="checkbox" name="startNow" defaultChecked={false} className="h-5 w-5" />
             </label>
           </ActionForm>
         </Card>

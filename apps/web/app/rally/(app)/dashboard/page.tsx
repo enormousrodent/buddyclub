@@ -1,7 +1,8 @@
 import type { MySession } from '@buddyclub/shared-types';
 import Link from 'next/link';
 import { IconTile } from '../../../../components/brand';
-import { PresetCard } from '../../../../components/preset-card';
+import { SessionCard } from '../../../../components/session-card';
+import { UpcomingList } from '../../../../components/upcoming-list';
 import { Countdown } from '../../../../components/live';
 import {
   Card,
@@ -16,6 +17,7 @@ import {
   StateBadge,
 } from '../../../../components/ui';
 import { apiForUser } from '../../../../lib/api';
+import { isHappeningNow, isUpcoming } from '../../../../lib/sessions';
 import { getSessionUser } from '../../../../lib/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -132,11 +134,13 @@ export default async function RallyHomePage({
   }
 
   const api = apiForUser();
-  const [me, sessions, presets, competitions] = await Promise.all([
+  const [me, sessions, presets, competitions, pendingRatings, scheduled] = await Promise.all([
     api.me(),
     api.sessions.mine(),
     api.sessions.presets(),
     api.competitions.mine(),
+    api.sessions.pendingRatings(),
+    api.sessions.scheduled(),
   ]);
   const meets = competitions.meets
     .filter((m) => m.state !== 'completed' && m.state !== 'cancelled')
@@ -144,8 +148,8 @@ export default async function RallyHomePage({
     .slice(0, 3);
   // Anyone can start a session: /start creates a personal workspace when there is no club (ADR-017).
   const canStart = true;
-  const live = sessions.items.filter((s) => s.state === 'live' || s.state === 'open');
-  const upcoming = sessions.items.filter((s) => s.state === 'draft');
+  const live = sessions.items.filter((s) => isHappeningNow(s));
+  const upcoming = sessions.items.filter((s) => isUpcoming(s));
   const past = sessions.items.filter((s) => s.state === 'completed').slice(0, 5);
   const resume = live.find((s) => s.canManage) ?? live[0];
   const clubs = me.memberships.filter((m) => m.organisationKind === 'club').length;
@@ -183,6 +187,24 @@ export default async function RallyHomePage({
       ) : null}
       {resume ? <ResumeHero s={resume} /> : null}
 
+      {pendingRatings.items.slice(0, 2).map((r) => (
+        <Link
+          key={r.occurrenceId}
+          href={`/sessions/${r.occurrenceId}/rate`}
+          className="mb-3 flex items-center justify-between gap-3 rounded-card border border-hairline bg-surface px-4 py-3"
+        >
+          <span className="min-w-0">
+            <span className="block truncate text-[15px] font-bold">
+              How was {r.seriesName} on {when(r.startsAt)}?
+            </span>
+            <span className="block text-[13px] text-muted">
+              Two taps. Nobody sees who said what.
+            </span>
+          </span>
+          <span className="shrink-0 text-xl text-primary">★★★★★</span>
+        </Link>
+      ))}
+
       {canStart ? (
         <Link
           href="/start"
@@ -194,7 +216,7 @@ export default async function RallyHomePage({
             </span>
             <span className="text-[13px] font-medium opacity-80">
               {presets.items.length
-                ? 'Quick setup, or pick a preset below'
+                ? 'Quick setup, or pick one of your sessions below'
                 : 'Sport, courts, rounds. No club needed.'}
             </span>
           </span>
@@ -213,11 +235,11 @@ export default async function RallyHomePage({
               </Link>
             }
           >
-            Presets
+            Your sessions
           </SectionHeading>
           <div className="scroll-row -mx-5 flex gap-2.5 px-5 pb-1 sm:mx-0 sm:px-0">
-            {presets.items.map((p, i) => (
-              <PresetCard key={p.seriesId} p={p} featured={i === 0} compact />
+            {presets.items.map((p) => (
+              <SessionCard key={p.seriesId} p={p} compact />
             ))}
           </div>
         </>
@@ -231,7 +253,17 @@ export default async function RallyHomePage({
         </Muted>
       </Card>
 
-      {section('Tonight and upcoming', upcoming.concat(live.filter((s) => s !== resume)))}
+      {upcoming.length ||
+      live.some((s) => s !== resume) ||
+      scheduled.items.some((s) => s.nextAt) ? (
+        <>
+          <SectionHeading>Tonight and upcoming</SectionHeading>
+          <UpcomingList
+            nights={upcoming.concat(live.filter((s) => s !== resume))}
+            scheduled={scheduled.items}
+          />
+        </>
+      ) : null}
 
       <SectionHeading
         action={

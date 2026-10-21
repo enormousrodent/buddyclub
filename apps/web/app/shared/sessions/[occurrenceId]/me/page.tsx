@@ -79,6 +79,8 @@ export default async function MyGamePage({
   const occ = schedule.occurrence;
   const liveState = occ.state === 'open' || occ.state === 'live';
   const current = schedule.current;
+  const opensAt = new Date(occ.checkInOpensAt);
+  const checkInOpen = opensAt.getTime() <= Date.now();
 
   return (
     <Page
@@ -90,12 +92,22 @@ export default async function MyGamePage({
       <LiveSubscription occurrenceId={occurrenceId} />
       <OfflineBanner since={schedule.serverTime} />
       {schedule.attendanceStatus !== 'checked_in' && liveState ? (
-        <form action={checkIn.bind(null, occurrenceId, undefined)} className="mb-4">
-          <Button type="submit" size="lg" className="w-full">
-            <Icon name="check" size={18} />
-            I&apos;m here, check me in
-          </Button>
-        </form>
+        checkInOpen ? (
+          <form action={checkIn.bind(null, occurrenceId, undefined)} className="mb-4">
+            <Button type="submit" size="lg" className="w-full">
+              <Icon name="check" size={18} />
+              I&apos;m here, check me in
+            </Button>
+          </form>
+        ) : (
+          <Card className="mb-4">
+            <Muted>
+              Check-in opens at{' '}
+              {opensAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}.
+              {schedule.attendanceStatus === 'registered' ? " You're expected." : ''}
+            </Muted>
+          </Card>
+        )
       ) : null}
       <div className="space-y-3">
         {current ? (

@@ -8,12 +8,18 @@ import type {
 import type { Db } from '../../db/index.js';
 import type { Actor } from '../../platform/actor.js';
 import { recordAudit } from '../../platform/audit.js';
-import { assertOrgAction, assertOrgMember, canOrgAction } from '../../platform/authz.js';
+import {
+  assertManageSeries,
+  assertOrgMember,
+  canManageSeries,
+  canOrgAction,
+} from '../../platform/authz.js';
 import { emitEvent } from '../../platform/outbox.js';
 import { isPgCode, PG_UNIQUE_VIOLATION } from '../../platform/pg-errors.js';
 import { toIso } from '../../platform/tokens.js';
 import { AppError, forbidden, notFound } from '../../problems.js';
 import type { CommandContext } from '../organisations/service.js';
+import { applyKeepApart } from './keep-apart.js';
 import {
   assertState,
   bumpOccurrenceVersion,
@@ -56,7 +62,7 @@ export async function addEntry(
 ): Promise<Entry> {
   return db.transaction().execute(async (trx) => {
     const occ = await loadOccurrence(trx, occurrenceId, true);
-    assertOrgAction(actor, occ.organisation_id, 'session.manage');
+    assertManageSeries(actor, occ.organisation_id, occ.series_id);
     assertState(occ, ['draft', 'open', 'live'], 'change the roster');
 
     let participantId = body.participantId ?? null;
@@ -108,6 +114,7 @@ export async function addEntry(
         }),
       )
       .execute();
+    await applyKeepApart(trx, occ.series_id, occurrenceId, actor.profileId);
     await bumpOccurrenceVersion(trx, occurrenceId);
     await recordAudit(trx, {
       entityType: 'session_occurrence',
@@ -139,10 +146,26 @@ export async function checkIn(
       if (!self) throw new AppError(409, 'CONFLICT', 'You have no player record in this club yet');
       target = self;
     } else if (target !== self) {
-      assertOrgAction(actor, occ.organisation_id, 'session.manage');
+      assertManageSeries(actor, occ.organisation_id, occ.series_id);
       await assertParticipantInOrg(trx, occ.organisation_id, target);
     }
     const now = new Date();
+    if (target === self && !canManageSeries(actor, occ.organisation_id, occ.series_id)) {
+      // Attendees check themselves in from a little before the start; hosts at any time.
+      const series = await trx
+        .selectFrom('activities.session_series')
+        .select('check_in_window_minutes')
+        .where('id', '=', occ.series_id)
+        .executeTakeFirstOrThrow();
+      const opensAt = new Date(occ.starts_at.getTime() - series.check_in_window_minutes * 60_000);
+      if (now < opensAt)
+        throw new AppError(
+          409,
+          'CONFLICT',
+          'Check-in is not open yet',
+          `Check-in opens at ${opensAt.toISOString()}`,
+        );
+    }
     await trx
       .insertInto('activities.session_entries')
       .values({
@@ -162,6 +185,7 @@ export async function checkIn(
         }),
       )
       .execute();
+    await applyKeepApart(trx, occ.series_id, occurrenceId, actor.profileId);
     await bumpOccurrenceVersion(trx, occurrenceId);
     await recordAudit(trx, {
       entityType: 'session_occurrence',
@@ -195,7 +219,7 @@ export async function withdraw(
   return db.transaction().execute(async (trx) => {
     const occ = await loadOccurrence(trx, occurrenceId, true);
     const self = await ownParticipantId(trx, occ.organisation_id, actor.profileId);
-    if (participantId !== self) assertOrgAction(actor, occ.organisation_id, 'session.manage');
+    if (participantId !== self) assertManageSeries(actor, occ.organisation_id, occ.series_id);
     else assertOrgMember(actor, occ.organisation_id);
     assertState(occ, ['draft', 'open', 'live'], 'withdraw');
 
@@ -289,7 +313,7 @@ export async function markNoShow(
 ): Promise<Entry> {
   return db.transaction().execute(async (trx) => {
     const occ = await loadOccurrence(trx, occurrenceId, true);
-    assertOrgAction(actor, occ.organisation_id, 'session.manage');
+    assertManageSeries(actor, occ.organisation_id, occ.series_id);
     const updated = await trx
       .updateTable('activities.session_entries')
       .set({ attendance_status: 'no_show' })
@@ -324,7 +348,7 @@ export async function createPairLock(
 ): Promise<PairLock> {
   return db.transaction().execute(async (trx) => {
     const occ = await loadOccurrence(trx, occurrenceId, true);
-    assertOrgAction(actor, occ.organisation_id, 'session.manage');
+    assertManageSeries(actor, occ.organisation_id, occ.series_id);
     assertState(occ, ['draft', 'open', 'live'], 'add a partner lock');
     const [a, b] = [body.participantA, body.participantB].sort();
     const entries = await trx
@@ -391,7 +415,7 @@ export async function releasePairLock(
 ): Promise<void> {
   await db.transaction().execute(async (trx) => {
     const occ = await loadOccurrence(trx, occurrenceId, true);
-    assertOrgAction(actor, occ.organisation_id, 'session.manage');
+    assertManageSeries(actor, occ.organisation_id, occ.series_id);
     const updated = await trx
       .updateTable('activities.pair_locks')
       .set({ released_at: new Date() })

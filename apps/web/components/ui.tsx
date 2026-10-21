@@ -396,10 +396,17 @@ export function stateTone(state: string): BadgeTone {
   }
 }
 
+/** Words people see for API states that read badly as they are. */
+const STATE_LABELS: Record<string, string> = {
+  // A night (or meet) that exists but is not open yet.
+  draft: 'planned',
+};
+
 export function StateBadge({ state }: { state: string }) {
+  const label = STATE_LABELS[state] ?? state.replace(/_/g, ' ');
   return (
     <Badge tone={stateTone(state)} dot={state === 'live' || state === 'in_progress'}>
-      {state.replace(/_/g, ' ')}
+      {label.charAt(0).toUpperCase() + label.slice(1)}
     </Badge>
   );
 }

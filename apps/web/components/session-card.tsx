@@ -1,11 +1,12 @@
 import type { Preset } from '@buddyclub/shared-types';
-import Link from 'next/link';
-import { startPreset } from '../app/rally/actions';
+import { startSession } from '../app/rally/actions';
+import { describeSchedule, whenIn } from '../lib/sessions';
 import { Button, Icon, LinkButton } from './ui';
 
 /*
- * A preset card (Rally dashboard strip and the Start page): the night you run every week, with
- * what it is set up for at a glance and one tap to start it. Live when tonight's session is open.
+ * A session card (Rally dashboard strip and the Start page): the night you run every week, with
+ * what it is set up for at a glance and the one thing to do next, always in the same lime button.
+ * Live when tonight is on; "Set up" when the next date is known; "Start now" otherwise.
  */
 
 const sportName = (id: string) =>
@@ -33,18 +34,56 @@ function Stat({ value, label }: { value: number; label: string }) {
   );
 }
 
-export function PresetCard({
+/** The one action for a session: open tonight's, open the night set up, set up the next, or start now. */
+export function SessionAction({ p }: { p: Preset }) {
+  const tz = p.schedule?.timezone ?? null;
+  if (p.activeOccurrenceId)
+    return (
+      <LinkButton href={`/sessions/${p.activeOccurrenceId}`} className="w-full">
+        Open tonight&apos;s
+        <Icon name="chevron" size={16} />
+      </LinkButton>
+    );
+  if (p.upcomingOccurrenceId)
+    return (
+      <LinkButton href={`/sessions/${p.upcomingOccurrenceId}/players`} className="w-full">
+        <Icon name="users" size={16} />
+        {p.upcomingStartsAt ? `Open ${whenIn(p.upcomingStartsAt, tz)}` : 'Open the next one'}
+      </LinkButton>
+    );
+  if (p.nextAt)
+    return (
+      <form action={startSession.bind(null, p.seriesId, p.nextAt)}>
+        <Button type="submit" className="w-full">
+          <Icon name="play" size={16} />
+          Set up {whenIn(p.nextAt, tz)}
+        </Button>
+      </form>
+    );
+  return (
+    <form action={startSession.bind(null, p.seriesId, undefined)}>
+      <Button type="submit" className="w-full">
+        <Icon name="play" size={16} />
+        Start now
+      </Button>
+    </form>
+  );
+}
+
+export function SessionCard({
   p,
-  featured = false,
   compact = false,
 }: {
   p: Preset;
-  /** Lime start button; the first card in a list. */
-  featured?: boolean;
   /** Fixed width for a horizontal strip. */
   compact?: boolean;
 }) {
   const live = Boolean(p.activeOccurrenceId);
+  const meta = p.schedule
+    ? describeSchedule(p.schedule)
+    : p.nextAt
+      ? `Next ${whenIn(p.nextAt)}`
+      : lastRun(p.lastStartedAt);
   return (
     <article
       className={`relative flex flex-col gap-3 rounded-card border bg-surface p-4 ${
@@ -65,7 +104,11 @@ export function PresetCard({
           </span>
         ) : (
           <span className="truncate text-[11px] font-bold uppercase tracking-[0.06em] text-muted">
-            {p.organisationKind === 'personal' ? 'Just me' : p.organisationName}
+            {p.asHost
+              ? 'You host'
+              : p.organisationKind === 'personal'
+                ? 'Just me'
+                : p.organisationName}
           </span>
         )}
       </div>
@@ -82,7 +125,7 @@ export function PresetCard({
               <span aria-hidden>·</span>
             </>
           ) : null}
-          <span className="shrink-0">{lastRun(p.lastStartedAt)}</span>
+          <span className="shrink-0">{meta}</span>
         </div>
       </div>
 
@@ -92,30 +135,22 @@ export function PresetCard({
         <Stat value={p.regulars} label={p.regulars === 1 ? 'regular' : 'regulars'} />
       </div>
 
-      {live ? (
-        <LinkButton href={`/sessions/${p.activeOccurrenceId}`} className="w-full">
-          Open tonight&apos;s
-          <Icon name="chevron" size={16} />
-        </LinkButton>
+      {p.schedule ? (
+        <div className="text-[13px] font-semibold">
+          {p.activeOccurrenceId
+            ? 'On now'
+            : (p.upcomingStartsAt ?? p.nextAt)
+              ? `Next: ${whenIn((p.upcomingStartsAt ?? p.nextAt) as string, p.schedule.timezone)}`
+              : 'No date yet'}
+        </div>
       ) : (
-        <form action={startPreset.bind(null, p.seriesId)}>
-          <Button type="submit" variant={featured ? 'primary' : 'tonal'} className="w-full">
-            <Icon name="play" size={16} />
-            Start now
-          </Button>
-        </form>
+        <SessionAction p={p} />
       )}
 
-      <Link
-        href={`/presets/${p.seriesId}`}
-        className="-mx-1 -mb-1 flex min-h-9 items-center justify-between rounded-control px-1 text-[13px] font-semibold text-primary hover:bg-surface-2"
-      >
-        <span className="inline-flex items-center gap-1.5">
-          <Icon name="users" size={15} />
-          Regulars and settings
-        </span>
-        <Icon name="chevron" size={16} className="text-muted" />
-      </Link>
+      <LinkButton href={`/sessions/${p.seriesId}`} className="w-full">
+        <Icon name="users" size={16} />
+        Configure
+      </LinkButton>
     </article>
   );
 }

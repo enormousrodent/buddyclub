@@ -9,5 +9,6 @@ export {
   type PlayedRound,
 } from './engine';
 export { createRng, hashSeed } from './prng';
+export { kingOfTheCourt, type KingOfTheCourtInput, type PlayedMatch } from './king-of-the-court';
 
 export const ROTATION_ENGINE_VERSION = 'rotation-engine@0.1.0';

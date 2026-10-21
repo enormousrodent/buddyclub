@@ -263,7 +263,7 @@ export async function setUpSession(
       await api.occurrences.transition(occurrence.id, 'open');
       to = `/sessions/${occurrence.id}/players`;
     } else {
-      to = `/presets/${series.id}`;
+      to = `/sessions/${series.id}`;
     }
   } catch (error) {
     return { error: describeError(error) };
@@ -288,4 +288,59 @@ export async function checkInEveryone(occurrenceId: string): Promise<void> {
       if (e.attendanceStatus === 'registered')
         await api.occurrences.checkIn(occurrenceId, e.participantId);
   }, `/sessions/${occurrenceId}`);
+}
+
+/** Rate a night (Addendum 1.2 step 3): stars and tags from the rating form. */
+export async function rateNight(
+  occurrenceId: string,
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const score = Number(formData.get('score'));
+  if (!Number.isInteger(score) || formData.get('score') === '') return { error: 'Pick your stars' };
+  const tags = formData.getAll('tag').map(String).filter(Boolean);
+  try {
+    await apiForUser().occurrences.rate(occurrenceId, { score, tags });
+  } catch (error) {
+    return { error: describeError(error) };
+  }
+  revalidatePath(`/sessions/${occurrenceId}`);
+  revalidatePath('/dashboard');
+  redirect(`/sessions/${occurrenceId}/rate`);
+}
+
+/** Who won on a court (king of the court moves teams by it). null clears a mistake. */
+export async function recordResult(
+  occurrenceId: string,
+  matchId: string,
+  winnerSide: 1 | 2 | null,
+): Promise<void> {
+  await run(
+    () => apiForUser().occurrences.recordResult(occurrenceId, matchId, { winnerSide }),
+    `/sessions/${occurrenceId}`,
+  );
+}
+
+/** Tonight's format, before the first round is called. */
+export async function setNightMode(
+  occurrenceId: string,
+  mode: 'mix' | 'king_of_the_court',
+): Promise<void> {
+  await run(
+    () => apiForUser().occurrences.update(occurrenceId, { mode }),
+    `/sessions/${occurrenceId}/players`,
+  );
+}
+
+/** "Set up" on a planned night: opens check-in and goes to Players to tick who is coming. */
+export async function openNight(occurrenceId: string): Promise<void> {
+  try {
+    await apiForUser().occurrences.transition(occurrenceId, 'open');
+  } catch (error) {
+    throw new Error(describeError(error), { cause: error });
+  }
+  revalidatePath(`/sessions/${occurrenceId}`);
+  revalidatePath('/dashboard');
+  revalidatePath('/sessions');
+  redirect(`/sessions/${occurrenceId}/players`);
 }

@@ -2,11 +2,11 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { apiForUser, describeError } from '../../../../../../lib/api';
+import { apiForUser, describeError } from '../../../../../lib/api';
 import { INVITE_DAYS, INVITE_USES } from './config';
 
 /**
- * A new player invite link for the preset's club. The token is only ever returned once, so the
+ * A new player invite link for the session's club. The token is only ever returned once, so the
  * invite page shows it straight away (as a QR and a share button) from the query string.
  */
 export async function createPlayerInvite(seriesId: string, orgId: string): Promise<void> {
@@ -21,8 +21,8 @@ export async function createPlayerInvite(seriesId: string, orgId: string): Promi
   } catch (error) {
     throw new Error(describeError(error), { cause: error });
   }
-  revalidatePath(`/presets/${seriesId}/invite`);
-  redirect(`/presets/${seriesId}/invite?t=${encodeURIComponent(token)}`);
+  revalidatePath(`/sessions/${seriesId}/invite`);
+  redirect(`/sessions/${seriesId}/invite?t=${encodeURIComponent(token)}`);
 }
 
 export async function revokePlayerInvite(
@@ -35,6 +35,6 @@ export async function revokePlayerInvite(
   } catch (error) {
     throw new Error(describeError(error), { cause: error });
   }
-  revalidatePath(`/presets/${seriesId}/invite`);
-  redirect(`/presets/${seriesId}/invite`);
+  revalidatePath(`/sessions/${seriesId}/invite`);
+  redirect(`/sessions/${seriesId}/invite`);
 }

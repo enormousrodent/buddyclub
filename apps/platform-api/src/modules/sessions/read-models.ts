@@ -1,7 +1,7 @@
 import type { Board, MySchedule, MySession, Round } from '@buddyclub/shared-types';
 import type { Db } from '../../db/index.js';
 import type { Actor } from '../../platform/actor.js';
-import { assertOrgMember, canOrgAction } from '../../platform/authz.js';
+import { assertOrgMember, canManageSeries, canOrgAction } from '../../platform/authz.js';
 import { toIso } from '../../platform/tokens.js';
 import type { GuestContext } from '../../plugins/guest.js';
 import { AppError, forbidden, notFound } from '../../problems.js';
@@ -17,6 +17,7 @@ import {
   type OccurrenceRow,
   type RoundRow,
 } from './common.js';
+import { parseSocialRules } from '../rulesets/service.js';
 import { withLive } from './home.js';
 
 async function currentAndNext(
@@ -49,7 +50,7 @@ async function occurrenceHeader(db: DbOrTrx, occ: OccurrenceRow) {
   const [series, venue] = await Promise.all([
     db
       .selectFrom('activities.session_series')
-      .select('name')
+      .select(['name', 'check_in_window_minutes'])
       .where('id', '=', occ.series_id)
       .executeTakeFirstOrThrow(),
     occ.venue_id
@@ -60,7 +61,13 @@ async function occurrenceHeader(db: DbOrTrx, occ: OccurrenceRow) {
           .executeTakeFirst()
       : Promise.resolve(undefined),
   ]);
-  return { name: series.name, venueName: venue?.name ?? null };
+  return {
+    name: series.name,
+    venueName: venue?.name ?? null,
+    checkInOpensAt: toIso(
+      new Date(occ.starts_at.getTime() - series.check_in_window_minutes * 60_000),
+    ),
+  };
 }
 
 export async function board(db: Db, actor: Actor, occurrenceId: string): Promise<Board> {
@@ -86,7 +93,10 @@ export async function board(db: Db, actor: Actor, occurrenceId: string): Promise
       publicSlug: occ.public_slug,
       startsAt: toIso(occ.starts_at),
       venueName: header.venueName,
+      checkInOpensAt: header.checkInOpensAt,
+      mode: parseSocialRules(occ.rules_json).rotation.mode,
     },
+    canManage: canManageSeries(actor, occ.organisation_id, occ.series_id),
     courts,
     entries,
     pairLocks,
@@ -151,7 +161,13 @@ async function scheduleFor(
   if (!participant) throw notFound('Participant not found');
   return {
     serverTime: toIso(now),
-    occurrence: { id: occ.id, name: header.name, state: occ.state, startsAt: toIso(occ.starts_at) },
+    occurrence: {
+      id: occ.id,
+      name: header.name,
+      state: occ.state,
+      startsAt: toIso(occ.starts_at),
+      checkInOpensAt: header.checkInOpensAt,
+    },
     participant: { participantId: participant.id, displayName: participant.display_name },
     attendanceStatus: entry?.attendance_status ?? null,
     current: rounds.current ? gameFor(rounds.current, participantId) : null,
@@ -211,6 +227,7 @@ export async function mySessions(db: Db, actor: Actor): Promise<MySession[]> {
     )
     .select([
       'o.id',
+      'o.series_id',
       's.name as series_name',
       'o.organisation_id',
       'org.name as organisation_name',
@@ -238,7 +255,7 @@ export async function mySessions(db: Db, actor: Actor): Promise<MySession[]> {
       endsAt: toIso(r.ends_at),
       state: r.state,
       myAttendance: r.attendance_status ?? null,
-      canManage: canOrgAction(actor, r.organisation_id, 'session.manage'),
+      canManage: canManageSeries(actor, r.organisation_id, r.series_id),
       live: null,
     })),
   );

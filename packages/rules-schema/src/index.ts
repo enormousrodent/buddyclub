@@ -125,8 +125,16 @@ export const GenderModeSchema = z.enum([
 ]);
 export type GenderMode = z.infer<typeof GenderModeSchema>;
 
+/**
+ * How courts are filled each round (Addendum 1.2 step 4). `mix` is the fair rotation; in
+ * `king_of_the_court` winners move up a court and losers move down, teams staying together.
+ */
+export const RotationModeSchema = z.enum(['mix', 'king_of_the_court']);
+export type RotationMode = z.infer<typeof RotationModeSchema>;
+
 export const RotationRulesSchema = z.object({
   format: MatchFormatSchema.default('doubles'),
+  mode: RotationModeSchema.default('mix'),
   /**
    * Opt-in gender-aware pairing over self-declared labels (spec section 8). `off` ignores the
    * data; `prefer_*` scores it softly; `strict_*` makes it a hard rule and reports when it

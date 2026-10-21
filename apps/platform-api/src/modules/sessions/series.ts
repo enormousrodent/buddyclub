@@ -13,6 +13,7 @@ import { AppError, notFound } from '../../problems.js';
 import type { CommandContext } from '../organisations/service.js';
 import { parseSocialRules } from '../rulesets/service.js';
 import { loadSeries, SERIES_COLUMNS, toSeries } from './common.js';
+import { timeToDb } from './schedule.js';
 
 async function assertVenueInOrg(db: Db, organisationId: string, venueId: string): Promise<void> {
   const v = await db
@@ -81,6 +82,10 @@ export async function createSeries(
           default_rules_json: rules ? JSON.stringify(rules) : null,
           default_duration_minutes: body.defaultDurationMinutes,
           default_round_minutes: body.defaultRoundMinutes,
+          schedule_weekday: body.schedule?.weekday ?? null,
+          schedule_time: body.schedule ? timeToDb(body.schedule.time) : null,
+          schedule_timezone: body.schedule?.timezone ?? null,
+          check_in_window_minutes: body.checkInWindowMinutes ?? 10,
           created_by_profile_id: actor.profileId,
         })
         .returning(SERIES_COLUMNS)
@@ -101,7 +106,7 @@ export async function createSeries(
       correlationId: ctx.correlationId,
       after: { organisationId, name: body.name, sportId: body.sportId },
     });
-    return toSeries(row);
+    return toSeries(row, actor);
   });
 }
 
@@ -118,13 +123,13 @@ export async function listSeries(
     .where('archived_at', 'is', null)
     .orderBy('name')
     .execute();
-  return rows.map(toSeries);
+  return rows.map((row) => toSeries(row, actor));
 }
 
 export async function getSeries(db: Db, actor: Actor, seriesId: string): Promise<SessionSeries> {
   const row = await loadSeries(db, seriesId);
   assertOrgMember(actor, row.organisation_id);
-  return toSeries(row);
+  return toSeries(row, actor);
 }
 
 export async function updateSeries(
@@ -156,6 +161,17 @@ export async function updateSeries(
         ...(body.defaultRoundMinutes !== undefined
           ? { default_round_minutes: body.defaultRoundMinutes }
           : {}),
+        ...(body.schedule !== undefined
+          ? {
+              schedule_weekday: body.schedule?.weekday ?? null,
+              schedule_time: body.schedule ? timeToDb(body.schedule.time) : null,
+              schedule_timezone: body.schedule?.timezone ?? null,
+            }
+          : {}),
+        ...(body.checkInWindowMinutes !== undefined
+          ? { check_in_window_minutes: body.checkInWindowMinutes }
+          : {}),
+        ...(body.hostsEnabled !== undefined ? { hosts_enabled: body.hostsEnabled } : {}),
         version: before.version + 1,
       })
       .where('id', '=', seriesId)
@@ -172,7 +188,7 @@ export async function updateSeries(
       before: { name: before.name },
       after: { name: row.name },
     });
-    return toSeries(row);
+    return toSeries(row, actor);
   });
 }
 

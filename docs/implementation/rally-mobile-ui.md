@@ -30,7 +30,11 @@ Barlow Condensed display, Poppins body; dark by default on the Rally host.
 Not built: B9 optional scores for social rounds (needs a results endpoint for social matches),
 C4 "keep tonight's games" (guest claim, ADR-008), "+2 min" on a running round.
 
-## Presets and regulars (2026-10-21)
+## Presets and regulars (2026-10-21; superseded by Addendum 1.2 the same evening)
+
+_Presets are now "Sessions" (`/sessions/:seriesId`) with a weekly schedule, hosts and an on-demand
+"Set up" for the next night. See [`addendum-1.2-step-1.md`](addendum-1.2-step-1.md). The notes
+below describe the state before that change._
 
 A preset is a session series. `/start` lists presets first (one tap each) and the builder below
 it; the builder's "Start it now" switch, off, saves a preset and lands on its page. The preset page

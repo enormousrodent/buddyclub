@@ -3,9 +3,17 @@ import Link from 'next/link';
 import { TimerHero } from '../../../../components/live';
 import { Kicker, StatTile } from '../../../../components/rally-kit';
 import { Alert, Badge, Button, Card, Icon, LinkButton, Muted } from '../../../../components/ui';
+import { RATING_TAGS } from '@buddyclub/shared-types';
+import { apiForUser } from '../../../../lib/api';
 import { transitionOccurrence, transitionRound } from '../actions';
+
+const TAG_LABELS = new Map<string, string>(
+  [...RATING_TAGS.positive, ...RATING_TAGS.negative].map((t) => [t.id, t.label]),
+);
 import { AssignmentGrid, RotationPanel } from './rotation-panel';
 import { loadSession, SessionFrame } from './session-shell';
+import { resolveSeries } from '../resolve-series';
+import { SeriesPage } from '../series-page';
 
 export const metadata = { title: 'Session' };
 
@@ -66,7 +74,11 @@ function LiveRound({
           </div>
         ) : null}
       </Card>
-      <AssignmentGrid round={round} />
+      <AssignmentGrid
+        round={round}
+        occurrenceId={occurrenceId}
+        canRecord={canManage && round.status !== 'published' && round.status !== 'cancelled'}
+      />
       {round.warnings.length ? (
         <Alert tone="warning">
           <ul className="space-y-1">
@@ -86,9 +98,19 @@ export default async function SessionPage({
   params: Promise<{ occurrenceId: string }>;
 }) {
   const { occurrenceId } = await params;
+  const series = await resolveSeries(occurrenceId);
+  if (series) return <SeriesPage series={series} />;
   const ctx = await loadSession(occurrenceId);
   const { board, canManage, checkedIn, live, activeCourts } = ctx;
   const state = board.occurrence.state;
+  const rating =
+    state === 'completed' ? await apiForUser().occurrences.ratingSummary(occurrenceId) : null;
+  const topTags = rating?.tags
+    ? Object.entries(rating.tags)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([id]) => TAG_LABELS.get(id) ?? id)
+    : [];
   const current = board.currentRound;
   const pendingPublished = current?.status === 'published' ? current : board.nextRound;
   const nextSequence =
@@ -134,6 +156,38 @@ export default async function SessionPage({
             <StatTile value={board.entries.length} label="players" />
             <StatTile value={minutes} label="minutes" />
           </div>
+          {rating?.canRate ? (
+            <LinkButton href={`/sessions/${occurrenceId}/rate`} size="lg" className="w-full">
+              How was it? Rate the night
+            </LinkButton>
+          ) : null}
+          {rating?.myRating ? (
+            <Card>
+              <Muted>You rated it {'★'.repeat(rating.myRating.score) || 'no stars'}. Thanks.</Muted>
+            </Card>
+          ) : null}
+          {canManage && rating ? (
+            <Card>
+              <Kicker>Ratings</Kicker>
+              {rating.average !== null ? (
+                <>
+                  <div className="mt-1 font-display text-[32px] font-extrabold leading-none">
+                    ★ {rating.average.toFixed(1)}
+                  </div>
+                  <Muted className="mt-1 block">
+                    {rating.count} rating{rating.count === 1 ? '' : 's'}
+                    {topTags.length ? ` · ${topTags.join(', ')}` : ''}
+                  </Muted>
+                </>
+              ) : (
+                <Muted className="mt-1 block">
+                  {rating.count
+                    ? `${rating.count} rating${rating.count === 1 ? '' : 's'} so far. The picture shows from 3, so nobody can be singled out.`
+                    : 'No ratings yet. Players get a prompt on their home screen for a week.'}
+                </Muted>
+              )}
+            </Card>
+          ) : null}
           <Card tone="well">
             <Muted>Session closed. Players, pairings and the board stay on their tabs.</Muted>
           </Card>
@@ -201,6 +255,9 @@ export default async function SessionPage({
 
       <div className="flex flex-wrap items-center gap-2">
         <Badge tone="success">{checkedIn.length} here</Badge>
+        {board.occurrence.mode === 'king_of_the_court' ? (
+          <Badge tone="primary">King of the court</Badge>
+        ) : null}
         {board.occurrence.publicSlug ? (
           <Link href={`/board/${board.occurrence.publicSlug}`} className="inline-flex">
             <Badge tone="info">Board on TV</Badge>

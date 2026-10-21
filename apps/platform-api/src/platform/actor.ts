@@ -11,6 +11,8 @@ export interface Actor {
   authUserId: string;
   displayName: string;
   memberships: ReadonlyMap<string, { role: Role; status: MembershipStatus }>;
+  /** Series this person hosts (Addendum 1.2): may set up and run any of their nights. */
+  hostedSeries: ReadonlySet<string>;
 }
 
 export class ActorService {
@@ -24,8 +26,12 @@ export class ActorService {
         displayName: displayNameFromPrincipal(principal),
         avatarUrl: avatarUrlFromPrincipal(principal),
       }));
+    const [membershipRows, hosted] = await Promise.all([
+      this.identity.listMemberships(profile.id),
+      this.identity.listHostedSeries(profile.id),
+    ]);
     const memberships = new Map<string, { role: Role; status: MembershipStatus }>();
-    for (const m of await this.identity.listMemberships(profile.id)) {
+    for (const m of membershipRows) {
       memberships.set(m.organisationId, { role: m.role, status: m.status });
     }
     return {
@@ -33,6 +39,7 @@ export class ActorService {
       authUserId: profile.authUserId,
       displayName: profile.displayName,
       memberships,
+      hostedSeries: new Set(hosted),
     };
   }
 }

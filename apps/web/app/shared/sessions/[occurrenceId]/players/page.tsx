@@ -22,6 +22,7 @@ import {
   checkIn,
   checkInEveryone,
   noShow,
+  setNightMode,
   withdraw,
 } from '../../actions';
 import { loadSession, SessionFrame } from '../session-shell';
@@ -58,6 +59,10 @@ export default async function PlayersPage({
   const myEntry = myParticipantId
     ? board.entries.find((e) => e.participantId === myParticipantId)
     : undefined;
+  const opensAt = new Date(board.occurrence.checkInOpensAt);
+  const checkInOpen = opensAt.getTime() <= Date.now();
+  const opensLabel = opensAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const noRoundYet = board.completedRounds === 0 && !board.currentRound && !board.nextRound;
 
   const subtitle = (e: (typeof board.entries)[number]) =>
     [
@@ -95,12 +100,51 @@ export default async function PlayersPage({
   return (
     <SessionFrame ctx={ctx}>
       {myParticipantId && live && myEntry && myEntry.attendanceStatus !== 'checked_in' ? (
-        <form action={checkIn.bind(null, occurrenceId, undefined)} className="mb-3">
-          <Button type="submit" size="lg" className="w-full">
-            <Icon name="check" size={18} />
-            I&apos;m here
-          </Button>
-        </form>
+        checkInOpen || canManage ? (
+          <form action={checkIn.bind(null, occurrenceId, undefined)} className="mb-3">
+            <Button type="submit" size="lg" className="w-full">
+              <Icon name="check" size={18} />
+              I&apos;m here
+            </Button>
+          </form>
+        ) : (
+          <Card className="mb-3">
+            <Muted>Check-in opens at {opensLabel}. You&apos;re expected; see you there.</Muted>
+          </Card>
+        )
+      ) : null}
+
+      {canManage && live && noRoundYet ? (
+        <Card className="mb-4">
+          <Kicker className="mb-2">Tonight&apos;s format</Kicker>
+          <div className="grid grid-cols-2 gap-2">
+            {(
+              [
+                ['mix', 'Mix'],
+                ['king_of_the_court', 'King of the court'],
+              ] as const
+            ).map(([mode, label]) => (
+              <form key={mode} action={setNightMode.bind(null, occurrenceId, mode)}>
+                <button
+                  type="submit"
+                  aria-pressed={board.occurrence.mode === mode}
+                  className={`w-full rounded-control border px-3 py-2.5 text-[14px] font-bold ${
+                    board.occurrence.mode === mode
+                      ? 'border-primary bg-primary text-primary-ink'
+                      : 'border-hairline-strong text-ink'
+                  }`}
+                >
+                  {label}
+                </button>
+              </form>
+            ))}
+          </div>
+          <Muted className="mt-2 block text-xs">
+            {board.occurrence.mode === 'king_of_the_court'
+              ? 'Record who won on each court; winners move up, losers move down from round 2.'
+              : 'Fair partners, opponents and rest. Locks in once the first round is called.'}
+          </Muted>
+        </Card>
       ) : null}
 
       {canManage && live ? (

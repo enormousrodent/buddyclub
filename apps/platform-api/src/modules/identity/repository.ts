@@ -43,4 +43,6 @@ export interface IdentityRepository {
   updateProfile(profileId: string, input: UpdateProfileInput): Promise<UserProfileRecord>;
   listMemberships(profileId: string): Promise<MembershipRecord[]>;
   listParticipants(profileId: string): Promise<MyParticipantRecord[]>;
+  /** Session series the profile hosts and whose host switch is on (Addendum 1.2). */
+  listHostedSeries(profileId: string): Promise<string[]>;
 }

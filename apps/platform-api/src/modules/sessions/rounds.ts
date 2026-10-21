@@ -2,7 +2,7 @@ import type { Round } from '@buddyclub/shared-types';
 import type { Db } from '../../db/index.js';
 import type { Actor } from '../../platform/actor.js';
 import { recordAudit } from '../../platform/audit.js';
-import { assertOrgAction } from '../../platform/authz.js';
+import { assertManageSeries } from '../../platform/authz.js';
 import { emitEvent } from '../../platform/outbox.js';
 import { AppError } from '../../problems.js';
 import type { CommandContext } from '../organisations/service.js';
@@ -20,7 +20,7 @@ export async function transitionRound(
   return db.transaction().execute(async (trx) => {
     const round = await loadRound(trx, roundId, true);
     const occ = await loadOccurrence(trx, round.occurrence_id, true);
-    assertOrgAction(actor, occ.organisation_id, 'session.manage');
+    assertManageSeries(actor, occ.organisation_id, occ.series_id);
     const now = new Date();
     const deny = (detail: string) =>
       new AppError(409, 'CONFLICT', `Cannot ${action} this round`, detail);

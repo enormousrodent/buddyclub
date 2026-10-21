@@ -5,6 +5,7 @@ import type {
   Occurrence,
   PairLock,
   Round,
+  Schedule,
   SessionCourt,
   SessionSeries,
   Timer,
@@ -12,7 +13,10 @@ import type {
 import type { Transaction } from 'kysely';
 import type { z } from 'zod';
 import type { Database, Db } from '../../db/index.js';
+import type { Actor } from '../../platform/actor.js';
+import { canManageSeries, canOrgAction } from '../../platform/authz.js';
 import { toIso, toIsoOrNull } from '../../platform/tokens.js';
+import { nextScheduledStart, timeFromDb } from './schedule.js';
 import { AppError, notFound } from '../../problems.js';
 
 export type DbOrTrx = Db | Transaction<Database>;
@@ -33,6 +37,11 @@ export const SERIES_COLUMNS = [
   'default_rules_json',
   'default_duration_minutes',
   'default_round_minutes',
+  'schedule_weekday',
+  'schedule_time',
+  'schedule_timezone',
+  'check_in_window_minutes',
+  'hosts_enabled',
   'archived_at',
   'version',
   'created_at',
@@ -53,12 +62,48 @@ export interface SeriesRow {
   default_rules_json: Record<string, unknown> | null;
   default_duration_minutes: number;
   default_round_minutes: number;
+  schedule_weekday: number | null;
+  schedule_time: string | null;
+  schedule_timezone: string | null;
+  check_in_window_minutes: number;
+  hosts_enabled: boolean;
   archived_at: Date | null;
   version: number;
   created_at: Date;
 }
 
-export function toSeries(row: SeriesRow): SessionSeries {
+export function scheduleOf(row: {
+  schedule_weekday: number | null;
+  schedule_time: string | null;
+  schedule_timezone: string | null;
+}): Schedule | null {
+  if (row.schedule_weekday === null || row.schedule_time === null || !row.schedule_timezone)
+    return null;
+  return {
+    weekday: row.schedule_weekday,
+    time: timeFromDb(row.schedule_time),
+    timezone: row.schedule_timezone,
+  };
+}
+
+/** The next scheduled start, or null without a schedule. Computed, never stored. */
+export function nextStartOf(
+  row: {
+    schedule_weekday: number | null;
+    schedule_time: string | null;
+    schedule_timezone: string | null;
+    default_duration_minutes: number;
+  },
+  now = new Date(),
+): Date | null {
+  const schedule = scheduleOf(row);
+  return schedule
+    ? nextScheduledStart(schedule, now, { durationMinutes: row.default_duration_minutes })
+    : null;
+}
+
+export function toSeries(row: SeriesRow, actor: Actor): SessionSeries {
+  const next = nextStartOf(row);
   return {
     id: row.id,
     organisationId: row.organisation_id,
@@ -74,6 +119,12 @@ export function toSeries(row: SeriesRow): SessionSeries {
     defaultRules: row.default_rules_json,
     defaultDurationMinutes: row.default_duration_minutes,
     defaultRoundMinutes: row.default_round_minutes,
+    schedule: scheduleOf(row),
+    nextAt: next ? toIso(next) : null,
+    checkInWindowMinutes: row.check_in_window_minutes,
+    hostsEnabled: row.hosts_enabled,
+    canRun: canManageSeries(actor, row.organisation_id, row.id),
+    canEdit: canOrgAction(actor, row.organisation_id, 'session.manage'),
     archivedAt: toIsoOrNull(row.archived_at),
     version: row.version,
     createdAt: toIso(row.created_at),
@@ -403,6 +454,24 @@ export async function loadPlacement(db: DbOrTrx, roundId: string): Promise<Round
     .orderBy('ra.side_no')
     .orderBy('p.display_name')
     .execute();
+  const matchIds = [...new Set(rows.map((r) => r.match_id).filter((id): id is string => !!id))];
+  const winners = new Map<string, 1 | 2 | null>();
+  if (matchIds.length) {
+    // Latest confirmed revision per match; a null winner clears an earlier one.
+    const revisions = await db
+      .selectFrom('matches.result_revisions')
+      .select(['match_id', 'score_json', 'revision'])
+      .where('match_id', 'in', matchIds)
+      .where('result_status', '=', 'confirmed')
+      .orderBy('match_id')
+      .orderBy('revision', 'desc')
+      .execute();
+    for (const rev of revisions) {
+      if (winners.has(rev.match_id)) continue;
+      const side = (rev.score_json as { winnerSide?: unknown }).winnerSide;
+      winners.set(rev.match_id, side === 1 || side === 2 ? side : null);
+    }
+  }
   const byMatch = new Map<string, Assignment>();
   const resting: NamedParticipant[] = [];
   for (const r of rows) {
@@ -418,6 +487,7 @@ export async function loadPlacement(db: DbOrTrx, roundId: string): Promise<Round
         courtCode: r.court_code ?? '?',
         matchId: r.match_id,
         teams: [[], []],
+        winnerSide: winners.get(r.match_id) ?? null,
       };
       byMatch.set(r.match_id, a);
     }
