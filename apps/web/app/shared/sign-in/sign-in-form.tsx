@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { Alert, Button, Field, Icon, Input, Muted } from '../../../components/ui';
@@ -178,7 +179,15 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
         ) : null}
       </div>
       <Muted className="block text-center text-xs">
-        By continuing you agree to the terms and privacy policy.
+        By continuing you agree to the{' '}
+        <Link href="/terms" className="font-semibold text-ink underline underline-offset-2">
+          terms
+        </Link>{' '}
+        and{' '}
+        <Link href="/privacy" className="font-semibold text-ink underline underline-offset-2">
+          privacy policy
+        </Link>
+        .
       </Muted>
     </form>
   );

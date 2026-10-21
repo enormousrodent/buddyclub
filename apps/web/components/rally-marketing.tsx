@@ -268,6 +268,8 @@ export function RallyMarketingFooter() {
           <Link href="/dashboard">Open the app</Link>
           <Link href="/sign-in">Sign in</Link>
           <a href="https://buddy-club.com/">Buddy Club</a>
+          <Link href="/terms">Terms</Link>
+          <Link href="/privacy">Privacy</Link>
         </nav>
       </Wide>
     </footer>

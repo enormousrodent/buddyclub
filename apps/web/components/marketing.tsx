@@ -486,6 +486,8 @@ export function MarketingFooter() {
           <Link href="/rally">Rally</Link>
           <Link href="/explore">Explore</Link>
           <Link href="/sign-in">Sign in</Link>
+          <Link href="/terms">Terms</Link>
+          <Link href="/privacy">Privacy</Link>
         </nav>
       </Wide>
     </footer>

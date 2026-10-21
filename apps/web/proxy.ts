@@ -19,8 +19,8 @@ const SHARED_PREFIXES = [
   '/league',
 ];
 
-/** Public pages (venue boards, QR landing) have no app chrome and work signed out. */
-const PUBLIC_PREFIXES = ['/board', '/join'];
+/** Public pages (venue boards, QR landing, legal documents) have no app chrome and work signed out. */
+const PUBLIC_PREFIXES = ['/board', '/join', '/terms', '/privacy'];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
