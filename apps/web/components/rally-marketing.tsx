@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { BuddyClubMark, RallyMark } from './brand';
-import { MyCourtHero } from './court';
+import { RallyShowcase } from './rally-showcase';
 import { Icon } from './ui';
 
 /*
@@ -165,30 +165,7 @@ export function RallyLanding() {
               Free for social sessions. Works in the browser; add it to your home screen.
             </p>
           </div>
-          <div className="relative">
-            <MyCourtHero
-              courtCode="4"
-              partners={['Priya Kapoor']}
-              opponents={['Tom Okafor', 'Mei Chen']}
-              resting={false}
-              topLeft="Now · round 3"
-              topRight={<span className="tnum font-display text-3xl font-extrabold">07:42</span>}
-            />
-            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-              {[
-                ['Court 1', 'Aisha & Raj'],
-                ['Court 2', 'Ben & Lucy'],
-                ['Resting', 'Sam, Dan'],
-              ].map(([k, v]) => (
-                <div key={k} className="rounded-control bg-surface px-2 py-2.5">
-                  <div className="font-display text-[12px] font-bold uppercase tracking-[0.1em] text-muted">
-                    {k}
-                  </div>
-                  <div className="truncate text-[13px] font-semibold">{v}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <RallyShowcase />
         </Wide>
       </section>
 

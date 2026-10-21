@@ -31,3 +31,13 @@ quotes, photography.
 
 Typecheck, lint, Prettier and `next build` green; `/`, `/rally` and `/explore?interest=books`
 render against the deployed API with the demo content.
+
+## Rally hero showcase (2026-10-21)
+
+The right-hand side of the Rally front-page hero is `components/rally-showcase.tsx`, a client
+component cycling five scenes every 5.6 s: what players see (the court card), calling the round,
+the hall TV board (night tokens, join code and a QR-like tile), check-in (ticks pop in), and league
+standings. One timer keeps counting across scenes. Pointer hover or focus holds the scene, the
+dots jump to one, and `#scene-<id>` (court, round, board, checkin, league) opens on a given scene.
+Under prefers-reduced-motion it stays on the first scene. Keyframes `.show-in`, `.show-pop` and
+`.show-bar` live in `globals.css` next to `.rise`.

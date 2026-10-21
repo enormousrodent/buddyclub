@@ -336,6 +336,45 @@ body {
     transform: none;
   }
 }
+/* Rally front-page showcase: scene entrance, check-in ticks, and the scene progress bar. */
+.show-in {
+  animation: bc-show-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes bc-show-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.show-pop {
+  animation: bc-show-pop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+@keyframes bc-show-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.show-bar {
+  transform-origin: left;
+  animation: bc-show-bar var(--show-ms, 5600ms) linear both;
+}
+@keyframes bc-show-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
 .ribbon {
   display: flex;
   width: max-content;
@@ -396,7 +435,10 @@ body {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .rise {
+  .rise,
+  .show-in,
+  .show-pop,
+  .show-bar {
     animation: none;
   }
   .ribbon {
