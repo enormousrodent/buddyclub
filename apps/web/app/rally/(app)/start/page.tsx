@@ -1,64 +1,16 @@
 import { roleAllows } from '@buddyclub/auth';
-import type { Preset } from '@buddyclub/shared-types';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ActionForm } from '../../../../components/action-form';
+import { PresetCard } from '../../../../components/preset-card';
 import { Kicker } from '../../../../components/rally-kit';
-import {
-  Button,
-  Card,
-  Field,
-  Icon,
-  Input,
-  LinkButton,
-  Muted,
-  Page,
-  Select,
-} from '../../../../components/ui';
+import { Card, Field, Icon, Input, LinkButton, Page, Select } from '../../../../components/ui';
 import { apiForUser } from '../../../../lib/api';
 import { getSessionUser } from '../../../../lib/supabase/server';
 import { setUpSession } from '../../../shared/sessions/actions';
-import { startOnMyOwn, startPreset } from '../../actions';
+import { startOnMyOwn } from '../../actions';
 
 export const metadata = { title: 'Start a session' };
-
-function PresetCard({ p, featured }: { p: Preset; featured: boolean }) {
-  return (
-    <Card className="flex flex-col gap-2">
-      <div className="flex items-start justify-between gap-2">
-        <div className="font-display text-[24px] font-bold uppercase leading-none">{p.name}</div>
-        {p.lastStartedAt ? (
-          <span className="shrink-0 rounded-full bg-surface-2 px-2.5 py-1 text-[11px] font-bold">
-            Last {new Date(p.lastStartedAt).toLocaleDateString('en-GB', { weekday: 'short' })}
-          </span>
-        ) : null}
-      </div>
-      <Muted>
-        {p.organisationKind === 'personal' ? 'Just me' : p.organisationName}
-        {p.venueName ? ` · ${p.venueName}` : ''} · {p.courts} court{p.courts === 1 ? '' : 's'} ·{' '}
-        {p.defaultRoundMinutes} min rounds · {p.regulars} regular{p.regulars === 1 ? '' : 's'}
-      </Muted>
-      {p.activeOccurrenceId ? (
-        <LinkButton href={`/sessions/${p.activeOccurrenceId}`} variant="tonal">
-          Open tonight&apos;s
-        </LinkButton>
-      ) : (
-        <form action={startPreset.bind(null, p.seriesId)}>
-          <Button type="submit" variant={featured ? 'primary' : 'tonal'} className="w-full">
-            <Icon name="play" size={16} />
-            Start with this
-          </Button>
-        </form>
-      )}
-      <Link
-        href={`/presets/${p.seriesId}`}
-        className="text-center text-[13px] font-bold text-primary"
-      >
-        Regulars and settings
-      </Link>
-    </Card>
-  );
-}
 
 /**
  * Start a session (designs B2 and B3). Presets first, one tap each; then the builder for a new

@@ -111,7 +111,7 @@ export function SessionFrame({
         <span>
           {activeCourts.length} court{activeCourts.length === 1 ? '' : 's'}
         </span>
-        <span>{Math.round(board.occurrence.roundDurationSeconds / 60)} min rounds</span>
+        <span>{Math.round(board.occurrence.roundDurationSeconds / 60)} min</span>
         <span>{board.completedRounds} played</span>
         <span className="inline-flex items-center gap-1">
           <Icon name="users" size={14} />

@@ -1,9 +1,9 @@
-import type { MySession, Preset } from '@buddyclub/shared-types';
+import type { MySession } from '@buddyclub/shared-types';
 import Link from 'next/link';
 import { IconTile } from '../../../../components/brand';
+import { PresetCard } from '../../../../components/preset-card';
 import { Countdown } from '../../../../components/live';
 import {
-  Button,
   Card,
   Empty,
   Icon,
@@ -20,7 +20,6 @@ import { getSessionUser } from '../../../../lib/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { ONBOARDED_COOKIE } from '../welcome/cookies';
-import { startPreset } from '../../actions';
 import { JoinCodeForm } from '../../join-code';
 
 function when(iso: string): string {
@@ -67,49 +66,6 @@ function ResumeHero({ s }: { s: MySession }) {
         <Icon name="chevron" size={18} />
       </span>
     </Link>
-  );
-}
-
-function PresetCard({ p }: { p: Preset }) {
-  return (
-    <div className="flex w-50 shrink-0 flex-col gap-2 rounded-card border border-hairline bg-surface p-3.5">
-      <div className="flex items-start justify-between gap-2">
-        <Icon name="clock" size={20} className="shrink-0 text-primary" />
-        {p.organisationKind === 'personal' ? (
-          <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-muted">
-            Just me
-          </span>
-        ) : (
-          <span className="truncate text-[11px] font-bold uppercase tracking-[0.06em] text-muted">
-            {p.organisationName}
-          </span>
-        )}
-      </div>
-      <div className="text-[15px] font-bold leading-5">{p.name}</div>
-      <div className="text-xs leading-4 text-muted">
-        {p.sportId} · {p.courts} court{p.courts === 1 ? '' : 's'} · {p.defaultRoundMinutes} min
-        rounds{p.venueName ? ` · ${p.venueName}` : ''} · {p.regulars} regular
-        {p.regulars === 1 ? '' : 's'}
-      </div>
-      {p.activeOccurrenceId ? (
-        <LinkButton href={`/sessions/${p.activeOccurrenceId}`} variant="tonal" size="sm">
-          Open tonight&apos;s
-        </LinkButton>
-      ) : (
-        <form action={startPreset.bind(null, p.seriesId)}>
-          <Button type="submit" size="sm" variant="tonal" className="w-full">
-            <Icon name="play" size={14} />
-            Start now
-          </Button>
-        </form>
-      )}
-      <Link
-        href={`/presets/${p.seriesId}`}
-        className="text-center text-[12px] font-bold text-primary"
-      >
-        Regulars and settings
-      </Link>
-    </div>
   );
 }
 
@@ -260,8 +216,8 @@ export default async function RallyHomePage({
             Presets
           </SectionHeading>
           <div className="scroll-row -mx-5 flex gap-2.5 px-5 pb-1 sm:mx-0 sm:px-0">
-            {presets.items.map((p) => (
-              <PresetCard key={p.seriesId} p={p} />
+            {presets.items.map((p, i) => (
+              <PresetCard key={p.seriesId} p={p} featured={i === 0} compact />
             ))}
           </div>
         </>

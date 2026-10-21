@@ -36,7 +36,10 @@ it; the builder's "Start it now" switch, off, saves a preset and lands on its pa
 (`/presets/:seriesId`) holds name and timings and the **regulars**: club players ticked there are
 registered on every session started from the preset (migration 13, `GET/PUT
 /v1/sessions/:id/regulars`, `POST /v1/sessions/:id/start` registers them). The Players screen
-gains "Check everyone in". Profile photos: migration 12, `avatarUrl` on `PATCH /v1/me` and on
+gains "Check everyone in". Preset cards on the dashboard strip and the Start page share
+`components/preset-card.tsx`: sport chip, display-type name, venue and last run, courts / round
+minutes / regulars stats, lime "Start now" on the first card, and a live state (lime border,
+pulsing "Live now", "Open tonight's") when a session from the preset is open. Profile photos: migration 12, `avatarUrl` on `PATCH /v1/me` and on
 roster entries, upload from the browser to the `avatars` bucket.
 
 ## Clubs, invites and members (2026-10-21)
