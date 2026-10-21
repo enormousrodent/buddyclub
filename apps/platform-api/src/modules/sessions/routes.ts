@@ -981,6 +981,7 @@ export async function sessionRoutes(app: FastifyInstance, options: SessionRoutes
           {
             startsAt,
             ...(request.body.mode ? { mode: request.body.mode } : {}),
+            ...(request.body.format ? { format: request.body.format } : {}),
             ...(request.body.roundMinutes ? { roundMinutes: request.body.roundMinutes } : {}),
           },
           ctx(request),

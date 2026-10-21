@@ -4,6 +4,7 @@ import type { Schedule } from '@buddyclub/shared-types';
 import { revalidatePath } from 'next/cache';
 import type { ActionResult } from '../../../components/action-form';
 import { apiForUser, describeError } from '../../../lib/api';
+import { FAIRNESS_FACTORS, isFairnessLevel, weightForLevel } from '../../../lib/fairness';
 
 /** Server actions for a session (series) page: settings, schedule, regulars and hosts. */
 
@@ -29,16 +30,17 @@ export async function updateSession(
       const current = (await api.sessions.get(seriesId)).defaultRules ?? {};
       const rotation = { ...((current as { rotation?: Record<string, unknown> }).rotation ?? {}) };
       rotation['mode'] = mode;
+      const format = String(formData.get('format') ?? '');
+      if (format === 'singles' || format === 'doubles') rotation['format'] = format;
       // Advanced fairness controls, when the form carried them.
       const weights: Record<string, number> = {
         ...((rotation['weights'] as Record<string, number> | undefined) ?? {}),
       };
-      for (const key of ['rest', 'minutes', 'partners', 'opponents', 'skill']) {
+      for (const [key] of FAIRNESS_FACTORS) {
         const raw = formData.get(`weight_${key}`);
         if (raw === null || raw === '') continue;
-        const n = Number(raw);
-        if (!Number.isFinite(n) || n < 0) return { error: `${key} weight must be 0 or more` };
-        weights[key] = n;
+        if (!isFairnessLevel(raw)) return { error: 'Pick Off, Low, Medium or High' };
+        weights[key] = weightForLevel(raw);
       }
       if (Object.keys(weights).length) rotation['weights'] = weights;
       const maxRests = formData.get('maxConsecutiveRests');
@@ -46,8 +48,8 @@ export async function updateSession(
         if (String(maxRests).trim() === '') delete rotation['maxConsecutiveRests'];
         else {
           const n = Number(maxRests);
-          if (!Number.isInteger(n) || n < 1)
-            return { error: 'Max rests in a row must be 1 or more' };
+          if (!Number.isInteger(n) || n < 1 || n > 10)
+            return { error: 'Pick how many times in a row someone may sit out' };
           rotation['maxConsecutiveRests'] = n;
         }
       }

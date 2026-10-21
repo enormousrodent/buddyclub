@@ -44,6 +44,24 @@ const PATHS: Record<string, string> = {
   // Strung racket and a ball.
   racket_sports:
     'M42 18a18 22 0 1 0 0.1 0M30 30h24M27 40h30M30 50h24M36 22v36M48 22v36M50 58l24 26M46 60l4-2M78 22a6 6 0 1 0 0.1 0',
+  // Tennis: racket with a ball in flight.
+  tennis:
+    'M40 20a18 22 0 1 0 0.1 0M28 32h24M25 42h30M28 52h24M34 24v36M46 24v36M48 60l24 26M78 20a7 7 0 1 0 0.1 0M74 16c3 3 5 6 5 10M82 24c-4 0-7-2-10-5',
+  // Pickleball: a paddle with holes in the ball.
+  pickleball:
+    'M44 22a20 24 0 1 0 0.1 0M44 46v14M36 60h16v12H36zM76 30a10 10 0 1 0 0.1 0M72 26h.1M80 26h.1M70 32h.1M82 32h.1M76 36h.1M74 30h.1',
+  // Badminton: a shuttlecock.
+  badminton:
+    'M62 22l18 18-30 30-4-4-14 14-6-6 14-14-4-4zM62 22l-8 8M70 30l-8 8M78 38l-8 8M44 70a6 6 0 1 0 0.1 0',
+  // Padel: the holed bat, short handle.
+  padel:
+    'M46 20a20 20 0 1 1 0 40a20 20 0 1 1 0-40zM46 60v14M40 74h12v10H40zM40 34h.1M52 34h.1M34 44h.1M46 44h.1M58 44h.1M40 54h.1M52 54h.1M78 24l6 6M84 24l-6 6',
+  // Squash: long thin racket and a small ball low in the frame.
+  squash:
+    'M50 16a14 20 0 1 0 0.1 0M40 26h20M38 36h24M40 46h20M46 20v36M54 20v36M50 56v30M44 86h12M80 74a5 5 0 1 0 0.1 0',
+  // Table tennis: bat and a ball.
+  table_tennis:
+    'M48 24a20 20 0 1 1 0 40a20 20 0 1 1 0-40zM48 64v10M42 74h12v10H42zM78 36a6 6 0 1 0 0.1 0M18 80h60',
   cycling:
     'M26 70a14 14 0 1 0 0.1 0M78 70a14 14 0 1 0 0.1 0M26 70l18-28h18l16 28M44 42l-8-12h12M62 42l12 28',
   swimming: 'M14 70c8-6 16-6 24 0s16 6 24 0 16-6 24 0M60 34a6 6 0 1 0 0.1 0M24 60l20-18 12 10 10-6',

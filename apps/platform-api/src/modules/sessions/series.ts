@@ -1,7 +1,8 @@
-import type {
-  CreateSessionSeriesBody,
-  SessionSeries,
-  UpdateSessionSeriesBody,
+import {
+  usualFormatForSport,
+  type CreateSessionSeriesBody,
+  type SessionSeries,
+  type UpdateSessionSeriesBody,
 } from '@buddyclub/shared-types';
 import type { Db } from '../../db/index.js';
 import type { Actor } from '../../platform/actor.js';
@@ -38,7 +39,10 @@ export async function createSeries(
 ): Promise<SessionSeries> {
   assertOrgAction(actor, organisationId, 'session.manage');
   if (body.venueId) await assertVenueInOrg(db, organisationId, body.venueId);
-  const rules = body.rules ? parseSocialRules(body.rules) : null;
+  const format = body.format ?? usualFormatForSport(body.sportId);
+  const base = parseSocialRules(body.rules ?? {});
+  // Always store default rules so the usual format is explicit on the session.
+  const rules = { ...base, rotation: { ...base.rotation, format } };
   if (body.rulesetId) {
     const rs = await db
       .selectFrom('platform.rulesets')
@@ -79,7 +83,7 @@ export async function createSeries(
           description: body.description ?? null,
           recurrence_rrule: null,
           default_ruleset_id: body.rulesetId ?? null,
-          default_rules_json: rules ? JSON.stringify(rules) : null,
+          default_rules_json: JSON.stringify(rules),
           default_duration_minutes: body.defaultDurationMinutes,
           default_round_minutes: body.defaultRoundMinutes,
           schedule_weekday: body.schedule?.weekday ?? null,

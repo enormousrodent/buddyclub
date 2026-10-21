@@ -583,9 +583,14 @@ body {
   }
 }
 @media (max-width: 639px) {
-  .mosaic-row {
+  /* Rows dissolve into one grid, so an odd row never leaves an empty cell. */
+  .mosaic {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .mosaic-row {
+    display: contents;
   }
   .mosaic-tile {
     min-height: 110px;

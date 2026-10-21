@@ -95,6 +95,7 @@ export async function board(db: Db, actor: Actor, occurrenceId: string): Promise
       venueName: header.venueName,
       checkInOpensAt: header.checkInOpensAt,
       mode: parseSocialRules(occ.rules_json).rotation.mode,
+      format: parseSocialRules(occ.rules_json).rotation.format,
     },
     canManage: canManageSeries(actor, occ.organisation_id, occ.series_id),
     courts,

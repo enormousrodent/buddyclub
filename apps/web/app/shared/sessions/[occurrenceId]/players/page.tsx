@@ -22,6 +22,7 @@ import {
   checkIn,
   checkInEveryone,
   noShow,
+  setNightFormat,
   setNightMode,
   withdraw,
 } from '../../actions';
@@ -144,6 +145,28 @@ export default async function PlayersPage({
               ? 'Record who won on each court; winners move up, losers move down from round 2.'
               : 'Random courts with the sitting out shared as evenly as possible. Locks in once the first round is called.'}
           </Muted>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {(
+              [
+                ['doubles', 'Doubles'],
+                ['singles', 'Singles'],
+              ] as const
+            ).map(([format, label]) => (
+              <form key={format} action={setNightFormat.bind(null, occurrenceId, format)}>
+                <button
+                  type="submit"
+                  aria-pressed={board.occurrence.format === format}
+                  className={`w-full rounded-control border px-3 py-2 text-[13px] font-bold ${
+                    board.occurrence.format === format
+                      ? 'border-ink bg-ink text-surface'
+                      : 'border-hairline-strong text-ink'
+                  }`}
+                >
+                  {label}
+                </button>
+              </form>
+            ))}
+          </div>
         </Card>
       ) : null}
 

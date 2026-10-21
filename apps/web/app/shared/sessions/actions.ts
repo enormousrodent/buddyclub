@@ -255,6 +255,9 @@ export async function setUpSession(
       ...(venueId ? { venueId } : {}),
       defaultRoundMinutes: Number(formData.get('roundMinutes') || 12),
       defaultDurationMinutes: Number(formData.get('durationMinutes') || 120),
+      ...(text(formData, 'format') === 'singles' || text(formData, 'format') === 'doubles'
+        ? { format: text(formData, 'format') as 'singles' | 'doubles' }
+        : {}),
     });
     if (formData.get('startNow') === 'on') {
       const occurrence = await api.sessions.createOccurrence(series.id, {
@@ -343,4 +346,15 @@ export async function openNight(occurrenceId: string): Promise<void> {
   revalidatePath('/dashboard');
   revalidatePath('/sessions');
   redirect(`/sessions/${occurrenceId}/players`);
+}
+
+/** Singles or doubles tonight, before the first round is called. */
+export async function setNightFormat(
+  occurrenceId: string,
+  format: 'singles' | 'doubles',
+): Promise<void> {
+  await run(
+    () => apiForUser().occurrences.update(occurrenceId, { format }),
+    `/sessions/${occurrenceId}/players`,
+  );
 }

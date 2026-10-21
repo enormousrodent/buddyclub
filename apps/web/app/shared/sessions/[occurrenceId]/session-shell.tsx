@@ -61,6 +61,37 @@ export function when(iso: string): string {
   });
 }
 
+/** One of the four numbers at the top of a night: big figure, small word, a colour that means it. */
+function HeaderStat({
+  value,
+  label,
+  tone,
+  icon,
+}: {
+  value: number;
+  label: string;
+  tone: 'tint' | 'neutral' | 'info' | 'success';
+  icon?: 'clock' | 'play' | 'users';
+}) {
+  const tones = {
+    tint: 'bg-tint text-tint-ink',
+    neutral: 'bg-surface-2 text-ink',
+    info: 'bg-info text-info-ink',
+    success: 'bg-success text-success-ink',
+  };
+  return (
+    <div
+      className={`flex min-h-16 flex-col justify-center rounded-control px-2.5 py-2 ${tones[tone]}`}
+    >
+      <div className="flex items-baseline gap-1">
+        <span className="tnum font-display text-[26px] font-extrabold leading-none">{value}</span>
+        {icon ? <Icon name={icon} size={13} className="opacity-70" /> : null}
+      </div>
+      <span className="mt-0.5 text-[11px] font-semibold leading-tight opacity-80">{label}</span>
+    </div>
+  );
+}
+
 /** Page frame for every session screen: title, state, meta line and the segmented tabs. */
 export function SessionFrame({
   ctx,
@@ -103,20 +134,34 @@ export function SessionFrame({
     >
       <LiveSubscription occurrenceId={occurrenceId} />
       <OfflineBanner since={board.serverTime} />
-      <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-muted">
-        <span className="inline-flex items-center gap-1">
-          <Icon name="pin" size={14} />
-          {board.occurrence.venueName ?? 'No venue'}
-        </span>
-        <span>
-          {activeCourts.length} court{activeCourts.length === 1 ? '' : 's'}
-        </span>
-        <span>{Math.round(board.occurrence.roundDurationSeconds / 60)} min</span>
-        <span>{board.completedRounds} played</span>
-        <span className="inline-flex items-center gap-1">
-          <Icon name="users" size={14} />
-          {checkedIn.length} here
-        </span>
+      <div className="mb-2 inline-flex items-center gap-1 text-[13px] text-muted">
+        <Icon name="pin" size={14} />
+        {board.occurrence.venueName ?? 'No venue'}
+      </div>
+      <div className="mb-4 grid grid-cols-4 gap-2">
+        <HeaderStat
+          value={activeCourts.length}
+          label={activeCourts.length === 1 ? 'court' : 'courts'}
+          tone="tint"
+        />
+        <HeaderStat
+          value={Math.round(board.occurrence.roundDurationSeconds / 60)}
+          label="min round"
+          tone="neutral"
+          icon="clock"
+        />
+        <HeaderStat
+          value={board.completedRounds}
+          label={board.completedRounds === 1 ? 'round played' : 'rounds played'}
+          tone="info"
+          icon="play"
+        />
+        <HeaderStat
+          value={checkedIn.length}
+          label="here"
+          tone={checkedIn.length ? 'success' : 'neutral'}
+          icon="users"
+        />
       </div>
       <SessionTabs base={base} items={tabs} />
       {children}

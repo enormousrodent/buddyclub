@@ -28,8 +28,27 @@ function Eyebrow({ children, className = '' }: { children: ReactNode; className?
 /** The word that rotates in the headline; the first is what screen readers get. */
 const HERO_WORDS = ['people', 'buddies', 'community', 'crew', 'team'] as const;
 
+/** The racket sports Rally runs; each gets its own tile instead of one "Racket sports". */
+const RACKET_SPORTS: { id: string; label: string }[] = [
+  { id: 'tennis', label: 'Tennis' },
+  { id: 'pickleball', label: 'Pickleball' },
+  { id: 'badminton', label: 'Badminton' },
+  { id: 'padel', label: 'Padel' },
+  { id: 'squash', label: 'Squash' },
+];
+
+/** Where a sport tile goes: the racket-sport groups, narrowed to that sport by name. */
+const sportHref = (label: string) =>
+  `/explore?interest=racket_sports&q=${encodeURIComponent(label)}`;
+
 /** Interest mosaic, in rows. `weight` is the tile's share of its row at rest. */
-const MOSAIC_ROWS: { id: string; label: string; swatch: number; weight: number }[][] = [
+const MOSAIC_ROWS: {
+  id: string;
+  label: string;
+  swatch: number;
+  weight: number;
+  sport?: boolean;
+}[][] = [
   [
     { id: 'books', label: 'Books', swatch: 4, weight: 2 },
     { id: 'dog_walking', label: 'Dog walking', swatch: 2, weight: 1 },
@@ -44,8 +63,8 @@ const MOSAIC_ROWS: { id: string; label: string; swatch: number; weight: number }
     { id: 'wellbeing', label: 'Wellbeing', swatch: 5, weight: 1 },
     { id: 'food_drink', label: 'Food and drink', swatch: 4, weight: 1 },
     { id: 'arts_crafts', label: 'Arts and crafts', swatch: 2, weight: 1 },
-    { id: 'racket_sports', label: 'Racket sports', swatch: 0, weight: 1 },
   ],
+  RACKET_SPORTS.map((s) => ({ id: s.id, label: s.label, swatch: 0, weight: 1, sport: true })),
 ];
 
 /** Tile sizes for the interest ribbon, cycled so the row has a skyline rather than a grid. */
@@ -71,11 +90,11 @@ function RibbonTiles({
     <div className="ribbon-copy" aria-hidden={hidden || undefined}>
       {interests.map((i, n) => {
         const shape = RIBBON_SHAPES[n % RIBBON_SHAPES.length]!;
-        const rally = i.id === 'racket_sports';
+        const rally = RACKET_SPORTS.some((s) => s.id === i.id);
         return (
           <Link
             key={i.id}
-            href={rally ? '/rally' : `/explore?interest=${encodeURIComponent(i.id)}`}
+            href={rally ? sportHref(i.name) : `/explore?interest=${encodeURIComponent(i.id)}`}
             tabIndex={hidden ? -1 : undefined}
             className={`ribbon-tile flex shrink-0 flex-col items-start justify-end gap-0.5 rounded-[14px] p-3 font-display text-[20px] font-bold leading-tight transition hover:-translate-y-1 ${
               rally ? 'bg-ink text-on-ink' : 'text-ink'
@@ -122,7 +141,14 @@ export function LandingHero({
   interests: DiscoverResult['interests'];
   locality?: string | undefined;
 }) {
-  const ribbon = interests.filter((i) => i.id !== 'other' && i.id !== 'sports');
+  // One tile per racket sport in place of the umbrella interest.
+  const ribbon = interests
+    .filter((i) => i.id !== 'other' && i.id !== 'sports')
+    .flatMap((i) =>
+      i.id === 'racket_sports'
+        ? RACKET_SPORTS.map((s) => ({ ...i, id: s.id, name: s.label }))
+        : [i],
+    );
   return (
     <section className="pb-8 pt-12 sm:pt-20">
       <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 text-center">
@@ -284,15 +310,15 @@ export function InterestMosaic() {
           </h2>
           <Eyebrow>No sport required</Eyebrow>
         </div>
-        <div className="flex flex-col gap-3">
+        <div className="mosaic flex flex-col gap-3">
           {MOSAIC_ROWS.map((row, r) => (
             <div key={r} className="mosaic-row">
               {row.map((t) => {
-                const rally = t.id === 'racket_sports';
+                const rally = !!t.sport;
                 return (
                   <Link
                     key={t.id}
-                    href={rally ? '/rally' : `/explore?interest=${t.id}`}
+                    href={rally ? sportHref(t.label) : `/explore?interest=${t.id}`}
                     className={`mosaic-tile ${rally ? 'bg-ink text-on-ink' : 'text-ink'}`}
                     style={{
                       ['--w' as string]: t.weight,
@@ -314,7 +340,7 @@ export function InterestMosaic() {
                     )}
                     <span className="mosaic-label font-display">{t.label}</span>
                     <span className="mosaic-more">
-                      {rally ? 'Run by Rally' : 'See groups and gatherings'}
+                      {rally ? 'Groups and Rally nights' : 'See groups and gatherings'}
                       <Icon name="chevron" size={16} />
                     </span>
                   </Link>

@@ -27,6 +27,12 @@ import {
 } from '../../../components/ui';
 import { apiForUser } from '../../../lib/api';
 import {
+  DEFAULT_LEVELS,
+  FAIRNESS_FACTORS,
+  FAIRNESS_LEVELS,
+  levelForWeight,
+} from '../../../lib/fairness';
+import {
   describeSchedule,
   isHappeningNow,
   isUpcoming,
@@ -114,6 +120,7 @@ export async function SeriesPage({ series }: { series: SessionSeries }) {
       series.defaultRules as {
         rotation?: {
           mode?: string;
+          format?: string;
           maxConsecutiveRests?: number;
           weights?: Partial<
             Record<'rest' | 'minutes' | 'partners' | 'opponents' | 'skill', number>
@@ -122,14 +129,9 @@ export async function SeriesPage({ series }: { series: SessionSeries }) {
       } | null
     )?.rotation ?? {};
   const usualMode = rotation.mode ?? 'mix';
-  const weights = {
-    rest: 1,
-    minutes: 1,
-    partners: 1,
-    opponents: 0.5,
-    skill: 0.5,
-    ...(rotation.weights ?? {}),
-  };
+  const usualFormat = rotation.format ?? 'doubles';
+  const levelOf = (key: (typeof FAIRNESS_FACTORS)[number][0]) =>
+    levelForWeight(rotation.weights?.[key], DEFAULT_LEVELS[key]);
   const topTags = rating.tags
     ? Object.entries(rating.tags)
         .sort((a, b) => b[1] - a[1])
@@ -549,45 +551,45 @@ export async function SeriesPage({ series }: { series: SessionSeries }) {
                   <option value="king_of_the_court">King of the court</option>
                 </Select>
               </Field>
+              <Field
+                label="Singles or doubles"
+                hint="Change it for any night before the first round."
+              >
+                <Select name="format" defaultValue={usualFormat}>
+                  <option value="doubles">Doubles</option>
+                  <option value="singles">Singles</option>
+                </Select>
+              </Field>
               <details className="rounded-control bg-surface-2 px-3.5 py-2">
                 <summary className="cursor-pointer text-[14px] font-semibold">
                   Advanced: how fairness is weighed
                 </summary>
                 <Muted className="mb-3 mt-1 block text-xs">
-                  Each round the app scores hundreds of possible line-ups. Higher numbers matter
-                  more; 0 switches a factor off. The defaults suit most nights.
+                  Each round the app weighs hundreds of possible line-ups. Turn a factor up to make
+                  it matter more, or off to ignore it. The defaults suit most nights.
                 </Muted>
                 <div className="grid grid-cols-2 gap-3">
-                  {(
-                    [
-                      ['rest', 'Sharing the sitting out'],
-                      ['minutes', 'Equal minutes played'],
-                      ['partners', 'New partners'],
-                      ['opponents', 'New opponents'],
-                      ['skill', 'Even skill on a court'],
-                    ] as const
-                  ).map(([key, label]) => (
+                  {FAIRNESS_FACTORS.map(([key, label]) => (
                     <Field key={key} label={label}>
-                      <Input
-                        name={`weight_${key}`}
-                        type="number"
-                        min={0}
-                        max={10}
-                        step={0.1}
-                        defaultValue={weights[key]}
-                        inputMode="decimal"
-                      />
+                      <Select name={`weight_${key}`} defaultValue={levelOf(key)}>
+                        {FAIRNESS_LEVELS.map((level) => (
+                          <option key={level} value={level}>
+                            {level.charAt(0).toUpperCase() + level.slice(1)}
+                          </option>
+                        ))}
+                      </Select>
                     </Field>
                   ))}
-                  <Field label="Max rests in a row" hint="Blank: no hard limit.">
-                    <Input
+                  <Field label="Sitting out in a row">
+                    <Select
                       name="maxConsecutiveRests"
-                      type="number"
-                      min={1}
-                      max={10}
-                      defaultValue={rotation.maxConsecutiveRests ?? ''}
-                      inputMode="numeric"
-                    />
+                      defaultValue={rotation.maxConsecutiveRests?.toString() ?? ''}
+                    >
+                      <option value="">Avoid, but no hard limit</option>
+                      <option value="1">Never twice in a row</option>
+                      <option value="2">At most twice in a row</option>
+                      <option value="3">At most three in a row</option>
+                    </Select>
                   </Field>
                 </div>
               </details>

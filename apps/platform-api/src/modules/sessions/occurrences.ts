@@ -127,6 +127,7 @@ export async function createOccurrence(
     }
   }
   if (body.mode) rules = { ...rules, rotation: { ...rules.rotation, mode: body.mode } };
+  if (body.format) rules = { ...rules, rotation: { ...rules.rotation, format: body.format } };
 
   return db.transaction().execute(async (trx) => {
     const row = await trx
@@ -238,7 +239,7 @@ export async function updateOccurrence(
     const venueId = body.venueId ?? before.venue_id;
     if (body.courtIds) await validateCourts(trx, venueId, body.courtIds);
     let rulesPatch: Record<string, unknown> = {};
-    if (body.mode !== undefined) {
+    if (body.mode !== undefined || body.format !== undefined) {
       const round = await trx
         .selectFrom('activities.social_rounds')
         .select('id')
@@ -255,7 +256,11 @@ export async function updateOccurrence(
       rulesPatch = {
         rules_json: JSON.stringify({
           ...rules,
-          rotation: { ...rules.rotation, mode: body.mode },
+          rotation: {
+            ...rules.rotation,
+            ...(body.mode !== undefined ? { mode: body.mode } : {}),
+            ...(body.format !== undefined ? { format: body.format } : {}),
+          },
         }),
       };
     }

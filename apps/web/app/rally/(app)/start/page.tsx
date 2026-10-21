@@ -157,6 +157,13 @@ export default async function StartSessionPage({
                 </Select>
               </Field>
             </div>
+            <Field label="Singles or doubles" hint="Usual for the sport unless you say otherwise.">
+              <Select name="format" defaultValue="">
+                <option value="">Usual for the sport</option>
+                <option value="doubles">Doubles</option>
+                <option value="singles">Singles</option>
+              </Select>
+            </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Round length (min)">
                 <Input

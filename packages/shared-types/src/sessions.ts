@@ -27,6 +27,15 @@ export const CreateRulesetBodySchema = z.object({
 });
 export type CreateRulesetBody = z.infer<typeof CreateRulesetBodySchema>;
 
+/** Singles or doubles: how many on each side of a court. */
+export const MatchFormatSchema = z.enum(['singles', 'doubles']);
+export type MatchFormat = z.infer<typeof MatchFormatSchema>;
+
+/** What a sport usually plays socially; tennis genuinely varies, so it asks. */
+export function usualFormatForSport(sportId: string): MatchFormat {
+  return sportId === 'squash' || sportId === 'table_tennis' ? 'singles' : 'doubles';
+}
+
 export const RotationModeSchema = z.enum(['mix', 'king_of_the_court']);
 export type RotationMode = z.infer<typeof RotationModeSchema>;
 
@@ -117,6 +126,8 @@ export const CreateSessionSeriesBodySchema = z.object({
   defaultRoundMinutes: z.int().min(3).max(120).default(12),
   schedule: ScheduleSchema.optional(),
   checkInWindowMinutes: z.int().min(0).max(180).optional(),
+  /** Singles or doubles; defaults to what the sport usually plays. */
+  format: MatchFormatSchema.optional(),
   /** Defaults to `personal` in a personal workspace, `buddy_group` when groupId is set. */
   ownerScope: z.enum(['personal', 'organisation', 'buddy_group']).optional(),
 });
@@ -184,6 +195,8 @@ export const CreateOccurrenceBodySchema = z.object({
   rules: RulesJsonSchema.optional(),
   /** Tonight's format; overrides the series default's rotation mode. */
   mode: RotationModeSchema.optional(),
+  /** Singles or doubles tonight; overrides the series default. */
+  format: MatchFormatSchema.optional(),
   notes: z.string().trim().max(2000).optional(),
 });
 export type CreateOccurrenceBody = z.infer<typeof CreateOccurrenceBodySchema>;
@@ -197,6 +210,8 @@ export const UpdateOccurrenceBodySchema = z
     roundMinutes: z.int().min(1).max(120).optional(),
     /** Tonight's format; only before the first round is published. */
     mode: RotationModeSchema.optional(),
+    /** Singles or doubles; only before the first round is published. */
+    format: MatchFormatSchema.optional(),
     notes: z.string().trim().max(2000).nullable().optional(),
   })
   .refine((b) => Object.keys(b).length > 0, { message: 'nothing to update' });
@@ -361,6 +376,7 @@ export const BoardSchema = z.object({
     /** Attendees may check themselves in from this moment; hosts at any time. */
     checkInOpensAt: IsoDateTimeSchema,
     mode: RotationModeSchema,
+    format: MatchFormatSchema,
   }),
   /** The viewer may run this night: an organiser of the club, or a host of the session. */
   canManage: z.boolean(),
@@ -511,6 +527,7 @@ export const StartPresetBodySchema = z.object({
   open: z.boolean().default(true),
   /** Tonight's format; defaults to the session's usual one. */
   mode: RotationModeSchema.optional(),
+  format: MatchFormatSchema.optional(),
   roundMinutes: z.int().min(1).max(120).optional(),
 });
 export type StartPresetBody = z.infer<typeof StartPresetBodySchema>;
