@@ -27,8 +27,31 @@ export async function updateSession(
     let rules: Record<string, unknown> | undefined;
     if (mode === 'mix' || mode === 'king_of_the_court') {
       const current = (await api.sessions.get(seriesId)).defaultRules ?? {};
-      const rotation = (current as { rotation?: Record<string, unknown> }).rotation ?? {};
-      rules = { ...current, rotation: { ...rotation, mode } };
+      const rotation = { ...((current as { rotation?: Record<string, unknown> }).rotation ?? {}) };
+      rotation['mode'] = mode;
+      // Advanced fairness controls, when the form carried them.
+      const weights: Record<string, number> = {
+        ...((rotation['weights'] as Record<string, number> | undefined) ?? {}),
+      };
+      for (const key of ['rest', 'minutes', 'partners', 'opponents', 'skill']) {
+        const raw = formData.get(`weight_${key}`);
+        if (raw === null || raw === '') continue;
+        const n = Number(raw);
+        if (!Number.isFinite(n) || n < 0) return { error: `${key} weight must be 0 or more` };
+        weights[key] = n;
+      }
+      if (Object.keys(weights).length) rotation['weights'] = weights;
+      const maxRests = formData.get('maxConsecutiveRests');
+      if (maxRests !== null) {
+        if (String(maxRests).trim() === '') delete rotation['maxConsecutiveRests'];
+        else {
+          const n = Number(maxRests);
+          if (!Number.isInteger(n) || n < 1)
+            return { error: 'Max rests in a row must be 1 or more' };
+          rotation['maxConsecutiveRests'] = n;
+        }
+      }
+      rules = { ...current, rotation };
     }
     await api.sessions.update(
       seriesId,

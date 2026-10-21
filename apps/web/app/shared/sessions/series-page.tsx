@@ -109,8 +109,27 @@ export async function SeriesPage({ series }: { series: SessionSeries }) {
     api.sessions.ratingSummary(seriesId),
   ]);
   const preset = presets.items.find((p) => p.seriesId === seriesId);
-  const usualMode =
-    (series.defaultRules as { rotation?: { mode?: string } } | null)?.rotation?.mode ?? 'mix';
+  const rotation =
+    (
+      series.defaultRules as {
+        rotation?: {
+          mode?: string;
+          maxConsecutiveRests?: number;
+          weights?: Partial<
+            Record<'rest' | 'minutes' | 'partners' | 'opponents' | 'skill', number>
+          >;
+        };
+      } | null
+    )?.rotation ?? {};
+  const usualMode = rotation.mode ?? 'mix';
+  const weights = {
+    rest: 1,
+    minutes: 1,
+    partners: 1,
+    opponents: 0.5,
+    skill: 0.5,
+    ...(rotation.weights ?? {}),
+  };
   const topTags = rating.tags
     ? Object.entries(rating.tags)
         .sort((a, b) => b[1] - a[1])
@@ -523,13 +542,55 @@ export async function SeriesPage({ series }: { series: SessionSeries }) {
               </div>
               <Field
                 label="Usual format"
-                hint="Mix keeps partners and rest fair. King of the court moves winners up and losers down; you record who won each round. Change it for any night before the first round."
+                hint="Fair rotation mixes partners and shares the sitting out as evenly as it can. King of the court moves winners up and losers down; you record who won each round. Change it for any night before the first round."
               >
                 <Select name="mode" defaultValue={usualMode}>
-                  <option value="mix">Mix</option>
+                  <option value="mix">Fair rotation</option>
                   <option value="king_of_the_court">King of the court</option>
                 </Select>
               </Field>
+              <details className="rounded-control bg-surface-2 px-3.5 py-2">
+                <summary className="cursor-pointer text-[14px] font-semibold">
+                  Advanced: how fairness is weighed
+                </summary>
+                <Muted className="mb-3 mt-1 block text-xs">
+                  Each round the app scores hundreds of possible line-ups. Higher numbers matter
+                  more; 0 switches a factor off. The defaults suit most nights.
+                </Muted>
+                <div className="grid grid-cols-2 gap-3">
+                  {(
+                    [
+                      ['rest', 'Sharing the sitting out'],
+                      ['minutes', 'Equal minutes played'],
+                      ['partners', 'New partners'],
+                      ['opponents', 'New opponents'],
+                      ['skill', 'Even skill on a court'],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <Field key={key} label={label}>
+                      <Input
+                        name={`weight_${key}`}
+                        type="number"
+                        min={0}
+                        max={10}
+                        step={0.1}
+                        defaultValue={weights[key]}
+                        inputMode="decimal"
+                      />
+                    </Field>
+                  ))}
+                  <Field label="Max rests in a row" hint="Blank: no hard limit.">
+                    <Input
+                      name="maxConsecutiveRests"
+                      type="number"
+                      min={1}
+                      max={10}
+                      defaultValue={rotation.maxConsecutiveRests ?? ''}
+                      inputMode="numeric"
+                    />
+                  </Field>
+                </div>
+              </details>
             </ActionForm>
             <Muted className="mt-3 block text-xs">
               {preset?.venueName

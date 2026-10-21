@@ -120,7 +120,7 @@ export default async function PlayersPage({
           <div className="grid grid-cols-2 gap-2">
             {(
               [
-                ['mix', 'Mix'],
+                ['mix', 'Fair rotation'],
                 ['king_of_the_court', 'King of the court'],
               ] as const
             ).map(([mode, label]) => (
@@ -142,7 +142,7 @@ export default async function PlayersPage({
           <Muted className="mt-2 block text-xs">
             {board.occurrence.mode === 'king_of_the_court'
               ? 'Record who won on each court; winners move up, losers move down from round 2.'
-              : 'Fair partners, opponents and rest. Locks in once the first round is called.'}
+              : 'Random courts with the sitting out shared as evenly as possible. Locks in once the first round is called.'}
           </Muted>
         </Card>
       ) : null}
