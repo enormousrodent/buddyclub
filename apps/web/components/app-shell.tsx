@@ -6,6 +6,7 @@ import { apiForUser } from '../lib/api';
 import { Avatar } from './ui';
 import { Lockup } from './brand';
 import { BottomNav } from './nav';
+import { PullToRefresh } from './pull-to-refresh';
 
 /**
  * Product shell: top bar with the lockup, bottom tab bar when signed in.
@@ -24,6 +25,7 @@ export async function AppShell({ product, children }: { product: Product; childr
     : null;
   return (
     <div className="min-h-dvh">
+      <PullToRefresh />
       <header className="sticky top-0 z-10 border-b border-hairline bg-paper/92 shadow-raised backdrop-blur">
         <div
           className={`mx-auto flex h-14 items-center justify-between gap-4 px-5 ${wide ? 'max-w-5xl' : 'max-w-xl'}`}

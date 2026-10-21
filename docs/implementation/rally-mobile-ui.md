@@ -25,6 +25,7 @@ Barlow Condensed display, Poppins body; dark by default on the Rally host.
 | E1–E3  | `/league/*`                         | Existing pages in the Rally tokens; layout polish is a later pass.                                                          |
 | F1     | `/profile`                          | Appearance control; sports and level shown once the API stores them.                                                        |
 | F2     | session screens                     | Offline banner (client-side `online`/`offline` events).                                                                     |
+| F4     | every app screen, installed only    | Pull to refresh (`components/pull-to-refresh.tsx`): arms in standalone display mode, from scroll top, `router.refresh()`.   |
 
 Not built: B9 optional scores for social rounds (needs a results endpoint for social matches),
 C4 "keep tonight's games" (guest claim, ADR-008), "+2 min" on a running round.

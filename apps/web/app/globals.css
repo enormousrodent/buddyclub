@@ -699,6 +699,13 @@ body {
   outline-offset: 2px;
 }
 
+/* Installed app: no scroll chaining past the page, so pull to refresh owns the top edge. */
+@media (display-mode: standalone) {
+  html {
+    overscroll-behavior-y: contain;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
