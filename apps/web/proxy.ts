@@ -38,6 +38,7 @@ export async function proxy(request: NextRequest) {
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-buddyclub-product', product);
+  requestHeaders.set('x-buddyclub-path', pathname);
 
   let response = NextResponse.rewrite(target, { request: { headers: requestHeaders } });
 

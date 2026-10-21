@@ -20,8 +20,39 @@ export interface UserProfilesTable {
   avatar_url: string | null;
   locale: Generated<string>;
   anonymised_at: NullableTimestamp;
+  /** Buddy profile (Addendum 1.3). */
+  locality: string | null;
+  bio: string | null;
+  discoverable: Generated<boolean>;
+  show_gear: Generated<boolean>;
+  adult_confirmed_at: NullableTimestamp;
+  buddyclub_onboarded_at: NullableTimestamp;
+  rally_onboarded_at: NullableTimestamp;
   created_at: Timestamp;
   updated_at: Timestamp;
+}
+
+export interface ProfileActivitiesTable {
+  id: Generated<string>;
+  profile_id: string;
+  interest_id: string;
+  sport_id: string | null;
+  level: string | null;
+  days: JSONColumnType<Record<string, string[]>>;
+  note: string | null;
+  created_at: Generated<Timestamp>;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface ProfileGearTable {
+  id: Generated<string>;
+  profile_id: string;
+  interest_id: string;
+  sport_id: string | null;
+  name: string;
+  detail: string | null;
+  sort_order: Generated<number>;
+  created_at: Generated<Timestamp>;
 }
 
 export interface ParticipantsTable {
@@ -652,6 +683,8 @@ export interface Database {
   'platform.rulesets': RulesetsTable;
   'activities.session_series': SessionSeriesTable;
   'activities.session_regulars': SessionRegularsTable;
+  'identity.profile_activities': ProfileActivitiesTable;
+  'identity.profile_gear': ProfileGearTable;
   'activities.session_hosts': SessionHostsTable;
   'activities.session_keep_apart': SessionKeepApartTable;
   'activities.session_ratings': SessionRatingsTable;

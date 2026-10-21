@@ -24,6 +24,10 @@ import {
   JoinResultSchema,
   listOf,
   MeResponseSchema,
+  MyProfileSchema,
+  type SetActivitiesBody,
+  type SetGearBody,
+  type UpdateProfileBody,
   MemberSchema,
   MyScheduleSchema,
   MySessionSchema,
@@ -276,6 +280,17 @@ export function createApiClient(options: ApiClientOptions) {
       request('PATCH', '/v1/me', MeResponseSchema, { ...o, body }),
 
     sports: () => request('GET', '/v1/sports', listOf(SportSchema), { auth: false }),
+
+    /** Buddy profile (Addendum 1.3): the caller's own activities, days, gear and switches. */
+    profile: {
+      get: (o?: RequestOptions) => request('GET', '/v1/me/profile', MyProfileSchema, o ?? {}),
+      update: (body: UpdateProfileBody, o?: RequestOptions) =>
+        request('PATCH', '/v1/me/profile', MyProfileSchema, { ...o, body }),
+      setActivities: (body: SetActivitiesBody, o?: RequestOptions) =>
+        request('PUT', '/v1/me/activities', MyProfileSchema, { ...o, body }),
+      setGear: (body: SetGearBody, o?: RequestOptions) =>
+        request('PUT', '/v1/me/gear', MyProfileSchema, { ...o, body }),
+    },
 
     organisations: {
       create: (body: CreateOrganisationBody, o?: RequestOptions) =>

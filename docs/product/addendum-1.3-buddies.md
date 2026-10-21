@@ -1,7 +1,7 @@
 # Addendum 1.3: buddy profiles, onboarding and finding people
 
 **Date:** 2026-10-21 · **Against:** the codebase after Addendum 1.2
-**Status:** Owner direction, recorded with a proposed plan. Open points in section 6. Not started.
+**Status:** Owner direction; open points answered 2026-10-21 (section 6). Step 1 built 2026-10-22, see [`../implementation/addendum-1.3-step-1.md`](../implementation/addendum-1.3-step-1.md). Onboarding cannot be skipped (owner, 2026-10-22).
 **Rule:** Additive only, as before. Rally is untouched except where it reads a level.
 
 ## 1. The ask (owner, 2026-10-21)
@@ -99,12 +99,17 @@ resolved_at)`.
 
 Each step ships alone. Step 2 is the one with rules in it; nothing in step 1 exposes anything.
 
-## 6. Open points for the owner
+## 6. Open points, answered by the owner (2026-10-21)
 
-- The five level words, and whether tennis should instead use a familiar scale (NTRP-style
-  numbers) with the words elsewhere.
-- Availability as days with morning, afternoon, evening. Enough, or do you want hours?
-- Find me off by default and 18+ to switch it on. Agreed?
-- Say hi as the only text between strangers, with acceptance before anything else. Agreed, or
-  do you want messaging in this addendum?
-- Gear photos now, or names and notes first with photos later?
+- Levels are words (the five in section 3), the same for every activity.
+- Availability is a week grid of days by morning, afternoon and evening, with quick fills such as
+  "all evenings" or "every day" so it takes seconds.
+- Find me is off by default. 18+ confirmation to switch it on is vital.
+- Messaging comes later. Say hi with one line, accept before anything else, is the whole of it
+  for now.
+- No gear photos initially: names and notes only.
+- **Onboarding is independent per app.** Rally keeps its own first run (name, sports, organiser
+  or player, usual night) and never asks Buddy Club's questions. Buddy Club's first run is new
+  and never asks Rally's. Each app records its own "onboarded" mark on the shared profile, so
+  finishing one does not skip the other. The profile data itself is shared: a sport picked in
+  either app is the same activity on the person.

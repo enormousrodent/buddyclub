@@ -9,6 +9,7 @@ export * from './participants';
 export * from './groups';
 export * from './facilities';
 export * from './sessions';
+export * from './profiles';
 export * from './competitions';
 export * from './public';
 export * from './community';

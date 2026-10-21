@@ -18,14 +18,22 @@ import { ThemeToggle } from '../../../components/theme-toggle';
 import { readTheme } from '../../../lib/theme-server';
 import { updateAvatar, updateProfile } from './actions';
 import { AvatarUpload } from '../../../components/avatar-upload';
+import { headers } from 'next/headers';
+import { LinkButton } from '../../../components/ui';
 
 export const metadata = { title: 'Profile' };
 
 export default async function ProfilePage() {
   if (!(await getSessionUser())) redirect('/sign-in?next=/profile');
   const [me, theme] = await Promise.all([apiForUser().me(), readTheme()]);
+  const buddyClub = (await headers()).get('x-buddyclub-product') === 'buddyclub';
   return (
     <Page title="Profile" back="/">
+      {buddyClub ? (
+        <LinkButton href="/buddy" className="mb-3 w-full">
+          My buddy profile: activities, level, days and gear
+        </LinkButton>
+      ) : null}
       <Card className="mb-3">
         <AvatarUpload
           name={me.profile.displayName}
