@@ -2,9 +2,9 @@ import type { Product } from '../lib/env';
 
 /*
  * Brand marks (docs/design/README.md, "Brand identity").
- * Buddy Club: the owner's logo (2026-10-20), a tilted rounded ring in pink with two orange
- * bars; it carries its own colours, or one colour when `mono` is set (white on a tile, for
- * instance). Rally: the owner's lime tile logo, served as a file.
+ * The live app uses the lime tile logo file (RallyMark, below). BuddyClubMark is the same
+ * ring-and-bars mark drawn inline in the parked product's pink and orange; it carries its own
+ * colours, or one colour when `mono` is set.
  */
 
 export const BUDDY_CLUB_LOGO = {
@@ -48,34 +48,9 @@ export function BuddyClubMark({
 }
 
 /**
- * Rally's logo (owner, 2026-10-20): a lime tile with the dark R and ball, served from
- * public/icons/rally-logo.svg. It carries its own colours; `color` and `ball` are accepted for
- * older call sites and ignored.
- */
-/**
- * Rally's logo (owner, 2026-10-20): a lime tile with the dark R and ball, served from
- * public/icons/rally-logo.svg. It carries its own colours; `color` and `ball` are accepted for
- * older call sites and ignored.
- */
-/**
- * Rally's logo (owner, 2026-10-20): a lime tile with the dark R and ball, served from
- * public/icons/rally-logo.svg. It carries its own colours; `color` and `ball` are accepted for
- * older call sites and ignored.
- */
-/**
- * Rally's logo (owner, 2026-10-20): a lime tile with the dark R and ball, served from
- * public/icons/rally-logo.svg. It carries its own colours; `color` and `ball` are accepted for
- * older call sites and ignored.
- */
-/**
- * Rally's logo (owner, 2026-10-20): a lime tile with the dark R and ball, served from
- * public/icons/rally-logo.svg. It carries its own colours; `color` and `ball` are accepted for
- * older call sites and ignored.
- */
-/**
- * Rally's logo (owner, 2026-10-20): a lime tile with the dark R and ball, served from
- * public/icons/rally-logo.svg. It carries its own colours; `color` and `ball` are accepted for
- * older call sites and ignored.
+ * The Buddy Club logo (owner, 2026-10-22): the ring-and-bars mark in ink on the lime tile,
+ * served from public/icons/rally-logo.svg (the `rally` key is the live app's internal name).
+ * It carries its own colours; `color` and `ball` are accepted for older call sites and ignored.
  */
 export function RallyMark({
   size = 28,
