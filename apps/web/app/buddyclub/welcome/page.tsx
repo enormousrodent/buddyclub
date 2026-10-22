@@ -7,7 +7,7 @@ import {
   VisibilityForm,
 } from '../../../components/buddy-profile';
 import { Card, LinkButton, Muted, Page } from '../../../components/ui';
-import { apiForUser, apiPublic } from '../../../lib/api';
+import { apiForUser } from '../../../lib/api';
 import { getSessionUser } from '../../../lib/supabase/server';
 import {
   addGear,
@@ -16,7 +16,7 @@ import {
   saveActivities,
   saveActivityDetails,
   saveVisibility,
-} from './actions';
+} from '../../shared/profile/buddy/actions';
 
 export const metadata = { title: 'Welcome' };
 
@@ -40,12 +40,7 @@ export default async function WelcomePage({
   if (!(await getSessionUser())) redirect('/sign-in?next=/welcome');
   const { step: raw } = await searchParams;
   const step = Math.min(5, Math.max(1, Number(raw) || 1));
-  const api = apiForUser();
-  const [profile, interests, sports] = await Promise.all([
-    api.profile.get(),
-    apiPublic().community.interests(),
-    apiPublic().sports(),
-  ]);
+  const profile = await apiForUser().profile.get();
   const meta = STEPS[step - 1]!;
   const next = (n: number) => `/welcome?step=${n}`;
 
@@ -67,8 +62,6 @@ export default async function WelcomePage({
         {step === 2 ? (
           <ActivityPicker
             profile={profile}
-            interests={interests.items}
-            sports={sports.items}
             action={saveActivities.bind(null, next(3))}
             submitLabel="Continue"
           />

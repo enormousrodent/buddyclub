@@ -400,7 +400,7 @@ describe.skipIf(!databaseUrl)('Phase 1: clubs, members, guests, groups, venues',
       method: 'POST',
       url: `/v1/organisations/${orgId}/groups`,
       headers: await bearer(users.admin),
-      payload: { name: 'Nope', sportId: 'quidditch' },
+      payload: { name: 'Nope', sportId: 'quidditch_zzz' },
     });
     expect(bad.statusCode).toBe(400);
     expect(json(bad).fieldErrors?.[0]?.path).toBe('body/sportId');

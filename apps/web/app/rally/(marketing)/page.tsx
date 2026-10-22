@@ -1,9 +1,9 @@
 import { RallyLanding } from '../../../components/rally-marketing';
 
 export const metadata = {
-  title: { absolute: 'Rally' },
+  title: { absolute: 'Buddy Club' },
   description:
-    'Rally runs racket-sport sessions: fair rotations, live court boards, one timer, leagues and tournaments.',
+    'Buddy Club runs racket-sport sessions: fair rotations, live court boards, one timer, buddies, leagues and tournaments.',
 };
 
 /** Rally front page (signed-out; the proxy sends signed-in visitors to /dashboard). */

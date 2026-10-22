@@ -18,7 +18,6 @@ import { ThemeToggle } from '../../../components/theme-toggle';
 import { readTheme } from '../../../lib/theme-server';
 import { updateAvatar, updateProfile } from './actions';
 import { AvatarUpload } from '../../../components/avatar-upload';
-import { headers } from 'next/headers';
 import { LinkButton } from '../../../components/ui';
 
 export const metadata = { title: 'Profile' };
@@ -26,14 +25,11 @@ export const metadata = { title: 'Profile' };
 export default async function ProfilePage() {
   if (!(await getSessionUser())) redirect('/sign-in?next=/profile');
   const [me, theme] = await Promise.all([apiForUser().me(), readTheme()]);
-  const buddyClub = (await headers()).get('x-buddyclub-product') === 'buddyclub';
   return (
     <Page title="Profile" back="/">
-      {buddyClub ? (
-        <LinkButton href="/buddy" className="mb-3 w-full">
-          My buddy profile: activities, level, days and gear
-        </LinkButton>
-      ) : null}
+      <LinkButton href="/profile/buddy" className="mb-3 w-full">
+        My buddy profile: sports, level, days and gear
+      </LinkButton>
       <Card className="mb-3">
         <AvatarUpload
           name={me.profile.displayName}
@@ -57,8 +53,7 @@ export default async function ProfilePage() {
       <Card>
         <ThemeToggle initial={theme} />
         <Muted className="mt-2 block">
-          System follows your phone on Buddy Club and is night-court dark on Rally. Light and Dark
-          override it.
+          System is night-court dark unless you choose otherwise. Light and Dark override it.
         </Muted>
       </Card>
       <SectionHeading>Memberships</SectionHeading>

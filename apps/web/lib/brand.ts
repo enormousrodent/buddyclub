@@ -23,10 +23,11 @@ export const PRODUCTS: Record<
     themeColorDark: '#0f1729',
     backgroundColor: '#ffffff',
   },
+  // The product is Buddy Club (Addendum 1.4); `rally` is the internal name of this look and app.
   rally: {
-    name: 'Rally',
-    shortName: 'Rally',
-    tagline: 'Run the session. Fair rotations, live courts, leagues.',
+    name: 'Buddy Club',
+    shortName: 'Buddy Club',
+    tagline: 'Run the session. Find your buddies. Racket sports, together.',
     themeColor: '#2350d6',
     themeColorDark: '#0f1729',
     backgroundColor: '#ffffff',

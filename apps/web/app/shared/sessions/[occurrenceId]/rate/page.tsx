@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { RatingForm } from '../../../../../components/rating-form';
-import { Card, Muted, Page } from '../../../../../components/ui';
+import { Card, LinkButton, Muted, Page } from '../../../../../components/ui';
 import { apiForUser } from '../../../../../lib/api';
 import { whenIn } from '../../../../../lib/sessions';
 import { getSessionUser } from '../../../../../lib/supabase/server';
@@ -18,9 +18,10 @@ export default async function RateNightPage({
   if (!(await getSessionUser()))
     redirect(`/sign-in?next=${encodeURIComponent(`/sessions/${occurrenceId}/rate`)}`);
   const api = apiForUser();
-  const [occurrence, rating] = await Promise.all([
+  const [occurrence, rating, profile] = await Promise.all([
     api.occurrences.get(occurrenceId),
     api.occurrences.ratingSummary(occurrenceId),
+    api.profile.get(),
   ]);
   const back = `/sessions/${occurrenceId}`;
 
@@ -33,6 +34,26 @@ export default async function RateNightPage({
           </div>
           <Muted className="mt-2 block">You rated {whenIn(occurrence.startsAt)}. Thanks.</Muted>
         </Card>
+        {!profile.onboarded.buddyclub ? (
+          <Card className="mt-3 border-primary">
+            <div className="font-display text-[20px] font-bold uppercase leading-none">
+              Want more games with this lot?
+            </div>
+            <Muted className="mt-1 block">
+              Say how good you are and when you&apos;re free. Two screens, and the people you play
+              with can find you for a hit.
+            </Muted>
+            <LinkButton
+              href={`/profile/complete?back=${encodeURIComponent(`/sessions/${occurrenceId}/rate`)}`}
+              className="mt-3 w-full"
+            >
+              Complete my profile
+            </LinkButton>
+          </Card>
+        ) : null}
+        <LinkButton href="/buddies" variant="secondary" className="mt-3 w-full">
+          See who was there
+        </LinkButton>
       </Page>
     );
   }

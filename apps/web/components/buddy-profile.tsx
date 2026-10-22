@@ -1,10 +1,5 @@
-import {
-  ACTIVITY_LEVELS,
-  activityKey,
-  type Interest,
-  type MyProfile,
-  type Sport,
-} from '@buddyclub/shared-types';
+import { activityKey, levelsFor, type MyProfile } from '@buddyclub/shared-types';
+import { RALLY_SPORTS, rallySportName } from '../lib/sports';
 import { ActionForm, type FormAction } from './action-form';
 import { DayGrid } from './day-grid';
 import { Field, Input, Muted, Select, Textarea } from './ui';
@@ -12,25 +7,11 @@ import { Field, Input, Muted, Select, Textarea } from './ui';
 /*
  * Buddy profile sections (Addendum 1.3), used by the Buddy Club first run and the profile
  * editor. Each section is one form bound to one action; the caller decides where it goes next.
+ * Activities are the six racket sports; levels and ladders come from the catalogue in shared-types.
  */
 
-/** Every pickable activity: interests, with racket sports expanded into the sports themselves. */
-export function activityChoices(interests: Interest[], sports: Sport[]) {
-  const out: { key: string; label: string; group: 'sports' | 'everything' }[] = [];
-  for (const i of interests) {
-    if (i.id === 'other') continue;
-    if (i.id === 'racket_sports') {
-      for (const s of sports)
-        out.push({ key: `racket_sports:${s.id}`, label: s.name, group: 'sports' });
-      continue;
-    }
-    out.push({ key: i.id, label: i.name, group: i.id === 'sports' ? 'sports' : 'everything' });
-  }
-  return out;
-}
-
-export function activityLabel(a: { interestName: string; sportName: string | null }): string {
-  return a.sportName ?? a.interestName;
+export function activityLabel(a: { activityName: string }): string {
+  return a.activityName;
 }
 
 export function AboutForm({
@@ -69,49 +50,89 @@ export function AboutForm({
 
 export function ActivityPicker({
   profile,
-  interests,
-  sports,
   action,
   submitLabel,
 }: {
   profile: MyProfile;
-  interests: Interest[];
-  sports: Sport[];
   action: FormAction;
   submitLabel: string;
 }) {
-  const picked = new Set(profile.activities.map(activityKey));
-  const choices = activityChoices(interests, sports);
-  const group = (name: 'sports' | 'everything', title: string) => (
-    <div>
-      <div className="mb-2 text-[13px] font-bold uppercase tracking-[0.06em] text-muted">
-        {title}
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {choices
-          .filter((c) => c.group === name)
-          .map((c) => (
-            <label key={c.key} className="cursor-pointer">
+  // Racket sports only (Addendum 1.4): the same six chips as the first run.
+  const chosen = new Set(profile.activities.map((a) => a.activityId));
+  return (
+    <ActionForm action={action} submitLabel={submitLabel} size="lg" resetOnSuccess={false}>
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-1.5 text-[13px] font-semibold">Your sports</legend>
+        <div className="flex flex-wrap gap-2">
+          {RALLY_SPORTS.map((id) => (
+            <label
+              key={id}
+              className="inline-flex h-9 cursor-pointer items-center rounded-full border border-hairline-strong px-3.5 text-[13px] font-semibold has-checked:border-primary has-checked:bg-primary has-checked:text-primary-ink"
+            >
               <input
                 type="checkbox"
                 name="activity"
-                value={c.key}
-                defaultChecked={picked.has(c.key)}
-                className="peer sr-only"
+                value={id}
+                defaultChecked={chosen.has(id)}
+                className="sr-only"
               />
-              <span className="inline-flex min-h-10 items-center rounded-full border border-hairline-strong px-3.5 text-[14px] font-semibold text-ink peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-ink peer-focus-visible:ring-2 peer-focus-visible:ring-primary">
-                {c.label}
-              </span>
+              {rallySportName(id)}
             </label>
           ))}
-      </div>
-    </div>
-  );
-  return (
-    <ActionForm action={action} submitLabel={submitLabel} size="lg" resetOnSuccess={false}>
-      {group('sports', 'Sports')}
-      {group('everything', 'Everything else')}
+        </div>
+        <Muted className="text-xs">
+          Pick at least one. Dropping a sport removes its level and days.
+        </Muted>
+      </fieldset>
     </ActionForm>
+  );
+}
+
+/** The right control for an activity's ladder: options, a number, or nothing. */
+function LevelControl({ activityId, value }: { activityId: string; value: string | null }) {
+  const set = levelsFor(activityId);
+  const name = `level:${activityId}`;
+  if (set.kind === 'none') return null;
+  if (set.kind === 'handicap')
+    return (
+      <Field label="Handicap" hint={`${set.min} to ${set.max}. Leave blank if you don't keep one.`}>
+        <Input
+          name={name}
+          type="number"
+          min={set.min}
+          max={set.max}
+          step={1}
+          defaultValue={value ?? ''}
+          inputMode="numeric"
+        />
+      </Field>
+    );
+  const hint =
+    set.kind === 'pick'
+      ? 'Your own view. Nobody is checking.'
+      : set.kind === 'certification'
+        ? 'The highest you hold.'
+        : 'Where you are comfortable.';
+  const label =
+    set.kind === 'pick' ? 'Your level' : set.kind === 'certification' ? 'Certification' : 'Grade';
+  return (
+    <Field label={label} hint={hint}>
+      <Select name={name} defaultValue={value ?? ''}>
+        <option value="">Not sure yet</option>
+        {set.kind === 'pick'
+          ? set.options.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+                {o.hint ? ` · ${o.hint}` : ''}
+              </option>
+            ))
+          : set.options.map((o) => (
+              <option key={o} value={o}>
+                {o}
+              </option>
+            ))}
+      </Select>
+    </Field>
   );
 }
 
@@ -130,29 +151,27 @@ export function ActivityDetails({
       {profile.activities.map((a) => {
         const key = activityKey(a);
         return (
-          <section key={key} className="rounded-card border border-hairline p-4">
-            <h3 className="font-display text-[22px] font-bold leading-tight">{activityLabel(a)}</h3>
+          <section key={a.id} className="rounded-card border border-hairline p-4">
+            <h3 className="font-display text-[22px] font-bold leading-tight">
+              {activityLabel(a)}
+              {a.customName ? (
+                <span className="ml-2 align-middle text-[12px] font-semibold text-muted">
+                  suggested
+                </span>
+              ) : null}
+            </h3>
             <div className="mt-3 space-y-3">
-              <Field label="Your level" hint="Your own view. Nobody is checking.">
-                <Select name={`level:${key}`} defaultValue={a.level ?? ''}>
-                  <option value="">Not sure yet</option>
-                  {ACTIVITY_LEVELS.map((l) => (
-                    <option key={l.id} value={l.id}>
-                      {l.label} · {l.hint}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
+              <LevelControl activityId={key} value={a.level} />
               <div>
                 <div className="mb-1.5 text-[13px] font-semibold">When you&apos;re free for it</div>
-                <DayGrid name={`days:${key}`} initial={a.days} />
+                <DayGrid name={`days:${a.id}`} initial={a.days} />
               </div>
               <Field
                 label="Anything to add"
                 hint="Optional. Who you'd like to play with, what you're after."
               >
                 <Textarea
-                  name={`note:${key}`}
+                  name={`note:${a.id}`}
                   defaultValue={a.note ?? ''}
                   maxLength={160}
                   rows={2}
@@ -175,9 +194,9 @@ export function GearEditor({
   add: FormAction;
   remove: (gearId: string) => Promise<void>;
 }) {
-  const label = new Map(profile.activities.map((a) => [activityKey(a), activityLabel(a)]));
-  const name = (g: { interestId: string; sportId: string | null }) =>
-    label.get(activityKey(g)) ?? g.sportId ?? g.interestId;
+  const label = new Map(profile.activities.map((a) => [a.activityId, activityLabel(a)]));
+  const name = (g: { activityId: string }) => label.get(g.activityId) ?? g.activityId;
+  const forGear = profile.activities.filter((a) => a.activityId !== 'other');
   return (
     <div className="space-y-4">
       {profile.gear.length ? (
@@ -202,12 +221,12 @@ export function GearEditor({
       ) : (
         <Muted>Nothing on the shelf yet.</Muted>
       )}
-      {profile.activities.length ? (
+      {forGear.length ? (
         <ActionForm action={add} submitLabel="Add to my gear" variant="secondary">
           <Field label="For">
-            <Select name="activity" defaultValue={activityKey(profile.activities[0]!)}>
-              {profile.activities.map((a) => (
-                <option key={activityKey(a)} value={activityKey(a)}>
+            <Select name="activity" defaultValue={forGear[0]!.activityId}>
+              {forGear.map((a) => (
+                <option key={a.activityId} value={a.activityId}>
                   {activityLabel(a)}
                 </option>
               ))}

@@ -24,6 +24,7 @@ import { guestRoutes } from './modules/guest/routes.js';
 import type { IdentityRepository } from './modules/identity/repository.js';
 import { identityRoutes } from './modules/identity/routes.js';
 import { profileRoutes } from './modules/profiles/routes.js';
+import { buddyRoutes } from './modules/buddies/routes.js';
 import { organisationRoutes } from './modules/organisations/routes.js';
 import { participantRoutes } from './modules/participants/routes.js';
 import { communityRoutes } from './modules/community/routes.js';
@@ -239,6 +240,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await app.register(healthRoutes, healthOptions);
   await app.register(identityRoutes, { identityRepo: deps.identityRepo });
   await app.register(profileRoutes, { getDb });
+  await app.register(buddyRoutes, { getDb });
   await app.register(organisationRoutes, { getDb, rateLimited });
   await app.register(participantRoutes, { getDb });
   await app.register(guestRoutes, { getDb, guestTokens, rateLimited });

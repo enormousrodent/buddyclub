@@ -25,7 +25,13 @@ export default async function StartSessionPage({
   const { club, new: forceNew, from } = await searchParams;
   const fromWelcome = from === 'welcome';
   const api = apiForUser();
-  const [me, presets] = await Promise.all([api.me(), api.sessions.presets()]);
+  const [me, presets, profile] = await Promise.all([
+    api.me(),
+    api.sessions.presets(),
+    api.profile.get(),
+  ]);
+  const mySport =
+    profile.activities.find((a) => a.interestId === 'racket_sports')?.activityId ?? 'badminton';
   const places = me.memberships.filter(
     (m) => m.status === 'active' && roleAllows(m.role, 'session.manage'),
   );
@@ -35,7 +41,7 @@ export default async function StartSessionPage({
   const showPresets = presets.items.length > 0 && !forceNew;
 
   const [venues, sports] = chosen
-    ? await Promise.all([api.venues.list(chosen.organisationId), api.sports()])
+    ? await Promise.all([api.venues.list(chosen.organisationId), api.sports('racket_sports')])
     : [{ items: [] }, { items: [] }];
 
   return (
@@ -138,7 +144,7 @@ export default async function StartSessionPage({
             </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Sport">
-                <Select name="sportId" defaultValue="badminton">
+                <Select name="sportId" defaultValue={mySport}>
                   {sports.items.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}

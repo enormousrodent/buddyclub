@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { BuddyClubMark, RallyMark } from './brand';
+import { RallyMark } from './brand';
 import { RallyShowcase } from './rally-showcase';
 import { Icon } from './ui';
 
@@ -26,9 +26,9 @@ export function RallyMarketingHeader({ signedIn }: { signedIn: boolean }) {
     <header className="sticky top-0 z-10 border-b border-hairline bg-paper/90 backdrop-blur">
       <Wide className="flex h-16 items-center justify-between gap-4">
         <Link href="/" className="inline-flex items-center gap-2.5 text-ink">
-          <RallyMark size={40} title="Rally" />
+          <RallyMark size={40} title="Buddy Club" />
           <span className="font-display text-[26px] font-extrabold uppercase tracking-[0.04em]">
-            Rally
+            Buddy Club
           </span>
         </Link>
         <nav
@@ -40,9 +40,6 @@ export function RallyMarketingHeader({ signedIn }: { signedIn: boolean }) {
           </a>
           <a href="#features" className="text-ink-2 hover:text-ink">
             What it does
-          </a>
-          <a href="#buddyclub" className="text-ink-2 hover:text-ink">
-            Buddy Club
           </a>
         </nav>
         <div className="flex items-center gap-2">
@@ -99,7 +96,7 @@ const FEATURES: {
   {
     icon: 'offline',
     title: 'Works on its own',
-    body: 'No club needed. Start a session on your own phone, or run one for a club. Link it to Buddy Club when you want new players to find you.',
+    body: 'No club needed. Start a session on your own phone, or run one for a club. Your buddies and your clubs are right there when you want more players.',
   },
 ];
 
@@ -112,7 +109,7 @@ const STEPS: [string, string, string][] = [
   [
     '02',
     'Call the round',
-    'Rally proposes the fairest next round. Change anything, then publish. Everyone sees their court.',
+    'Buddy Club proposes the fairest next round. Change anything, then publish. Everyone sees their court.',
   ],
   [
     '03',
@@ -210,35 +207,6 @@ export function RallyLanding() {
         </Wide>
       </section>
 
-      <section id="buddyclub" className="border-t border-hairline">
-        <Wide className="py-16">
-          <div className="grid items-center gap-8 rounded-sheet border border-hairline bg-surface p-6 sm:p-10 md:grid-cols-[1fr_auto]">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <BuddyClubMark size={24} />
-                <span className="font-display text-[18px] font-bold uppercase tracking-[0.08em] text-ink-2">
-                  Part of Buddy Club
-                </span>
-              </div>
-              <h2 className="font-display text-[36px] font-extrabold uppercase leading-none tracking-[0.01em]">
-                Buddy Club finds the people. Rally runs the courts.
-              </h2>
-              <p className="max-w-xl leading-7 text-ink-2">
-                Put your club night on Buddy Club so new players can find it. When a gathering is
-                run by Rally, saying you&apos;re going registers you for the session. One list of
-                who&apos;s coming, never two.
-              </p>
-            </div>
-            <a
-              href="https://buddy-club.com/"
-              className="inline-flex min-h-13 items-center justify-center rounded-control border-[1.5px] border-hairline-strong px-6 font-display text-[18px] font-bold uppercase tracking-[0.06em] text-ink hover:border-ink"
-            >
-              Visit Buddy Club
-            </a>
-          </div>
-        </Wide>
-      </section>
-
       <section className="bg-live text-live-ink">
         <Wide className="flex flex-wrap items-center justify-between gap-6 py-14">
           <h2 className="font-display text-[48px] font-extrabold uppercase leading-none tracking-[0.01em] sm:text-[64px]">
@@ -262,12 +230,11 @@ export function RallyMarketingFooter() {
       <Wide className="flex flex-wrap items-center justify-between gap-4 py-7 text-sm text-muted">
         <span className="inline-flex items-center gap-2">
           <RallyMark size={18} color="var(--bc-primary)" ball="var(--bc-live)" />
-          Rally by Buddy Club
+          Buddy Club
         </span>
         <nav aria-label="Footer" className="flex flex-wrap gap-4">
           <Link href="/dashboard">Open the app</Link>
           <Link href="/sign-in">Sign in</Link>
-          <a href="https://buddy-club.com/">Buddy Club</a>
           <Link href="/terms">Terms</Link>
           <Link href="/privacy">Privacy</Link>
         </nav>

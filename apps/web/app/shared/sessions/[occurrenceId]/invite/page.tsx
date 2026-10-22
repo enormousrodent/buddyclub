@@ -69,7 +69,7 @@ export default async function InvitePlayersPage({
   const joined = members.items.filter((m) => m.status === 'active').length;
   const link = token ? await absoluteUrl(`/invite/${token}`) : null;
   const message = link
-    ? `Join ${org.name} on Rally and see your court on your phone: ${link}`
+    ? `Join ${org.name} on Buddy Club and see your court on your phone: ${link}`
     : null;
 
   return (
@@ -141,7 +141,7 @@ export default async function InvitePlayersPage({
       <Card>
         <ol className="list-decimal space-y-1 pl-5 text-[14px] leading-6 text-ink-2">
           <li>Open the link, sign in with their email. No password.</li>
-          <li>They join {org.name} and land on their Rally home.</li>
+          <li>They join {org.name} and land on their home.</li>
           <li>
             You tick them as a regular on the session. From then on they are registered the moment a
             night is set up, and they check themselves in with the session code.

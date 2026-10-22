@@ -8,6 +8,8 @@ export const SportSchema = z.object({
   id: SportIdSchema,
   name: z.string(),
   defaultPlayersPerSide: z.int().min(1),
+  /** The catalogue category (a `community.interests` id). */
+  categoryId: z.string(),
 });
 export type Sport = z.infer<typeof SportSchema>;
 

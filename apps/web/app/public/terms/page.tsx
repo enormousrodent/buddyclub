@@ -6,7 +6,7 @@ import { LEGAL } from '../../../lib/legal';
 export const metadata: Metadata = {
   title: 'Terms of use',
   description:
-    'The rules for using Buddy Club and Rally: accounts, organisers, content, public boards, acceptable use and liability.',
+    'The rules for using Buddy Club: accounts, organisers, content, public boards, acceptable use and liability.',
   alternates: { canonical: '/terms' },
 };
 
@@ -31,7 +31,7 @@ export default function TermsPage() {
   return (
     <LegalPage
       title="Terms of use"
-      lead="These terms govern your use of Buddy Club and Rally. By creating an account, joining a group or club, or using a session link or join code, you agree to them."
+      lead="These terms govern your use of Buddy Club. By creating an account, joining a group or club, or using a session link or join code, you agree to them."
     >
       <Contents items={SECTIONS} />
 
@@ -47,7 +47,7 @@ export default function TermsPage() {
       <h2 id="service">2. What the Service is</h2>
       <p>
         <strong>Buddy Club</strong> lets people list and find groups, meetups, clubs and gatherings,
-        and say whether they are going. <strong>Rally</strong> helps organisers run sessions: who is
+        and say whether they are going. <strong>Sessions</strong> help organisers run play: who is
         in, court rotations and pairings, results, standings, leagues and tournaments. The two share
         one account.
       </p>

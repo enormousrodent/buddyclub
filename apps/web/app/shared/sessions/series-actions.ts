@@ -59,6 +59,14 @@ export async function updateSession(
       seriesId,
       {
         name: String(formData.get('name') ?? '').trim(),
+        description: String(formData.get('description') ?? '').trim() || null,
+        ...(formData.get('visibility') === 'public' || formData.get('visibility') === 'private'
+          ? { visibility: formData.get('visibility') as 'public' | 'private' }
+          : {}),
+        ...(formData.get('joinPolicy') === 'open' || formData.get('joinPolicy') === 'invite'
+          ? { joinPolicy: formData.get('joinPolicy') as 'open' | 'invite' }
+          : {}),
+        locality: String(formData.get('locality') ?? '').trim() || null,
         defaultRoundMinutes: Number(formData.get('roundMinutes') || 12),
         defaultDurationMinutes: Number(formData.get('durationMinutes') || 120),
         ...(rules ? { rules } : {}),

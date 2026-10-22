@@ -24,6 +24,7 @@ import {
   Row,
   Select,
   StateBadge,
+  Textarea,
 } from '../../../components/ui';
 import { apiForUser } from '../../../lib/api';
 import {
@@ -519,6 +520,39 @@ export async function SeriesPage({ series }: { series: SessionSeries }) {
             >
               <Field label="Name" hint="Tip: name it after the night, like Monday pickleball.">
                 <Input name="name" defaultValue={series.name} required maxLength={160} />
+              </Field>
+              <Field label="About" hint="Optional. Who it is for, what to bring.">
+                <Textarea
+                  name="description"
+                  defaultValue={series.description ?? ''}
+                  rows={2}
+                  maxLength={2000}
+                />
+              </Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Who can see it" hint="Public sessions are listed in Near you.">
+                  <Select name="visibility" defaultValue={series.visibility}>
+                    <option value="private">Members and links only</option>
+                    <option value="public">Public</option>
+                  </Select>
+                </Field>
+                <Field
+                  label="Who can join"
+                  hint="Joining makes someone a regular and a club member."
+                >
+                  <Select name="joinPolicy" defaultValue={series.joinPolicy}>
+                    <option value="invite">By invitation</option>
+                    <option value="open">Anyone</option>
+                  </Select>
+                </Field>
+              </div>
+              <Field label="Town or area" hint="For Near you when there is no venue.">
+                <Input
+                  name="locality"
+                  defaultValue={series.locality ?? ''}
+                  maxLength={120}
+                  placeholder="Basingstoke"
+                />
               </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Round length (min)">

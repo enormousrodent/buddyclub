@@ -6,7 +6,7 @@ import { LEGAL } from '../../../lib/legal';
 export const metadata: Metadata = {
   title: 'Privacy policy',
   description:
-    'How Buddy Club and Rally collect, use, share and keep personal data, the cookies they set, and your rights.',
+    'How Buddy Club collects, uses, shares and keeps personal data, the cookies it sets, and your rights.',
   alternates: { canonical: '/privacy' },
 };
 
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy policy"
-      lead="Buddy Club helps people find groups, meetups and clubs. Rally runs sessions, rotations and leagues. This policy explains what personal data both services collect, why, who can see it, and what you can do about it."
+      lead="Buddy Club helps people play racket sports together: find buddies, groups and clubs, and run sessions, rotations and leagues. This policy explains what personal data the service collects, why, who can see it, and what you can do about it."
     >
       <Contents items={SECTIONS} />
 
@@ -70,15 +70,15 @@ export default function PrivacyPage() {
         <li>Your display name, which you can change at any time.</li>
         <li>A profile picture, if you upload one.</li>
         <li>Interests and a locality you choose, used to suggest nearby groups and gatherings.</li>
-        <li>Your theme preference and Rally onboarding choices (sports, role).</li>
+        <li>Your theme preference and first-run choices (sports, role).</li>
       </ul>
       <h3>Taking part</h3>
       <ul>
         <li>The clubs and groups you belong to, your role in them, and when you joined.</li>
         <li>Gatherings and sessions you RSVP to, check in to, or attend, and the time of each.</li>
         <li>
-          Rally play records: court assignments, pairings, rotations, match results, scores,
-          standings and league or tournament positions.
+          Play records: court assignments, pairings, rotations, match results, scores, standings and
+          league or tournament positions.
         </li>
         <li>
           Content you add: group names and descriptions, gathering details, venue details, club
@@ -211,7 +211,7 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>rally-onboarded, rally-sports, rally-role</strong>: remember that you finished
-          Rally’s first-run steps and what you picked, so we do not ask again.
+          Your first-run steps and what you picked, so we do not ask again.
         </li>
         <li>
           <strong>Local storage</strong> on your device may hold a draft or a recently viewed page

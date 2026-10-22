@@ -119,7 +119,8 @@ export function ProductMark({
 
 /** Mark plus wordmark, for shells and sign-in. */
 export function Lockup({ product, size = 28 }: { product: Product; size?: number }) {
-  const name = product === 'rally' ? 'Rally' : 'Buddy Club';
+  // One product name (Addendum 1.4); the `rally` look keeps its condensed wordmark.
+  const name = 'Buddy Club';
   return (
     <span className="inline-flex items-center gap-2">
       <ProductMark product={product} size={size} title={name} />
@@ -128,16 +129,13 @@ export function Lockup({ product, size = 28 }: { product: Product; size?: number
       >
         {name}
       </span>
-      {product === 'rally' ? (
-        <span className="mt-1 text-xs font-medium text-muted">by Buddy Club</span>
-      ) : null}
     </span>
   );
 }
 
 /** App-icon tile used on sign-in and empty states. Buddy Club's logo sits on white in its own colours. */
 export function IconTile({ product, size = 72 }: { product: Product; size?: number }) {
-  if (product === 'rally') return <RallyMark size={size} title="Rally" />;
+  if (product === 'rally') return <RallyMark size={size} title="Buddy Club" />;
   return (
     <span
       className="inline-flex items-center justify-center border border-hairline bg-white"

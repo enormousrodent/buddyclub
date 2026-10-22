@@ -1,4 +1,6 @@
 import {
+  PublicSessionCardSchema,
+  PublicSessionsQuerySchema,
   AddEntryBodySchema,
   BoardSchema,
   CheckInBodySchema,
@@ -60,6 +62,7 @@ import * as rotation from './rotation.js';
 import { myPresets, myScheduledSessions } from './home.js';
 import { transitionRound, type RoundAction } from './rounds.js';
 import * as series from './series.js';
+import * as pub from './public.js';
 import * as regulars from './regulars.js';
 import * as hosts from './hosts.js';
 import * as keepApart from './keep-apart.js';
@@ -1016,5 +1019,40 @@ export async function sessionRoutes(app: FastifyInstance, options: SessionRoutes
         : created;
       return reply.status(201).send(result);
     },
+  );
+
+  typed.get(
+    '/v1/public/sessions',
+    {
+      schema: {
+        tags: ['sessions'],
+        summary: 'Public sessions by name, place and sport (Addendum 1.5); no account needed',
+        operationId: 'listPublicSessions',
+        querystring: PublicSessionsQuerySchema,
+        response: { 200: listOf(PublicSessionCardSchema), 400: ProblemDetailsSchema },
+      },
+    },
+    async (request, reply) => {
+      reply.header('cache-control', 'public, max-age=30');
+      return { items: await pub.listPublicSessions(db(), request.query) };
+    },
+  );
+
+  typed.post(
+    '/v1/sessions/:seriesId/join',
+    {
+      preHandler: app.requireActor,
+      schema: {
+        tags: ['sessions'],
+        summary:
+          'Join an open public session: club membership, a player record and a place as a regular',
+        operationId: 'joinSession',
+        security: AUTH,
+        params: z.object({ seriesId: UuidSchema }),
+        body: z.object({}).optional(),
+        response: { 200: SessionSeriesSchema, ...PROBLEMS, 403: ProblemDetailsSchema },
+      },
+    },
+    async (request) => pub.joinSession(db(), request.actor!, request.params.seriesId, ctx(request)),
   );
 }

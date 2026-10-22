@@ -1,0 +1,1473 @@
+{
+  "levelSets": {
+    "skill": {
+      "kind": "pick",
+      "options": [
+        {
+          "id": "just_starting",
+          "label": "Just starting",
+          "hint": "New to it, or back after a long break"
+        },
+        {
+          "id": "getting_going",
+          "label": "Getting going",
+          "hint": "Know the basics, out now and then"
+        },
+        {
+          "id": "comfortable",
+          "label": "Comfortable",
+          "hint": "Regular, happy alongside most people"
+        },
+        {
+          "id": "strong",
+          "label": "Strong",
+          "hint": "Club standard, likes a proper go"
+        },
+        {
+          "id": "expert",
+          "label": "Expert",
+          "hint": "Coach, county, or close to it"
+        }
+      ]
+    },
+    "fitness": {
+      "kind": "pick",
+      "options": [
+        {
+          "id": "starting_out",
+          "label": "Starting out",
+          "hint": "First few weeks, or coming back"
+        },
+        {
+          "id": "once_a_week",
+          "label": "Once a week",
+          "hint": "A regular slot, nothing serious"
+        },
+        {
+          "id": "most_weeks",
+          "label": "Most weeks",
+          "hint": "Two or three times, it is a habit"
+        },
+        {
+          "id": "training",
+          "label": "Training for something",
+          "hint": "An event or a goal in the diary"
+        },
+        {
+          "id": "competing",
+          "label": "Competing",
+          "hint": "Races, meets or a league"
+        }
+      ]
+    },
+    "pace": {
+      "kind": "pick",
+      "options": [
+        {
+          "id": "easy_strolls",
+          "label": "Easy strolls",
+          "hint": "An hour on the flat, coffee after"
+        },
+        {
+          "id": "few_miles",
+          "label": "A few miles",
+          "hint": "A morning out, some ups and downs"
+        },
+        {
+          "id": "long_days",
+          "label": "Long days out",
+          "hint": "All day, proper boots"
+        },
+        {
+          "id": "big_hills",
+          "label": "Big hills",
+          "hint": "Mountains, scrambles, the lot"
+        }
+      ]
+    },
+    "none": {
+      "kind": "none"
+    }
+  },
+  "categories": [
+    {
+      "id": "racket_sports",
+      "name": "Racket sports",
+      "sortOrder": 11,
+      "swatch": 1
+    },
+    {
+      "id": "team_sports",
+      "name": "Team sports",
+      "sortOrder": 12,
+      "swatch": 3
+    },
+    {
+      "id": "fitness",
+      "name": "Fitness",
+      "sortOrder": 13,
+      "swatch": 5
+    },
+    {
+      "id": "running",
+      "name": "Running",
+      "sortOrder": 14,
+      "swatch": 5
+    },
+    {
+      "id": "cycling",
+      "name": "Cycling",
+      "sortOrder": 15,
+      "swatch": 2
+    },
+    {
+      "id": "swimming",
+      "name": "Swimming",
+      "sortOrder": 16,
+      "swatch": 4
+    },
+    {
+      "id": "water_sports",
+      "name": "Water sports",
+      "sortOrder": 17,
+      "swatch": 4
+    },
+    {
+      "id": "walking",
+      "name": "Walking and hiking",
+      "sortOrder": 18,
+      "swatch": 1
+    },
+    {
+      "id": "outdoors",
+      "name": "Outdoors and adventure",
+      "sortOrder": 19,
+      "swatch": 1
+    },
+    {
+      "id": "climbing",
+      "name": "Climbing",
+      "sortOrder": 20,
+      "swatch": 6
+    },
+    {
+      "id": "winter_sports",
+      "name": "Winter sports",
+      "sortOrder": 21,
+      "swatch": 2
+    },
+    {
+      "id": "martial_arts",
+      "name": "Martial arts and boxing",
+      "sortOrder": 22,
+      "swatch": 3
+    },
+    {
+      "id": "target_sports",
+      "name": "Golf and target sports",
+      "sortOrder": 23,
+      "swatch": 2
+    },
+    {
+      "id": "dance",
+      "name": "Dance",
+      "sortOrder": 24,
+      "swatch": 6
+    },
+    {
+      "id": "equestrian",
+      "name": "Horses",
+      "sortOrder": 25,
+      "swatch": 1
+    },
+    {
+      "id": "dog_walking",
+      "name": "Dog walking",
+      "sortOrder": 26,
+      "swatch": 2
+    },
+    {
+      "id": "mind_games",
+      "name": "Mind games",
+      "sortOrder": 30,
+      "swatch": 3
+    },
+    {
+      "id": "books",
+      "name": "Books",
+      "sortOrder": 31,
+      "swatch": 4
+    },
+    {
+      "id": "board_games",
+      "name": "Board games",
+      "sortOrder": 32,
+      "swatch": 3
+    },
+    {
+      "id": "arts_crafts",
+      "name": "Arts and crafts",
+      "sortOrder": 60,
+      "swatch": 2
+    },
+    {
+      "id": "food_drink",
+      "name": "Food and drink",
+      "sortOrder": 61,
+      "swatch": 4
+    },
+    {
+      "id": "music",
+      "name": "Music",
+      "sortOrder": 62,
+      "swatch": 6
+    },
+    {
+      "id": "wellbeing",
+      "name": "Wellbeing",
+      "sortOrder": 50,
+      "swatch": 5
+    },
+    {
+      "id": "families",
+      "name": "Families",
+      "sortOrder": 40,
+      "swatch": 6
+    },
+    {
+      "id": "parent_toddler",
+      "name": "Parent and toddler",
+      "sortOrder": 41,
+      "swatch": 6
+    },
+    {
+      "id": "volunteering",
+      "name": "Volunteering",
+      "sortOrder": 70,
+      "swatch": 1
+    },
+    {
+      "id": "sports",
+      "name": "Sports",
+      "sortOrder": 10,
+      "swatch": 3
+    },
+    {
+      "id": "other",
+      "name": "Other",
+      "sortOrder": 999,
+      "swatch": 3
+    }
+  ],
+  "activities": [
+    {
+      "id": "tennis",
+      "name": "Tennis",
+      "category": "racket_sports",
+      "levels": "skill",
+      "featured": true,
+      "tier": 1,
+      "playersPerSide": 2
+    },
+    {
+      "id": "badminton",
+      "name": "Badminton",
+      "category": "racket_sports",
+      "levels": "skill",
+      "featured": true,
+      "tier": 1,
+      "playersPerSide": 2
+    },
+    {
+      "id": "padel",
+      "name": "Padel",
+      "category": "racket_sports",
+      "levels": "skill",
+      "featured": true,
+      "tier": 1,
+      "playersPerSide": 2
+    },
+    {
+      "id": "pickleball",
+      "name": "Pickleball",
+      "category": "racket_sports",
+      "levels": "skill",
+      "featured": true,
+      "tier": 1,
+      "playersPerSide": 2
+    },
+    {
+      "id": "squash",
+      "name": "Squash",
+      "category": "racket_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "table_tennis",
+      "name": "Table tennis",
+      "category": "racket_sports",
+      "levels": "skill",
+      "aliases": ["ping pong"]
+    },
+    {
+      "id": "racketball",
+      "name": "Racketball",
+      "category": "racket_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "real_tennis",
+      "name": "Real tennis",
+      "category": "racket_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "football",
+      "name": "Football",
+      "category": "team_sports",
+      "levels": "skill",
+      "featured": true,
+      "tier": 1,
+      "aliases": ["soccer", "5-a-side", "five a side"]
+    },
+    {
+      "id": "walking_football",
+      "name": "Walking football",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "futsal",
+      "name": "Futsal",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "rugby_union",
+      "name": "Rugby union",
+      "category": "team_sports",
+      "levels": "skill",
+      "aliases": ["rugby"]
+    },
+    {
+      "id": "rugby_league",
+      "name": "Rugby league",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "touch_rugby",
+      "name": "Touch rugby",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "cricket",
+      "name": "Cricket",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "hockey",
+      "name": "Hockey",
+      "category": "team_sports",
+      "levels": "skill",
+      "aliases": ["field hockey"]
+    },
+    {
+      "id": "netball",
+      "name": "Netball",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "basketball",
+      "name": "Basketball",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "volleyball",
+      "name": "Volleyball",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "beach_volleyball",
+      "name": "Beach volleyball",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "handball",
+      "name": "Handball",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "lacrosse",
+      "name": "Lacrosse",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "korfball",
+      "name": "Korfball",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "dodgeball",
+      "name": "Dodgeball",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "rounders",
+      "name": "Rounders",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "softball",
+      "name": "Softball",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "baseball",
+      "name": "Baseball",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "american_football",
+      "name": "American football",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "gaelic_football",
+      "name": "Gaelic football",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "hurling",
+      "name": "Hurling",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "water_polo",
+      "name": "Water polo",
+      "category": "team_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "ultimate_frisbee",
+      "name": "Ultimate frisbee",
+      "category": "team_sports",
+      "levels": "skill",
+      "aliases": ["ultimate"]
+    },
+    {
+      "id": "quidditch",
+      "name": "Quadball",
+      "category": "team_sports",
+      "levels": "skill",
+      "aliases": ["quidditch"]
+    },
+    {
+      "id": "gym",
+      "name": "Gym and fitness classes",
+      "category": "fitness",
+      "levels": "fitness",
+      "featured": true,
+      "tier": 1,
+      "aliases": ["weights", "fitness classes", "hiit", "crossfit"]
+    },
+    {
+      "id": "yoga",
+      "name": "Yoga and pilates",
+      "category": "fitness",
+      "levels": "fitness",
+      "featured": true,
+      "tier": 1,
+      "aliases": ["pilates"]
+    },
+    {
+      "id": "crossfit",
+      "name": "CrossFit",
+      "category": "fitness",
+      "levels": "fitness"
+    },
+    {
+      "id": "weightlifting",
+      "name": "Weightlifting",
+      "category": "fitness",
+      "levels": "fitness",
+      "aliases": ["powerlifting", "olympic lifting"]
+    },
+    {
+      "id": "bootcamp",
+      "name": "Bootcamp",
+      "category": "fitness",
+      "levels": "fitness"
+    },
+    {
+      "id": "spinning",
+      "name": "Spinning",
+      "category": "fitness",
+      "levels": "fitness",
+      "aliases": ["indoor cycling"]
+    },
+    {
+      "id": "aerobics",
+      "name": "Aerobics",
+      "category": "fitness",
+      "levels": "fitness"
+    },
+    {
+      "id": "calisthenics",
+      "name": "Calisthenics",
+      "category": "fitness",
+      "levels": "fitness"
+    },
+    {
+      "id": "parkour",
+      "name": "Parkour",
+      "category": "fitness",
+      "levels": "skill"
+    },
+    {
+      "id": "gymnastics",
+      "name": "Gymnastics",
+      "category": "fitness",
+      "levels": "skill"
+    },
+    {
+      "id": "trampolining",
+      "name": "Trampolining",
+      "category": "fitness",
+      "levels": "skill"
+    },
+    {
+      "id": "tai_chi",
+      "name": "Tai chi",
+      "category": "fitness",
+      "levels": "fitness"
+    },
+    {
+      "id": "stretching",
+      "name": "Stretching and mobility",
+      "category": "fitness",
+      "levels": "fitness"
+    },
+    {
+      "id": "running",
+      "name": "Running",
+      "category": "running",
+      "levels": "fitness",
+      "featured": true,
+      "tier": 1,
+      "aliases": ["jogging", "parkrun", "5k", "10k"]
+    },
+    {
+      "id": "trail_running",
+      "name": "Trail running",
+      "category": "running",
+      "levels": "fitness"
+    },
+    {
+      "id": "track_athletics",
+      "name": "Track and field",
+      "category": "running",
+      "levels": "fitness",
+      "aliases": ["athletics"]
+    },
+    {
+      "id": "orienteering",
+      "name": "Orienteering",
+      "category": "running",
+      "levels": "fitness"
+    },
+    {
+      "id": "triathlon",
+      "name": "Triathlon",
+      "category": "running",
+      "levels": "fitness"
+    },
+    {
+      "id": "obstacle_racing",
+      "name": "Obstacle racing",
+      "category": "running",
+      "levels": "fitness",
+      "aliases": ["tough mudder", "spartan"]
+    },
+    {
+      "id": "cycling",
+      "name": "Cycling",
+      "category": "cycling",
+      "levels": "fitness",
+      "featured": true,
+      "tier": 1,
+      "aliases": ["road cycling", "bike"]
+    },
+    {
+      "id": "mountain_biking",
+      "name": "Mountain biking",
+      "category": "cycling",
+      "levels": "skill",
+      "aliases": ["mtb"]
+    },
+    {
+      "id": "gravel_cycling",
+      "name": "Gravel cycling",
+      "category": "cycling",
+      "levels": "fitness"
+    },
+    {
+      "id": "bmx",
+      "name": "BMX",
+      "category": "cycling",
+      "levels": "skill"
+    },
+    {
+      "id": "track_cycling",
+      "name": "Track cycling",
+      "category": "cycling",
+      "levels": "fitness"
+    },
+    {
+      "id": "swimming",
+      "name": "Swimming",
+      "category": "swimming",
+      "levels": "fitness",
+      "featured": true,
+      "tier": 1,
+      "aliases": ["pool"]
+    },
+    {
+      "id": "open_water_swimming",
+      "name": "Open water swimming",
+      "category": "swimming",
+      "levels": "fitness",
+      "aliases": ["wild swimming", "sea swimming"]
+    },
+    {
+      "id": "diving",
+      "name": "Diving",
+      "category": "swimming",
+      "levels": "skill"
+    },
+    {
+      "id": "scuba",
+      "name": "Scuba diving",
+      "category": "water_sports",
+      "levels": {
+        "kind": "certification",
+        "options": ["Open Water", "Advanced", "Rescue", "Divemaster", "Instructor"]
+      }
+    },
+    {
+      "id": "snorkelling",
+      "name": "Snorkelling",
+      "category": "water_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "sailing",
+      "name": "Sailing",
+      "category": "water_sports",
+      "levels": {
+        "kind": "certification",
+        "options": [
+          "Start Sailing",
+          "Basic Skills",
+          "Day Skipper",
+          "Coastal Skipper",
+          "Yachtmaster"
+        ]
+      }
+    },
+    {
+      "id": "windsurfing",
+      "name": "Windsurfing",
+      "category": "water_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "kitesurfing",
+      "name": "Kitesurfing",
+      "category": "water_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "surfing",
+      "name": "Surfing",
+      "category": "water_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "paddleboarding",
+      "name": "Paddleboarding",
+      "category": "water_sports",
+      "levels": "skill",
+      "aliases": ["sup", "stand up paddleboard"]
+    },
+    {
+      "id": "kayaking",
+      "name": "Kayaking",
+      "category": "water_sports",
+      "levels": {
+        "kind": "certification",
+        "options": ["Discover", "Explore", "Progressive", "Advanced"]
+      }
+    },
+    {
+      "id": "canoeing",
+      "name": "Canoeing",
+      "category": "water_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "rowing",
+      "name": "Rowing",
+      "category": "water_sports",
+      "levels": "fitness"
+    },
+    {
+      "id": "wakeboarding",
+      "name": "Wakeboarding",
+      "category": "water_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "water_skiing",
+      "name": "Water skiing",
+      "category": "water_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "coasteering",
+      "name": "Coasteering",
+      "category": "water_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "walking",
+      "name": "Walking and hiking",
+      "category": "walking",
+      "levels": "pace",
+      "featured": true,
+      "tier": 1,
+      "aliases": ["hiking", "rambling", "walks"]
+    },
+    {
+      "id": "hill_walking",
+      "name": "Hill walking",
+      "category": "walking",
+      "levels": "pace",
+      "aliases": ["fell walking", "munros"]
+    },
+    {
+      "id": "nordic_walking",
+      "name": "Nordic walking",
+      "category": "walking",
+      "levels": "pace"
+    },
+    {
+      "id": "dog_walking",
+      "name": "Dog walking",
+      "category": "dog_walking",
+      "levels": "pace"
+    },
+    {
+      "id": "camping",
+      "name": "Camping",
+      "category": "outdoors",
+      "levels": "none"
+    },
+    {
+      "id": "wild_camping",
+      "name": "Wild camping",
+      "category": "outdoors",
+      "levels": "pace"
+    },
+    {
+      "id": "bushcraft",
+      "name": "Bushcraft",
+      "category": "outdoors",
+      "levels": "skill"
+    },
+    {
+      "id": "geocaching",
+      "name": "Geocaching",
+      "category": "outdoors",
+      "levels": "none"
+    },
+    {
+      "id": "birdwatching",
+      "name": "Birdwatching",
+      "category": "outdoors",
+      "levels": "none"
+    },
+    {
+      "id": "fishing",
+      "name": "Fishing",
+      "category": "outdoors",
+      "levels": "skill",
+      "aliases": ["angling", "fly fishing"]
+    },
+    {
+      "id": "foraging",
+      "name": "Foraging",
+      "category": "outdoors",
+      "levels": "none"
+    },
+    {
+      "id": "gardening",
+      "name": "Gardening",
+      "category": "outdoors",
+      "levels": "none",
+      "aliases": ["allotment"]
+    },
+    {
+      "id": "paragliding",
+      "name": "Paragliding",
+      "category": "outdoors",
+      "levels": {
+        "kind": "certification",
+        "options": ["Elementary Pilot", "Club Pilot", "Pilot", "Advanced Pilot"]
+      }
+    },
+    {
+      "id": "skydiving",
+      "name": "Skydiving",
+      "category": "outdoors",
+      "levels": {
+        "kind": "certification",
+        "options": ["Student", "A licence", "B licence", "C licence", "D licence"]
+      }
+    },
+    {
+      "id": "gliding",
+      "name": "Gliding",
+      "category": "outdoors",
+      "levels": "skill"
+    },
+    {
+      "id": "caving",
+      "name": "Caving",
+      "category": "outdoors",
+      "levels": "skill"
+    },
+    {
+      "id": "climbing",
+      "name": "Climbing",
+      "category": "climbing",
+      "levels": {
+        "kind": "grade",
+        "options": [
+          "V0 to V2 / up to 5+",
+          "V3 to V4 / 6a to 6b",
+          "V5 to V6 / 6c to 7a",
+          "V7 and up / 7b and up"
+        ]
+      },
+      "aliases": ["bouldering", "indoor climbing", "sport climbing"]
+    },
+    {
+      "id": "bouldering",
+      "name": "Bouldering",
+      "category": "climbing",
+      "levels": {
+        "kind": "grade",
+        "options": ["V0 to V2", "V3 to V4", "V5 to V6", "V7 and up"]
+      }
+    },
+    {
+      "id": "trad_climbing",
+      "name": "Trad climbing",
+      "category": "climbing",
+      "levels": {
+        "kind": "grade",
+        "options": ["Mod to VDiff", "Severe to VS", "HVS to E1", "E2 and up"]
+      }
+    },
+    {
+      "id": "mountaineering",
+      "name": "Mountaineering",
+      "category": "climbing",
+      "levels": "skill"
+    },
+    {
+      "id": "via_ferrata",
+      "name": "Via ferrata",
+      "category": "climbing",
+      "levels": "skill"
+    },
+    {
+      "id": "skiing",
+      "name": "Skiing",
+      "category": "winter_sports",
+      "levels": {
+        "kind": "grade",
+        "options": ["Green", "Blue", "Red", "Black", "Off piste"]
+      }
+    },
+    {
+      "id": "snowboarding",
+      "name": "Snowboarding",
+      "category": "winter_sports",
+      "levels": {
+        "kind": "grade",
+        "options": ["Green", "Blue", "Red", "Black", "Off piste"]
+      }
+    },
+    {
+      "id": "ice_skating",
+      "name": "Ice skating",
+      "category": "winter_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "ice_hockey",
+      "name": "Ice hockey",
+      "category": "winter_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "curling",
+      "name": "Curling",
+      "category": "winter_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "sledging",
+      "name": "Sledging",
+      "category": "winter_sports",
+      "levels": "none"
+    },
+    {
+      "id": "boxing",
+      "name": "Boxing",
+      "category": "martial_arts",
+      "levels": "skill"
+    },
+    {
+      "id": "kickboxing",
+      "name": "Kickboxing",
+      "category": "martial_arts",
+      "levels": {
+        "kind": "grade",
+        "options": ["White", "Yellow", "Orange", "Green", "Blue", "Purple", "Brown", "Black"]
+      }
+    },
+    {
+      "id": "muay_thai",
+      "name": "Muay Thai",
+      "category": "martial_arts",
+      "levels": "skill"
+    },
+    {
+      "id": "mma",
+      "name": "MMA",
+      "category": "martial_arts",
+      "levels": "skill",
+      "aliases": ["mixed martial arts"]
+    },
+    {
+      "id": "judo",
+      "name": "Judo",
+      "category": "martial_arts",
+      "levels": {
+        "kind": "grade",
+        "options": ["White", "Yellow", "Orange", "Green", "Blue", "Purple", "Brown", "Black"]
+      }
+    },
+    {
+      "id": "karate",
+      "name": "Karate",
+      "category": "martial_arts",
+      "levels": {
+        "kind": "grade",
+        "options": ["White", "Yellow", "Orange", "Green", "Blue", "Purple", "Brown", "Black"]
+      }
+    },
+    {
+      "id": "taekwondo",
+      "name": "Taekwondo",
+      "category": "martial_arts",
+      "levels": {
+        "kind": "grade",
+        "options": ["White", "Yellow", "Orange", "Green", "Blue", "Purple", "Brown", "Black"]
+      }
+    },
+    {
+      "id": "bjj",
+      "name": "Brazilian jiu-jitsu",
+      "category": "martial_arts",
+      "levels": {
+        "kind": "grade",
+        "options": ["White", "Blue", "Purple", "Brown", "Black"]
+      },
+      "aliases": ["jiu jitsu", "jiujitsu"]
+    },
+    {
+      "id": "wrestling",
+      "name": "Wrestling",
+      "category": "martial_arts",
+      "levels": "skill"
+    },
+    {
+      "id": "fencing",
+      "name": "Fencing",
+      "category": "martial_arts",
+      "levels": "skill"
+    },
+    {
+      "id": "aikido",
+      "name": "Aikido",
+      "category": "martial_arts",
+      "levels": {
+        "kind": "grade",
+        "options": ["White", "Yellow", "Orange", "Green", "Blue", "Purple", "Brown", "Black"]
+      }
+    },
+    {
+      "id": "krav_maga",
+      "name": "Krav Maga",
+      "category": "martial_arts",
+      "levels": "skill"
+    },
+    {
+      "id": "golf",
+      "name": "Golf",
+      "category": "target_sports",
+      "levels": {
+        "kind": "handicap",
+        "min": 0,
+        "max": 54
+      },
+      "featured": true,
+      "tier": 1
+    },
+    {
+      "id": "disc_golf",
+      "name": "Disc golf",
+      "category": "target_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "archery",
+      "name": "Archery",
+      "category": "target_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "darts",
+      "name": "Darts",
+      "category": "target_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "snooker",
+      "name": "Snooker",
+      "category": "target_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "pool",
+      "name": "Pool",
+      "category": "target_sports",
+      "levels": "skill",
+      "aliases": ["8 ball", "billiards"]
+    },
+    {
+      "id": "bowls",
+      "name": "Bowls",
+      "category": "target_sports",
+      "levels": "skill",
+      "aliases": ["lawn bowls", "crown green"]
+    },
+    {
+      "id": "ten_pin_bowling",
+      "name": "Ten-pin bowling",
+      "category": "target_sports",
+      "levels": "skill",
+      "aliases": ["bowling"]
+    },
+    {
+      "id": "petanque",
+      "name": "Pétanque",
+      "category": "target_sports",
+      "levels": "skill",
+      "aliases": ["boules"]
+    },
+    {
+      "id": "clay_shooting",
+      "name": "Clay shooting",
+      "category": "target_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "croquet",
+      "name": "Croquet",
+      "category": "target_sports",
+      "levels": "skill"
+    },
+    {
+      "id": "dance",
+      "name": "Dance",
+      "category": "dance",
+      "levels": "skill",
+      "aliases": ["dancing"]
+    },
+    {
+      "id": "salsa",
+      "name": "Salsa",
+      "category": "dance",
+      "levels": "skill"
+    },
+    {
+      "id": "ballroom",
+      "name": "Ballroom and Latin",
+      "category": "dance",
+      "levels": "skill",
+      "aliases": ["latin"]
+    },
+    {
+      "id": "swing_dance",
+      "name": "Swing dance",
+      "category": "dance",
+      "levels": "skill",
+      "aliases": ["lindy hop"]
+    },
+    {
+      "id": "ceilidh",
+      "name": "Ceilidh and folk dance",
+      "category": "dance",
+      "levels": "skill"
+    },
+    {
+      "id": "ballet",
+      "name": "Ballet",
+      "category": "dance",
+      "levels": "skill"
+    },
+    {
+      "id": "hip_hop_dance",
+      "name": "Hip hop dance",
+      "category": "dance",
+      "levels": "skill",
+      "aliases": ["street dance"]
+    },
+    {
+      "id": "zumba",
+      "name": "Zumba",
+      "category": "dance",
+      "levels": "fitness"
+    },
+    {
+      "id": "horse_riding",
+      "name": "Horse riding",
+      "category": "equestrian",
+      "levels": "skill",
+      "aliases": ["riding", "hacking"]
+    },
+    {
+      "id": "polo",
+      "name": "Polo",
+      "category": "equestrian",
+      "levels": "skill"
+    },
+    {
+      "id": "chess",
+      "name": "Chess",
+      "category": "mind_games",
+      "levels": "skill"
+    },
+    {
+      "id": "bridge",
+      "name": "Bridge",
+      "category": "mind_games",
+      "levels": "skill"
+    },
+    {
+      "id": "poker",
+      "name": "Poker",
+      "category": "mind_games",
+      "levels": "skill"
+    },
+    {
+      "id": "quiz",
+      "name": "Quiz nights",
+      "category": "mind_games",
+      "levels": "none",
+      "aliases": ["pub quiz"]
+    },
+    {
+      "id": "escape_rooms",
+      "name": "Escape rooms",
+      "category": "mind_games",
+      "levels": "none"
+    },
+    {
+      "id": "books",
+      "name": "Books",
+      "category": "books",
+      "levels": "none",
+      "aliases": ["book club", "reading"]
+    },
+    {
+      "id": "writing",
+      "name": "Writing",
+      "category": "books",
+      "levels": "none",
+      "aliases": ["creative writing"]
+    },
+    {
+      "id": "board_games",
+      "name": "Board games",
+      "category": "board_games",
+      "levels": "none"
+    },
+    {
+      "id": "tabletop_rpg",
+      "name": "Tabletop role-playing",
+      "category": "board_games",
+      "levels": "none",
+      "aliases": ["dnd", "d&d", "dungeons and dragons"]
+    },
+    {
+      "id": "video_games",
+      "name": "Video games",
+      "category": "board_games",
+      "levels": "none",
+      "aliases": ["gaming"]
+    },
+    {
+      "id": "wargaming",
+      "name": "Wargaming",
+      "category": "board_games",
+      "levels": "none",
+      "aliases": ["warhammer"]
+    },
+    {
+      "id": "painting",
+      "name": "Painting and drawing",
+      "category": "arts_crafts",
+      "levels": "none",
+      "aliases": ["drawing", "art"]
+    },
+    {
+      "id": "photography",
+      "name": "Photography",
+      "category": "arts_crafts",
+      "levels": "none"
+    },
+    {
+      "id": "pottery",
+      "name": "Pottery",
+      "category": "arts_crafts",
+      "levels": "none",
+      "aliases": ["ceramics"]
+    },
+    {
+      "id": "knitting",
+      "name": "Knitting and crochet",
+      "category": "arts_crafts",
+      "levels": "none",
+      "aliases": ["crochet"]
+    },
+    {
+      "id": "sewing",
+      "name": "Sewing",
+      "category": "arts_crafts",
+      "levels": "none"
+    },
+    {
+      "id": "woodworking",
+      "name": "Woodworking",
+      "category": "arts_crafts",
+      "levels": "none"
+    },
+    {
+      "id": "crafts",
+      "name": "Crafts",
+      "category": "arts_crafts",
+      "levels": "none"
+    },
+    {
+      "id": "theatre",
+      "name": "Theatre and drama",
+      "category": "arts_crafts",
+      "levels": "none",
+      "aliases": ["am dram", "acting"]
+    },
+    {
+      "id": "cooking",
+      "name": "Cooking",
+      "category": "food_drink",
+      "levels": "none"
+    },
+    {
+      "id": "baking",
+      "name": "Baking",
+      "category": "food_drink",
+      "levels": "none"
+    },
+    {
+      "id": "supper_club",
+      "name": "Supper clubs",
+      "category": "food_drink",
+      "levels": "none"
+    },
+    {
+      "id": "wine",
+      "name": "Wine and tasting",
+      "category": "food_drink",
+      "levels": "none",
+      "aliases": ["wine tasting"]
+    },
+    {
+      "id": "craft_beer",
+      "name": "Craft beer",
+      "category": "food_drink",
+      "levels": "none"
+    },
+    {
+      "id": "coffee",
+      "name": "Coffee",
+      "category": "food_drink",
+      "levels": "none"
+    },
+    {
+      "id": "choir",
+      "name": "Choir and singing",
+      "category": "music",
+      "levels": "skill",
+      "aliases": ["singing"]
+    },
+    {
+      "id": "band",
+      "name": "Playing in a band",
+      "category": "music",
+      "levels": "skill"
+    },
+    {
+      "id": "guitar",
+      "name": "Guitar",
+      "category": "music",
+      "levels": "skill"
+    },
+    {
+      "id": "piano",
+      "name": "Piano",
+      "category": "music",
+      "levels": "skill"
+    },
+    {
+      "id": "drums",
+      "name": "Drums",
+      "category": "music",
+      "levels": "skill"
+    },
+    {
+      "id": "orchestra",
+      "name": "Orchestra",
+      "category": "music",
+      "levels": "skill"
+    },
+    {
+      "id": "djing",
+      "name": "DJing",
+      "category": "music",
+      "levels": "skill"
+    },
+    {
+      "id": "live_music",
+      "name": "Going to gigs",
+      "category": "music",
+      "levels": "none",
+      "aliases": ["gigs", "concerts"]
+    },
+    {
+      "id": "meditation",
+      "name": "Meditation and mindfulness",
+      "category": "wellbeing",
+      "levels": "none"
+    },
+    {
+      "id": "cold_water",
+      "name": "Cold water dips",
+      "category": "wellbeing",
+      "levels": "none",
+      "aliases": ["cold water therapy", "ice bath"]
+    },
+    {
+      "id": "sauna",
+      "name": "Sauna",
+      "category": "wellbeing",
+      "levels": "none"
+    },
+    {
+      "id": "breathwork",
+      "name": "Breathwork",
+      "category": "wellbeing",
+      "levels": "none"
+    },
+    {
+      "id": "wellbeing",
+      "name": "Wellbeing",
+      "category": "wellbeing",
+      "levels": "none"
+    },
+    {
+      "id": "families",
+      "name": "Family days out",
+      "category": "families",
+      "levels": "none"
+    },
+    {
+      "id": "parent_toddler",
+      "name": "Parent and toddler",
+      "category": "parent_toddler",
+      "levels": "none",
+      "aliases": ["baby group", "toddler group"]
+    },
+    {
+      "id": "home_education",
+      "name": "Home education",
+      "category": "families",
+      "levels": "none"
+    },
+    {
+      "id": "volunteering",
+      "name": "Volunteering",
+      "category": "volunteering",
+      "levels": "none"
+    },
+    {
+      "id": "litter_picking",
+      "name": "Litter picking",
+      "category": "volunteering",
+      "levels": "none",
+      "aliases": ["beach clean"]
+    },
+    {
+      "id": "conservation",
+      "name": "Conservation",
+      "category": "volunteering",
+      "levels": "none"
+    },
+    {
+      "id": "other",
+      "name": "Something else",
+      "category": "other",
+      "levels": "none"
+    }
+  ]
+}

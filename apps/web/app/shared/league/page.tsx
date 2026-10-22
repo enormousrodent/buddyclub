@@ -24,7 +24,11 @@ export const metadata = { title: 'Competitions' };
 export default async function LeaguePage() {
   if (!(await getSessionUser())) redirect('/sign-in?next=/league');
   const api = apiForUser();
-  const [me, sports, mine] = await Promise.all([api.me(), api.sports(), api.competitions.mine()]);
+  const [me, sports, mine] = await Promise.all([
+    api.me(),
+    api.sports('racket_sports'),
+    api.competitions.mine(),
+  ]);
   const orgs = me.memberships.filter((m) => m.status === 'active' && m.organisationKind === 'club');
   const myMeets = mine.meets.filter((m) => m.myFixtures.length > 0);
   const lists = await Promise.all(

@@ -1,15 +1,21 @@
-import type {
-  GearItem,
-  MyProfile,
-  ProfileActivity,
-  SetActivitiesBody,
-  SetGearBody,
-  UpdateProfileBody,
+import {
+  activityById,
+  isValidLevel,
+  matchActivity,
+  normaliseName,
+  type GearItem,
+  type MyProfile,
+  type ProfileActivity,
+  type SetActivitiesBody,
+  type SetGearBody,
+  type SuggestionResult,
+  type UpdateProfileBody,
 } from '@buddyclub/shared-types';
 import type { Db } from '../../db/index.js';
 import type { Actor } from '../../platform/actor.js';
 import { recordAudit } from '../../platform/audit.js';
 import { toIso } from '../../platform/tokens.js';
+import { sql } from 'kysely';
 import { AppError } from '../../problems.js';
 import type { CommandContext } from '../organisations/service.js';
 
@@ -35,6 +41,7 @@ async function loadActivities(db: DbOrTrx, profileId: string): Promise<ProfileAc
       'a.level',
       'a.days',
       'a.note',
+      'a.custom_name',
     ])
     .where('a.profile_id', '=', profileId)
     .orderBy('i.sort_order')
@@ -42,13 +49,16 @@ async function loadActivities(db: DbOrTrx, profileId: string): Promise<ProfileAc
     .execute();
   return rows.map((r) => ({
     id: r.id,
+    activityId: r.sport_id as string,
+    activityName: r.custom_name ?? r.sport_name ?? r.sport_id ?? '',
     interestId: r.interest_id,
     interestName: r.interest_name,
-    sportId: r.sport_id,
-    sportName: r.sport_name ?? null,
-    level: (r.level as ProfileActivity['level']) ?? null,
+    sportId: r.sport_id as string,
+    sportName: r.custom_name ?? r.sport_name ?? r.sport_id ?? '',
+    level: r.level,
     days: (r.days as ProfileActivity['days']) ?? {},
     note: r.note,
+    customName: r.custom_name,
   }));
 }
 
@@ -62,8 +72,8 @@ async function loadGear(db: DbOrTrx, profileId: string): Promise<GearItem[]> {
     .execute();
   return rows.map((r) => ({
     id: r.id,
+    activityId: r.sport_id ?? r.interest_id,
     interestId: r.interest_id,
-    sportId: r.sport_id,
     name: r.name,
     detail: r.detail,
     sortOrder: r.sort_order,
@@ -161,52 +171,76 @@ export async function updateMyProfile(
   return getMyProfile(db, actor);
 }
 
-/** Replaces the activity set. Unknown interests or sports are a 400. */
+/**
+ * Replaces the activity set. Every entry names a catalogue activity; its level must be on that
+ * activity's ladder; `other` carries the typed name. An entry sent with just its id keeps what
+ * it had.
+ */
 export async function setMyActivities(
   db: Db,
   actor: Actor,
   body: SetActivitiesBody,
 ): Promise<MyProfile> {
+  // What is stored now: a level re-sent unchanged is accepted even if the ladder has since
+  // moved (a catalogue edit must never lock a person out of saving their profile).
+  const storedLevel = new Map<string, string | null>();
+  for (const row of await db
+    .selectFrom('identity.profile_activities')
+    .select(['sport_id', 'custom_name', 'level'])
+    .where('profile_id', '=', actor.profileId)
+    .execute())
+    storedLevel.set(
+      row.sport_id === 'other'
+        ? `other:${normaliseName(row.custom_name ?? '')}`
+        : (row.sport_id ?? ''),
+      row.level,
+    );
   const wanted = new Map<string, SetActivitiesBody['activities'][number]>();
   for (const a of body.activities) {
-    const sportId = a.sportId ?? null;
-    wanted.set(`${a.interestId}:${sportId ?? ''}`, { ...a, sportId });
+    const activity = activityById(a.activityId);
+    if (!activity)
+      throw new AppError(400, 'VALIDATION_FAILED', `Unknown activity ${a.activityId}`, undefined, [
+        { path: 'body/activities/activityId', message: 'not in the catalogue' },
+      ]);
+    if (a.activityId === 'other' && !a.customName)
+      throw new AppError(400, 'VALIDATION_FAILED', 'Say what the activity is', undefined, [
+        { path: 'body/activities/customName', message: 'required for other' },
+      ]);
+    const key =
+      a.activityId === 'other' ? `other:${normaliseName(a.customName ?? '')}` : a.activityId;
+    const unchanged = a.level !== undefined && (a.level || null) === storedLevel.get(key);
+    if (a.level !== undefined && !unchanged && !isValidLevel(a.activityId, a.level))
+      throw new AppError(
+        400,
+        'VALIDATION_FAILED',
+        `${a.level} is not a level for ${activity.name}`,
+        undefined,
+        [{ path: 'body/activities/level', message: "must be on the activity's ladder" }],
+      );
+    // Several "other" entries may coexist, one per typed name.
+    wanted.set(key, a);
   }
-  const interestIds = [...new Set([...wanted.values()].map((a) => a.interestId))];
-  const sportIds = [
-    ...new Set([...wanted.values()].map((a) => a.sportId).filter((s): s is string => !!s)),
-  ];
-  const [interests, sports] = await Promise.all([
-    interestIds.length
-      ? db.selectFrom('community.interests').select('id').where('id', 'in', interestIds).execute()
-      : Promise.resolve([]),
-    sportIds.length
-      ? db.selectFrom('community.sports').select('id').where('id', 'in', sportIds).execute()
-      : Promise.resolve([]),
-  ]);
-  if (interests.length !== interestIds.length)
-    throw new AppError(400, 'VALIDATION_FAILED', 'Unknown interest');
-  if (sports.length !== sportIds.length)
-    throw new AppError(400, 'VALIDATION_FAILED', 'Unknown sport');
 
   await db.transaction().execute(async (trx) => {
     const existing = await trx
       .selectFrom('identity.profile_activities')
-      .select(['id', 'interest_id', 'sport_id'])
+      .select(['id', 'sport_id', 'custom_name'])
       .where('profile_id', '=', actor.profileId)
       .execute();
     const keep = new Set<string>();
     for (const row of existing) {
-      const key = `${row.interest_id}:${row.sport_id ?? ''}`;
+      const key =
+        row.sport_id === 'other'
+          ? `other:${normaliseName(row.custom_name ?? '')}`
+          : (row.sport_id ?? '');
       const next = wanted.get(key);
       if (!next) {
         await trx.deleteFrom('identity.profile_activities').where('id', '=', row.id).execute();
         continue;
       }
       keep.add(key);
-      // Only the fields sent change; an entry with just its ids keeps what it had.
       const patch = {
-        ...(next.level !== undefined ? { level: next.level } : {}),
+        ...(next.level !== undefined ? { level: next.level || null } : {}),
         ...(next.days !== undefined ? { days: JSON.stringify(next.days) } : {}),
         ...(next.note !== undefined ? { note: next.note } : {}),
       };
@@ -224,11 +258,12 @@ export async function setMyActivities(
         .values(
           fresh.map(([, a]) => ({
             profile_id: actor.profileId,
-            interest_id: a.interestId,
-            sport_id: a.sportId ?? null,
-            level: a.level ?? null,
+            interest_id: activityById(a.activityId)!.category,
+            sport_id: a.activityId,
+            level: a.level || null,
             days: JSON.stringify(a.days ?? {}),
             note: a.note ?? null,
+            custom_name: a.activityId === 'other' ? (a.customName ?? null) : null,
           })),
         )
         .execute();
@@ -236,18 +271,11 @@ export async function setMyActivities(
   return getMyProfile(db, actor);
 }
 
-/** Replaces the gear list, in the order given. */
+/** Replaces the gear list, in the order given. Each item names a catalogue activity. */
 export async function setMyGear(db: Db, actor: Actor, body: SetGearBody): Promise<MyProfile> {
-  const interestIds = [...new Set(body.items.map((g) => g.interestId))];
-  if (interestIds.length) {
-    const found = await db
-      .selectFrom('community.interests')
-      .select('id')
-      .where('id', 'in', interestIds)
-      .execute();
-    if (found.length !== interestIds.length)
-      throw new AppError(400, 'VALIDATION_FAILED', 'Unknown interest');
-  }
+  for (const g of body.items)
+    if (!activityById(g.activityId))
+      throw new AppError(400, 'VALIDATION_FAILED', `Unknown activity ${g.activityId}`);
   await db.transaction().execute(async (trx) => {
     await trx
       .deleteFrom('identity.profile_gear')
@@ -259,8 +287,8 @@ export async function setMyGear(db: Db, actor: Actor, body: SetGearBody): Promis
         .values(
           body.items.map((g, i) => ({
             profile_id: actor.profileId,
-            interest_id: g.interestId,
-            sport_id: g.sportId ?? null,
+            interest_id: activityById(g.activityId)!.category,
+            sport_id: g.activityId,
             name: g.name,
             detail: g.detail ?? null,
             sort_order: i,
@@ -269,4 +297,63 @@ export async function setMyGear(db: Db, actor: Actor, body: SetGearBody): Promis
         .execute();
   });
   return getMyProfile(db, actor);
+}
+
+/** How many people have asked for a typed name (open suggestions only). */
+export async function suggestionCount(db: DbOrTrx, name: string): Promise<number> {
+  const key = normaliseName(name);
+  if (!key) return 0;
+  const row = await db
+    .selectFrom('identity.activity_suggestions')
+    .select((eb) => eb.fn.count<string>('profile_id').distinct().as('n'))
+    .where('key', '=', key)
+    .where('promoted_to', 'is', null)
+    .executeTakeFirst();
+  return Number(row?.n ?? 0);
+}
+
+/**
+ * "Not seeing yours?": a typed name. A catalogue hit is returned for the caller to add; a miss
+ * is stored as a suggestion and goes on the profile as `other` under that name, so the person
+ * is never blocked and the count keeps its meaning. Suggestions stay out of search and off
+ * public profiles until promoted (the seed script does that).
+ */
+export async function suggestActivity(
+  db: Db,
+  actor: Actor,
+  name: string,
+): Promise<SuggestionResult> {
+  const matched = matchActivity(name);
+  if (matched && matched.id !== 'other')
+    return { matched: { id: matched.id, name: matched.name }, count: 0, suggested: null };
+  const key = normaliseName(name);
+  if (!key) throw new AppError(400, 'VALIDATION_FAILED', 'Say what the activity is');
+  await db.transaction().execute(async (trx) => {
+    await trx
+      .insertInto('identity.activity_suggestions')
+      .values({ profile_id: actor.profileId, name, key })
+      .onConflict((oc) => oc.columns(['profile_id', 'key']).doNothing())
+      .execute();
+    const have = await trx
+      .selectFrom('identity.profile_activities')
+      .select('id')
+      .where('profile_id', '=', actor.profileId)
+      .where('sport_id', '=', 'other')
+      .where(sql`lower(custom_name)`, '=', key)
+      .executeTakeFirst();
+    if (!have)
+      await trx
+        .insertInto('identity.profile_activities')
+        .values({
+          profile_id: actor.profileId,
+          interest_id: 'other',
+          sport_id: 'other',
+          level: null,
+          days: '{}',
+          note: null,
+          custom_name: name,
+        })
+        .execute();
+  });
+  return { matched: null, count: await suggestionCount(db, name), suggested: name };
 }

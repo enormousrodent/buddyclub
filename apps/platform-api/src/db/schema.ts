@@ -40,8 +40,19 @@ export interface ProfileActivitiesTable {
   level: string | null;
   days: JSONColumnType<Record<string, string[]>>;
   note: string | null;
+  /** What the person typed when the activity is `other`. */
+  custom_name: string | null;
   created_at: Generated<Timestamp>;
   updated_at: Generated<Timestamp>;
+}
+
+export interface ActivitySuggestionsTable {
+  id: Generated<string>;
+  profile_id: string;
+  name: string;
+  key: string;
+  promoted_to: string | null;
+  created_at: Generated<Timestamp>;
 }
 
 export interface ProfileGearTable {
@@ -53,6 +64,29 @@ export interface ProfileGearTable {
   detail: string | null;
   sort_order: Generated<number>;
   created_at: Generated<Timestamp>;
+}
+
+export interface BuddyBlocksTable {
+  blocker_id: string;
+  blocked_id: string;
+  created_at: Timestamp;
+}
+
+export interface BuddyReportsTable {
+  id: Generated<string>;
+  reporter_id: string;
+  reported_id: string;
+  reason: string;
+  created_at: Timestamp;
+  reviewed_at: NullableTimestamp;
+}
+
+export interface BuddyHellosTable {
+  id: Generated<string>;
+  from_id: string;
+  to_id: string;
+  created_at: Timestamp;
+  seen_at: NullableTimestamp;
 }
 
 export interface ParticipantsTable {
@@ -115,6 +149,8 @@ export interface SportsTable {
   id: string;
   name: string;
   default_players_per_side: number;
+  /** The category (a `community.interests` row); every activity has one. */
+  category_id: string;
 }
 
 export interface GroupsTable {
@@ -282,6 +318,10 @@ export interface SessionSeriesTable {
   buddy_group_id: string | null;
   name: string;
   description: string | null;
+  /** Addendum 1.5: discovery and joining. */
+  visibility: Generated<'public' | 'private'>;
+  join_policy: Generated<'open' | 'invite'>;
+  locality: string | null;
   recurrence_rrule: string | null;
   default_ruleset_id: string | null;
   default_rules_json: JSONColumnType<Record<string, unknown>> | null;
@@ -685,6 +725,10 @@ export interface Database {
   'activities.session_regulars': SessionRegularsTable;
   'identity.profile_activities': ProfileActivitiesTable;
   'identity.profile_gear': ProfileGearTable;
+  'identity.activity_suggestions': ActivitySuggestionsTable;
+  'identity.buddy_blocks': BuddyBlocksTable;
+  'identity.buddy_reports': BuddyReportsTable;
+  'identity.buddy_hellos': BuddyHellosTable;
   'activities.session_hosts': SessionHostsTable;
   'activities.session_keep_apart': SessionKeepApartTable;
   'activities.session_ratings': SessionRatingsTable;

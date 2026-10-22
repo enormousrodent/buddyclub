@@ -69,7 +69,7 @@ export function ActivityCard({ a }: { a: PublicActivityCard }) {
         style={{ background: toneFor(a.interest?.id ?? a.groupId) }}
       >
         {a.interest ? <Badge>{a.interest.name}</Badge> : <span />}
-        {a.poweredByRally ? <Badge tone="info">Powered by Rally</Badge> : null}
+        {a.poweredByRally ? <Badge tone="info">Session night</Badge> : null}
       </div>
       <div className="flex flex-col gap-0.5 p-3.5">
         <div className="text-[13px] font-semibold text-primary">

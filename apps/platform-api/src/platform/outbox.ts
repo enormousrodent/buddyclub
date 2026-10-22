@@ -14,7 +14,9 @@ export type OutboxEventType =
   | 'match.dispute_resolved'
   | 'activity.cancelled'
   | 'meet.standings_updated'
-  | 'meet.progression_published';
+  | 'meet.progression_published'
+  | 'catalogue.activity_promoted'
+  | 'buddies.hello';
 
 export interface OutboxInput {
   eventType: OutboxEventType;

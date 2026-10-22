@@ -8,10 +8,10 @@ import { Icon } from './ui';
 type Item = {
   href: string;
   label: string;
-  icon: 'home' | 'list' | 'calendar' | 'trophy' | 'user' | 'search';
+  icon: 'home' | 'list' | 'calendar' | 'trophy' | 'user' | 'search' | 'users';
 };
 
-/** Tab sets per product (Addendum 1.1 section 6): Rally has no discovery, feed or messages. */
+/** Tab sets per product. The app (Addendum 1.5): home, sessions, buddies, profile; clubs and competitions from home. */
 const ITEMS: Record<Product, Item[]> = {
   buddyclub: [
     { href: '/', label: 'Home', icon: 'home' },
@@ -22,7 +22,7 @@ const ITEMS: Record<Product, Item[]> = {
   rally: [
     { href: '/dashboard', label: 'Home', icon: 'home' },
     { href: '/sessions', label: 'Sessions', icon: 'list' },
-    { href: '/league', label: 'Competitions', icon: 'trophy' },
+    { href: '/buddies', label: 'Buddies', icon: 'users' },
     { href: '/profile', label: 'Profile', icon: 'user' },
   ],
 };

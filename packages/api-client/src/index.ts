@@ -25,6 +25,12 @@ import {
   listOf,
   MeResponseSchema,
   MyProfileSchema,
+  SuggestionResultSchema,
+  BuddyCardSchema,
+  BuddySummarySchema,
+  HelloSchema,
+  type BuddySearchQuery,
+  type ReportBuddyBody,
   type SetActivitiesBody,
   type SetGearBody,
   type UpdateProfileBody,
@@ -57,6 +63,8 @@ import {
   RoundSchema,
   RulesetSchema,
   SessionSeriesSchema,
+  PublicSessionCardSchema,
+  type PublicSessionsQuery,
   SportSchema,
   VenueDetailSchema,
   VenueSchema,
@@ -279,7 +287,14 @@ export function createApiClient(options: ApiClientOptions) {
     updateMe: (body: UpdateMeBody, o?: RequestOptions) =>
       request('PATCH', '/v1/me', MeResponseSchema, { ...o, body }),
 
-    sports: () => request('GET', '/v1/sports', listOf(SportSchema), { auth: false }),
+    /** Activities from the catalogue; pass a category id (such as `racket_sports`) to narrow. */
+    sports: (category?: string) =>
+      request(
+        'GET',
+        category ? `/v1/sports?category=${enc(category)}` : '/v1/sports',
+        listOf(SportSchema),
+        { auth: false },
+      ),
 
     /** Buddy profile (Addendum 1.3): the caller's own activities, days, gear and switches. */
     profile: {
@@ -290,6 +305,46 @@ export function createApiClient(options: ApiClientOptions) {
         request('PUT', '/v1/me/activities', MyProfileSchema, { ...o, body }),
       setGear: (body: SetGearBody, o?: RequestOptions) =>
         request('PUT', '/v1/me/gear', MyProfileSchema, { ...o, body }),
+      suggest: (name: string, o?: RequestOptions) =>
+        request('POST', '/v1/me/activity-suggestions', SuggestionResultSchema, {
+          ...o,
+          body: { name },
+        }),
+      suggestionCount: (name: string, o?: RequestOptions) =>
+        request(
+          'GET',
+          `/v1/activity-suggestions/count?name=${enc(name)}`,
+          z.object({ count: z.number() }),
+          o ?? {},
+        ),
+    },
+
+    /** Buddies (Addendum 1.4): people you have played with, Find me, Say hi, block, report. */
+    buddies: {
+      mine: (o?: RequestOptions) =>
+        request('GET', '/v1/me/buddies', listOf(BuddySummarySchema), o ?? {}),
+      hellos: (o?: RequestOptions) => request('GET', '/v1/me/hellos', listOf(HelloSchema), o ?? {}),
+      search: (q: BuddySearchQuery = {}, o?: RequestOptions) => {
+        const params = new URLSearchParams();
+        for (const [k, v] of Object.entries(q)) if (v) params.set(k, String(v));
+        const qs = params.toString();
+        return request(
+          'GET',
+          `/v1/buddies/search${qs ? `?${qs}` : ''}`,
+          listOf(BuddySummarySchema),
+          o ?? {},
+        );
+      },
+      get: (profileId: string, o?: RequestOptions) =>
+        request('GET', `/v1/buddies/${enc(profileId)}`, BuddyCardSchema, o ?? {}),
+      hello: (profileId: string, o?: RequestOptions) =>
+        command(`/v1/buddies/${enc(profileId)}/hello`, BuddyCardSchema, o),
+      block: (profileId: string, o?: RequestOptions) =>
+        command(`/v1/buddies/${enc(profileId)}/block`, BuddyCardSchema, o),
+      unblock: (profileId: string, o?: RequestOptions) =>
+        request('DELETE', `/v1/buddies/${enc(profileId)}/block`, BuddyCardSchema, o ?? {}),
+      report: (profileId: string, body: ReportBuddyBody, o?: RequestOptions) =>
+        command(`/v1/buddies/${enc(profileId)}/report`, NoContent, o, body),
     },
 
     organisations: {
@@ -426,6 +481,22 @@ export function createApiClient(options: ApiClientOptions) {
     },
 
     sessions: {
+      /** Public sessions by name, place and sport (Addendum 1.5). */
+      public: (q: PublicSessionsQuery = {}) => {
+        const params = new URLSearchParams();
+        for (const [k, v] of Object.entries(q)) if (v) params.set(k, String(v));
+        const qs = params.toString();
+        return request(
+          'GET',
+          `/v1/public/sessions${qs ? `?${qs}` : ''}`,
+          listOf(PublicSessionCardSchema),
+          {
+            auth: false,
+          },
+        );
+      },
+      join: (seriesId: string, o?: RequestOptions) =>
+        command(`/v1/sessions/${enc(seriesId)}/join`, SessionSeriesSchema, o),
       presets: (o?: RequestOptions) =>
         request('GET', '/v1/me/presets', listOf(PresetSchema), o ?? {}),
       startPreset: (seriesId: string, body: StartPresetBody = { open: true }, o?: RequestOptions) =>

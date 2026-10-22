@@ -73,7 +73,7 @@ export async function ensureOwnParticipant(
   profileId: string,
   displayName: string,
 ): Promise<void> {
-  await db
+  const inserted = await db
     .insertInto('identity.participants')
     .values({
       organisation_id: organisationId,
@@ -84,7 +84,48 @@ export async function ensureOwnParticipant(
       created_by_profile_id: profileId,
     })
     .onConflict((oc) => oc.doNothing())
+    .returning('id')
+    .executeTakeFirst();
+  if (inserted) {
+    const seed = await seedRatingFor(db, profileId);
+    if (seed !== null)
+      await db
+        .updateTable('identity.participants')
+        .set({ skill_rating: seed })
+        .where('id', '=', inserted.id)
+        .execute();
+  }
+}
+
+/**
+ * Addendum 1.3 step 4: a new club record starts from the person's own view of their level, so
+ * an organiser has something to balance with before they have watched anyone play. The
+ * organiser's 0 to 100 scale; the strongest racket-sport level wins when there are several.
+ * Nothing is overwritten later: the organiser's edits are theirs.
+ */
+const SKILL_SEED: Record<string, number> = {
+  just_starting: 20,
+  getting_going: 35,
+  comfortable: 50,
+  strong: 65,
+  expert: 80,
+};
+
+async function seedRatingFor(
+  db: Db | Transaction<Database>,
+  profileId: string,
+): Promise<number | null> {
+  const rows = await db
+    .selectFrom('identity.profile_activities')
+    .select('level')
+    .where('profile_id', '=', profileId)
+    .where('interest_id', '=', 'racket_sports')
+    .where('level', 'is not', null)
     .execute();
+  const seeds = rows
+    .map((r) => SKILL_SEED[r.level ?? ''])
+    .filter((n): n is number => n !== undefined);
+  return seeds.length ? Math.max(...seeds) : null;
 }
 
 export async function createOrganisation(

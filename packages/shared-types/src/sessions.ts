@@ -91,6 +91,11 @@ export const SessionSeriesSchema = z.object({
   buddyGroupId: UuidSchema.nullable(),
   name: z.string(),
   description: z.string().nullable(),
+  /** Addendum 1.5: a public session is listed in Near you; an open one can be joined by anyone. */
+  visibility: z.enum(['public', 'private']),
+  joinPolicy: z.enum(['open', 'invite']),
+  /** Town or area for discovery when there is no venue. */
+  locality: z.string().nullable(),
   recurrenceRrule: z.string().nullable(),
   defaultRulesetId: UuidSchema.nullable(),
   defaultRules: RulesJsonSchema.nullable(),
@@ -119,6 +124,9 @@ export const CreateSessionSeriesBodySchema = z.object({
   venueId: UuidSchema.optional(),
   groupId: UuidSchema.optional(),
   description: z.string().trim().max(2000).optional(),
+  visibility: z.enum(['public', 'private']).optional(),
+  joinPolicy: z.enum(['open', 'invite']).optional(),
+  locality: z.string().trim().max(120).optional(),
   rulesetId: UuidSchema.optional(),
   /** Inline social-session rules (validated against the rules schema). */
   rules: RulesJsonSchema.optional(),
@@ -137,6 +145,9 @@ export const UpdateSessionSeriesBodySchema = z
   .object({
     name: z.string().trim().min(1).max(160).optional(),
     description: z.string().trim().max(2000).nullable().optional(),
+    visibility: z.enum(['public', 'private']).optional(),
+    joinPolicy: z.enum(['open', 'invite']).optional(),
+    locality: z.string().trim().max(120).nullable().optional(),
     venueId: UuidSchema.nullable().optional(),
     groupId: UuidSchema.nullable().optional(),
     rules: RulesJsonSchema.optional(),
@@ -149,6 +160,31 @@ export const UpdateSessionSeriesBodySchema = z
   })
   .refine((b) => Object.keys(b).length > 0, { message: 'nothing to update' });
 export type UpdateSessionSeriesBody = z.infer<typeof UpdateSessionSeriesBodySchema>;
+
+/** `GET /v1/public/sessions`: a public session as anyone may see it (Addendum 1.5). */
+export const PublicSessionCardSchema = z.object({
+  id: UuidSchema,
+  name: z.string(),
+  description: z.string().nullable(),
+  sportId: z.string(),
+  sportName: z.string(),
+  organisationId: UuidSchema,
+  organisationName: z.string(),
+  venueName: z.string().nullable(),
+  locality: z.string().nullable(),
+  schedule: ScheduleSchema.nullable(),
+  nextAt: IsoDateTimeSchema.nullable(),
+  joinPolicy: z.enum(['open', 'invite']),
+  regulars: z.int(),
+});
+export type PublicSessionCard = z.infer<typeof PublicSessionCardSchema>;
+
+export const PublicSessionsQuerySchema = z.object({
+  q: z.string().trim().max(80).optional(),
+  locality: z.string().trim().max(120).optional(),
+  sport: SportIdSchema.optional(),
+});
+export type PublicSessionsQuery = z.infer<typeof PublicSessionsQuerySchema>;
 
 export const SessionCourtSchema = z.object({
   courtId: UuidSchema,

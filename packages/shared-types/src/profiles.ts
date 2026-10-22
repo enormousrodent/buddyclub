@@ -7,22 +7,6 @@ import { IsoDateTimeSchema, UuidSchema } from './common';
  * who may see it.
  */
 
-export const ACTIVITY_LEVELS = [
-  { id: 'just_starting', label: 'Just starting', hint: 'New to it, or back after a long break' },
-  { id: 'getting_going', label: 'Getting going', hint: 'Know the basics, out now and then' },
-  { id: 'comfortable', label: 'Comfortable', hint: 'Regular, happy alongside most people' },
-  { id: 'strong', label: 'Strong', hint: 'Club standard, likes a proper go' },
-  { id: 'expert', label: 'Expert', hint: 'Coach, county, or close to it' },
-] as const;
-export const ActivityLevelSchema = z.enum([
-  'just_starting',
-  'getting_going',
-  'comfortable',
-  'strong',
-  'expert',
-]);
-export type ActivityLevel = z.infer<typeof ActivityLevelSchema>;
-
 export const WEEKDAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
 export const WeekdayKeySchema = z.enum(WEEKDAY_KEYS);
 export type WeekdayKey = z.infer<typeof WeekdayKeySchema>;
@@ -34,37 +18,43 @@ export type DaySlot = z.infer<typeof DaySlotSchema>;
 export const AvailabilitySchema = z.partialRecord(WeekdayKeySchema, z.array(DaySlotSchema).max(3));
 export type Availability = z.infer<typeof AvailabilitySchema>;
 
+/** One activity on a profile. `activityId` is a catalogue id; `interestId` is its category. */
 export const ProfileActivitySchema = z.object({
   id: UuidSchema,
+  activityId: z.string(),
+  activityName: z.string(),
   interestId: z.string(),
   interestName: z.string(),
-  /** Set for racket sports: the sport is the activity. */
-  sportId: z.string().nullable(),
-  sportName: z.string().nullable(),
-  level: ActivityLevelSchema.nullable(),
+  /** Kept for callers that still read the old shape; equals `activityId`. */
+  sportId: z.string(),
+  sportName: z.string(),
+  /** A value from the activity's ladder: an option id, a grade or certification name, or a number. */
+  level: z.string().nullable(),
   days: AvailabilitySchema,
   note: z.string().nullable(),
+  /** For the `other` activity: what the person typed, pending a catalogue entry. */
+  customName: z.string().nullable(),
 });
 export type ProfileActivity = z.infer<typeof ProfileActivitySchema>;
 
-/** Stable key for an activity on a profile: `racket_sports:tennis` or `books`. */
-export function activityKey(a: { interestId: string; sportId: string | null }): string {
-  return a.sportId ? `${a.interestId}:${a.sportId}` : a.interestId;
+/** Stable key for an activity on a profile: the catalogue id. */
+export function activityKey(a: { activityId: string }): string {
+  return a.activityId;
 }
+
+const ActivityIdSchema = z.string().regex(/^[a-z_]{2,32}$/);
 
 export const SetActivitiesBodySchema = z.object({
   activities: z
     .array(
       z.object({
-        interestId: z.string().regex(/^[a-z_]{1,40}$/),
-        sportId: z
-          .string()
-          .regex(/^[a-z_]{1,40}$/)
-          .nullable()
-          .optional(),
-        level: ActivityLevelSchema.nullable().optional(),
+        activityId: ActivityIdSchema,
+        /** Validated against the activity's ladder in the catalogue. */
+        level: z.string().trim().max(40).nullable().optional(),
         days: AvailabilitySchema.optional(),
         note: z.string().trim().max(160).nullable().optional(),
+        /** Required when `activityId` is `other`. */
+        customName: z.string().trim().min(1).max(60).nullable().optional(),
       }),
     )
     .max(30),
@@ -73,8 +63,8 @@ export type SetActivitiesBody = z.infer<typeof SetActivitiesBodySchema>;
 
 export const GearItemSchema = z.object({
   id: UuidSchema,
+  activityId: z.string(),
   interestId: z.string(),
-  sportId: z.string().nullable(),
   name: z.string(),
   detail: z.string().nullable(),
   sortOrder: z.int(),
@@ -85,12 +75,7 @@ export const SetGearBodySchema = z.object({
   items: z
     .array(
       z.object({
-        interestId: z.string().regex(/^[a-z_]{1,40}$/),
-        sportId: z
-          .string()
-          .regex(/^[a-z_]{1,40}$/)
-          .nullable()
-          .optional(),
+        activityId: ActivityIdSchema,
         name: z.string().trim().min(1).max(80),
         detail: z.string().trim().max(120).nullable().optional(),
       }),
@@ -98,6 +83,22 @@ export const SetGearBodySchema = z.object({
     .max(50),
 });
 export type SetGearBody = z.infer<typeof SetGearBodySchema>;
+
+/** "Not got your activity?": a typed name, matched to the catalogue or kept as a suggestion. */
+export const SuggestActivityBodySchema = z.object({
+  name: z.string().trim().min(1).max(60),
+});
+export type SuggestActivityBody = z.infer<typeof SuggestActivityBodySchema>;
+
+export const SuggestionResultSchema = z.object({
+  /** The catalogue activity when the name is one we already have. */
+  matched: z.object({ id: z.string(), name: z.string() }).nullable(),
+  /** How many people have asked for this name so far (the caller included once stored). */
+  count: z.int(),
+  /** The suggestion as stored, when it was not a match. */
+  suggested: z.string().nullable(),
+});
+export type SuggestionResult = z.infer<typeof SuggestionResultSchema>;
 
 /** `GET /v1/me/profile`: the person's own buddy profile in full. */
 export const MyProfileSchema = z.object({

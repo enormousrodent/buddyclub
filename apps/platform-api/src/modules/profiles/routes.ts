@@ -3,12 +3,22 @@ import {
   ProblemDetailsSchema,
   SetActivitiesBodySchema,
   SetGearBodySchema,
+  SuggestActivityBodySchema,
+  SuggestionResultSchema,
   UpdateProfileBodySchema,
 } from '@buddyclub/shared-types';
+import { z } from 'zod';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import type { Db } from '../../db/index.js';
-import { getMyProfile, setMyActivities, setMyGear, updateMyProfile } from './service.js';
+import {
+  getMyProfile,
+  setMyActivities,
+  setMyGear,
+  suggestActivity,
+  suggestionCount,
+  updateMyProfile,
+} from './service.js';
 
 export interface ProfileRoutesOptions {
   getDb: () => Db;
@@ -88,5 +98,38 @@ export async function profileRoutes(app: FastifyInstance, options: ProfileRoutes
       },
     },
     async (request) => setMyGear(db(), request.actor!, request.body),
+  );
+
+  typed.post(
+    '/v1/me/activity-suggestions',
+    {
+      preHandler: app.requireActor,
+      schema: {
+        tags: ['profiles'],
+        summary:
+          'Not got your activity? A catalogue match is returned to add; otherwise the name is stored as a suggestion and goes on your profile as "other"',
+        operationId: 'suggestActivity',
+        security: AUTH,
+        body: SuggestActivityBodySchema,
+        response: { 200: SuggestionResultSchema, ...PROBLEMS },
+      },
+    },
+    async (request) => suggestActivity(db(), request.actor!, request.body.name),
+  );
+
+  typed.get(
+    '/v1/activity-suggestions/count',
+    {
+      preHandler: app.requireActor,
+      schema: {
+        tags: ['profiles'],
+        summary: 'How many people have asked for an activity by this name',
+        operationId: 'activitySuggestionCount',
+        security: AUTH,
+        querystring: z.object({ name: z.string().trim().min(1).max(60) }),
+        response: { 200: z.object({ count: z.int() }), 401: ProblemDetailsSchema },
+      },
+    },
+    async (request) => ({ count: await suggestionCount(db(), request.query.name) }),
   );
 }

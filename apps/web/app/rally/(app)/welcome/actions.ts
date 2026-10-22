@@ -1,38 +1,64 @@
 'use server';
 
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import type { ActionResult } from '../../../../components/action-form';
 import { apiForUser, describeError } from '../../../../lib/api';
-import { ONBOARDED_COOKIE, ROLE_COOKIE, SPORTS_COOKIE } from './cookies';
+import { RALLY_SPORTS } from '../../../../lib/sports';
 
-const YEAR = 60 * 60 * 24 * 365;
+/**
+ * Rally first run (Addendum 1.4, step 2). The answers live on the profile, not on the device:
+ * sports go to the person's activities and finishing sets the Rally onboarded mark that the app
+ * layout checks on every page.
+ */
 
-/** Step 1: display name (saved to the profile) and the sports the person plays (kept on the device until the API has a field for it). */
+/** Step 1: display name and at least one racket sport. Other activities already on the profile stay. */
 export async function saveNameAndSports(
   _prev: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
   const displayName = String(formData.get('displayName') ?? '').trim();
   if (!displayName) return { error: 'Tell us what to call you' };
+  const picked = new Set<string>(RALLY_SPORTS);
+  const sports = [...new Set(formData.getAll('sport').map(String))].filter((id) => picked.has(id));
+  if (!sports.length) return { error: 'Pick at least one sport. It is how we set up your nights.' };
   try {
-    await apiForUser().updateMe({ displayName });
+    const api = apiForUser();
+    await api.updateMe({ displayName });
+    const current = (await api.profile.get()).activities;
+    const byId = new Map(current.map((a) => [a.activityId, a]));
+    const kept = current.filter((a) => !picked.has(a.activityId));
+    await api.profile.setActivities({
+      activities: [
+        ...sports.map((activityId) => {
+          const existing = byId.get(activityId);
+          return {
+            activityId,
+            level: existing?.level ?? null,
+            days: existing?.days ?? {},
+            note: existing?.note ?? null,
+          };
+        }),
+        ...kept.map((a) => ({
+          activityId: a.activityId,
+          ...(a.activityId === 'other' ? { customName: a.customName } : {}),
+          level: a.level,
+          days: a.days,
+          note: a.note,
+        })),
+      ],
+    });
   } catch (error) {
     return { error: describeError(error) };
   }
-  const sports = formData.getAll('sport').map(String).filter(Boolean).join(',');
-  (await cookies()).set(SPORTS_COOKIE, sports, { path: '/', maxAge: YEAR, sameSite: 'lax' });
   redirect('/welcome?step=2');
 }
 
-/** Step 2: organiser or player first. Only decides what the dashboard leads with. */
-export async function saveRole(role: 'organiser' | 'player'): Promise<void> {
-  (await cookies()).set(ROLE_COOKIE, role, { path: '/', maxAge: YEAR, sameSite: 'lax' });
-  redirect(role === 'organiser' ? '/welcome?step=3' : '/dashboard?welcome=done');
-}
-
-/** Step 3 or skip: mark onboarding done and land on the dashboard (or the session builder). */
-export async function finishOnboarding(to: '/dashboard' | '/start'): Promise<void> {
-  (await cookies()).set(ONBOARDED_COOKIE, '1', { path: '/', maxAge: YEAR, sameSite: 'lax' });
-  redirect(to);
+/** Step 2: organiser or player first. Either way the first run is done; organisers get one more screen. */
+export async function chooseRole(role: 'organiser' | 'player'): Promise<void> {
+  try {
+    await apiForUser().profile.update({ onboarded: 'rally' });
+  } catch (error) {
+    throw new Error(describeError(error), { cause: error });
+  }
+  redirect(role === 'organiser' ? '/welcome?step=3' : '/dashboard');
 }

@@ -40,22 +40,31 @@ export async function groupRoutes(app: FastifyInstance, options: GroupRoutesOpti
     {
       schema: {
         tags: ['reference'],
-        summary: 'Supported sports',
+        summary:
+          'Activities (every catalogue entry), optionally one category such as racket_sports',
         operationId: 'listSports',
+        querystring: z.object({
+          category: z
+            .string()
+            .regex(/^[a-z_]{2,32}$/)
+            .optional(),
+        }),
         response: { 200: listOf(SportSchema) },
       },
     },
-    async () => {
-      const rows = await db()
+    async (request) => {
+      let q = db()
         .selectFrom('community.sports')
-        .select(['id', 'name', 'default_players_per_side'])
-        .orderBy('name')
-        .execute();
+        .select(['id', 'name', 'default_players_per_side', 'category_id'])
+        .orderBy('name');
+      if (request.query.category) q = q.where('category_id', '=', request.query.category);
+      const rows = await q.execute();
       return {
         items: rows.map((r) => ({
           id: r.id,
           name: r.name,
           defaultPlayersPerSide: r.default_players_per_side,
+          categoryId: r.category_id,
         })),
       };
     },

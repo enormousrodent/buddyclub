@@ -32,6 +32,9 @@ export const SERIES_COLUMNS = [
   'buddy_group_id',
   'name',
   'description',
+  'visibility',
+  'join_policy',
+  'locality',
   'recurrence_rrule',
   'default_ruleset_id',
   'default_rules_json',
@@ -57,6 +60,9 @@ export interface SeriesRow {
   buddy_group_id: string | null;
   name: string;
   description: string | null;
+  visibility: 'public' | 'private';
+  join_policy: 'open' | 'invite';
+  locality: string | null;
   recurrence_rrule: string | null;
   default_ruleset_id: string | null;
   default_rules_json: Record<string, unknown> | null;
@@ -114,6 +120,9 @@ export function toSeries(row: SeriesRow, actor: Actor): SessionSeries {
     buddyGroupId: row.buddy_group_id,
     name: row.name,
     description: row.description,
+    visibility: row.visibility,
+    joinPolicy: row.join_policy,
+    locality: row.locality,
     recurrenceRrule: row.recurrence_rrule,
     defaultRulesetId: row.default_ruleset_id,
     defaultRules: row.default_rules_json,

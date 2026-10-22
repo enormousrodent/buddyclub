@@ -19,9 +19,6 @@ import {
 import { apiForUser } from '../../../../lib/api';
 import { isHappeningNow, isUpcoming } from '../../../../lib/sessions';
 import { getSessionUser } from '../../../../lib/supabase/server';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { ONBOARDED_COOKIE } from '../welcome/cookies';
 import { JoinCodeForm } from '../../join-code';
 
 function when(iso: string): string {
@@ -74,7 +71,7 @@ function ResumeHero({ s }: { s: MySession }) {
 export default async function RallyHomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ welcome?: string; joined?: string }>;
+  searchParams: Promise<{ joined?: string; completed?: string }>;
 }) {
   const user = await getSessionUser();
   if (!user) {
@@ -119,29 +116,34 @@ export default async function RallyHomePage({
             </div>
           </details>
         </div>
-        <p className="relative text-center text-xs text-muted">Rally by Buddy Club</p>
+        <p className="relative text-center text-xs text-muted">Buddy Club</p>
       </main>
     );
   }
 
-  // First visit after signing in: the three onboarding screens, once.
-  const jar = await cookies();
-  const { welcome, joined } = await searchParams;
-  if (!jar.get(ONBOARDED_COOKIE) && welcome !== 'done') redirect('/welcome');
-  if (welcome === 'done' && !jar.get(ONBOARDED_COOKIE)) {
-    // A player who picked "turn up and play" skips the preset step; mark them done.
-    redirect('/welcome/done');
-  }
+  // The first run (name and sports) is enforced by the app layout.
+  const { joined, completed } = await searchParams;
 
   const api = apiForUser();
-  const [me, sessions, presets, competitions, pendingRatings, scheduled] = await Promise.all([
-    api.me(),
-    api.sessions.mine(),
-    api.sessions.presets(),
-    api.competitions.mine(),
-    api.sessions.pendingRatings(),
-    api.sessions.scheduled(),
-  ]);
+  const [me, sessions, presets, competitions, pendingRatings, scheduled, profile] =
+    await Promise.all([
+      api.me(),
+      api.sessions.mine(),
+      api.sessions.presets(),
+      api.competitions.mine(),
+      api.sessions.pendingRatings(),
+      api.sessions.scheduled(),
+      api.profile.get(),
+    ]);
+  // The profile-completion card (Addendum 1.4 step 4) waits until a second night has been played.
+  const attended = sessions.items.filter(
+    (s) =>
+      s.state === 'completed' && (s.myAttendance === 'checked_in' || s.myAttendance === 'left'),
+  ).length;
+  const suggestCompletion = !profile.onboarded.buddyclub && attended >= 2;
+  const myClubs = me.memberships.filter(
+    (m) => m.organisationKind === 'club' && m.status === 'active',
+  );
   const meets = competitions.meets
     .filter((m) => m.state !== 'completed' && m.state !== 'cancelled')
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
@@ -185,6 +187,17 @@ export default async function RallyHomePage({
           </Muted>
         </Card>
       ) : null}
+      {completed ? (
+        <Card className="mb-3 border-live">
+          <div className="font-display text-[22px] font-bold uppercase leading-none">
+            You&apos;re all set.
+          </div>
+          <Muted className="mt-1 block">
+            Buddies can see your level and when you&apos;re free. Change any of it from your
+            profile.
+          </Muted>
+        </Card>
+      ) : null}
       {resume ? <ResumeHero s={resume} /> : null}
 
       {pendingRatings.items.slice(0, 2).map((r) => (
@@ -204,6 +217,22 @@ export default async function RallyHomePage({
           <span className="shrink-0 text-xl text-primary">★★★★★</span>
         </Link>
       ))}
+
+      {suggestCompletion ? (
+        <Link
+          href="/profile/complete"
+          className="mb-3 flex items-center justify-between gap-3 rounded-card border border-primary bg-surface px-4 py-3"
+        >
+          <span className="min-w-0">
+            <span className="block text-[15px] font-bold">Want more games?</span>
+            <span className="block text-[13px] text-muted">
+              Say how good you are and when you&apos;re free, so the people you play with can find
+              you for a hit.
+            </span>
+          </span>
+          <Icon name="chevron" size={18} className="shrink-0 text-primary" />
+        </Link>
+      ) : null}
 
       {canStart ? (
         <Link
@@ -262,6 +291,24 @@ export default async function RallyHomePage({
             nights={upcoming.concat(live.filter((s) => s !== resume))}
             scheduled={scheduled.items}
           />
+        </>
+      ) : null}
+
+      {myClubs.length ? (
+        <>
+          <SectionHeading>Your clubs</SectionHeading>
+          <List>
+            {myClubs.map((m) => (
+              <Row
+                key={m.organisationId}
+                href={`/clubs/${m.organisationId}`}
+                leading={<Icon name="users" size={22} className="text-primary" />}
+                title={m.organisationName}
+                subtitle="Sessions, nights played, members and venues"
+                right={<StateBadge state={m.role} />}
+              />
+            ))}
+          </List>
         </>
       ) : null}
 

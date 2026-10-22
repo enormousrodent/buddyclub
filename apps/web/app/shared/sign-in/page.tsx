@@ -56,6 +56,11 @@ export default async function SignInPage({
             Join by code
           </a>
         </Card>
+      ) : null}
+      {rally ? (
+        <p className="mt-4 text-center text-xs text-muted">
+          An account is free: your sports, your buddies, your nights.
+        </p>
       ) : (
         <p className="mt-4 text-center text-xs text-muted">
           One account works in Buddy Club and Rally. Apple sign-in is coming.

@@ -1,30 +1,32 @@
-import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ActionForm } from '../../../../components/action-form';
 import { Kicker } from '../../../../components/rally-kit';
-import { Button, Card, Field, Icon, Input, LinkButton, Muted } from '../../../../components/ui';
+import { Card, Field, Icon, Input, LinkButton, Muted } from '../../../../components/ui';
 import { apiForUser } from '../../../../lib/api';
 import { getSessionUser } from '../../../../lib/supabase/server';
-import { finishOnboarding, saveNameAndSports, saveRole } from './actions';
-import { SPORTS_COOKIE } from './cookies';
+import { chooseRole, saveNameAndSports } from './actions';
+import { RALLY_SPORTS, rallySportName } from '../../../../lib/sports';
 
 export const metadata = { title: 'Welcome' };
 
-const SPORTS = ['Pickleball', 'Badminton', 'Padel', 'Tennis', 'Squash', 'Table tennis'];
-
-/** Onboarding (designs A4 to A6): name and sports, how you'll use Rally, your usual night. */
+/**
+ * Rally first run (designs A4 to A6, Addendum 1.4 step 2): name and sports, how you'll use
+ * Rally, your usual night. It cannot be skipped and at least one sport is required; the answers
+ * live on the profile, so every account starts as a Buddy Club member with its sports set.
+ */
 export default async function WelcomePage({
   searchParams,
 }: {
   searchParams: Promise<{ step?: string }>;
 }) {
   if (!(await getSessionUser())) redirect('/sign-in?next=/welcome');
-  const step = Number((await searchParams).step ?? '1');
-  const me = await apiForUser().me();
-  const chosen = new Set(
-    ((await cookies()).get(SPORTS_COOKIE)?.value ?? '').split(',').filter(Boolean),
-  );
+  const api = apiForUser();
+  const [me, profile] = await Promise.all([api.me(), api.profile.get()]);
+  const chosen = new Set(profile.activities.map((a) => a.activityId));
+  const requested = Number((await searchParams).step ?? '1');
+  // Steps 2 and 3 need the sports; a deep link past step 1 goes back to it.
+  const step = requested > 1 && !RALLY_SPORTS.some((s) => chosen.has(s)) ? 1 : requested;
 
   return (
     <main className="mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-xl flex-col px-5 pb-32 pt-4">
@@ -67,25 +69,26 @@ export default async function WelcomePage({
             <fieldset className="flex flex-col gap-2">
               <legend className="mb-1.5 text-[13px] font-semibold">Your sports</legend>
               <div className="flex flex-wrap gap-2">
-                {SPORTS.map((s) => {
-                  const id = s.toLowerCase().replace(/\s+/g, '_');
-                  return (
-                    <label
-                      key={id}
-                      className="inline-flex h-9 cursor-pointer items-center rounded-full border border-hairline-strong px-3.5 text-[13px] font-semibold has-checked:border-primary has-checked:bg-primary has-checked:text-primary-ink"
-                    >
-                      <input
-                        type="checkbox"
-                        name="sport"
-                        value={id}
-                        defaultChecked={chosen.has(id)}
-                        className="sr-only"
-                      />
-                      {s}
-                    </label>
-                  );
-                })}
+                {RALLY_SPORTS.map((id) => (
+                  <label
+                    key={id}
+                    className="inline-flex h-9 cursor-pointer items-center rounded-full border border-hairline-strong px-3.5 text-[13px] font-semibold has-checked:border-primary has-checked:bg-primary has-checked:text-primary-ink"
+                  >
+                    <input
+                      type="checkbox"
+                      name="sport"
+                      value={id}
+                      defaultChecked={chosen.has(id)}
+                      className="sr-only"
+                    />
+                    {rallySportName(id)}
+                  </label>
+                ))}
               </div>
+              <Muted className="text-xs">
+                Pick at least one. Level, days you&apos;re free and gear can come later, from your
+                profile.
+              </Muted>
             </fieldset>
             <div className="flex-1" />
           </ActionForm>
@@ -95,12 +98,12 @@ export default async function WelcomePage({
       {step === 2 ? (
         <div className="flex flex-1 flex-col gap-4">
           <h1 className="font-display text-[40px] font-extrabold uppercase leading-[0.95]">
-            How will you use Rally?
+            How will you use Buddy Club?
           </h1>
           <Muted className="block text-[15px] leading-6">
             You can do both. This just picks what you see first.
           </Muted>
-          <form action={saveRole.bind(null, 'organiser')}>
+          <form action={chooseRole.bind(null, 'organiser')}>
             <button
               type="submit"
               className="flex w-full items-start gap-3 rounded-card border-2 border-primary bg-surface p-4 text-left"
@@ -119,7 +122,7 @@ export default async function WelcomePage({
               </span>
             </button>
           </form>
-          <form action={saveRole.bind(null, 'player')}>
+          <form action={chooseRole.bind(null, 'player')}>
             <button
               type="submit"
               className="flex w-full items-start gap-3 rounded-card border border-hairline bg-surface p-4 text-left"
@@ -175,11 +178,9 @@ export default async function WelcomePage({
           >
             Set it up now
           </LinkButton>
-          <form action={finishOnboarding.bind(null, '/dashboard')}>
-            <Button type="submit" variant="ghost" size="lg" className="w-full">
-              Skip for now
-            </Button>
-          </form>
+          <LinkButton href="/dashboard" variant="ghost" size="lg" className="w-full">
+            Skip for now
+          </LinkButton>
         </div>
       ) : null}
     </main>

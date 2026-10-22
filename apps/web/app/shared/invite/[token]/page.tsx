@@ -40,7 +40,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
         {rally ? (
           <p className="text-[15px] leading-6">
             {preview.role === 'participant'
-              ? 'Their sessions show up on your Rally home. On the night, check in with the code and see your court on your own phone.'
+              ? 'Their sessions show up on your home. On the night, check in with the code and see your court on your own phone.'
               : `You'll join as ${role}.`}
           </p>
         ) : (
