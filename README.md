@@ -143,17 +143,23 @@ project from the working directory. `.vercelignore` keeps `.env` files out of up
 
 Environment variables per project (Vercel dashboard or `vercel env add`):
 
-| Project         | Env vars                                                                                                                                                                                                                                                                                                                                                                    |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `buddyclub-api` | `NODE_ENV=production`, `LOG_LEVEL`, `SUPABASE_URL`, `SUPABASE_JWKS_URL`, `SUPABASE_JWT_AUDIENCE`, `DATABASE_URL` (transaction pooler, port 6543), `GUEST_TOKEN_SECRET` (32+ random chars), `CORS_ORIGINS` (the web origins), `PUBLIC_WEB_URL`                                                                                                                               |
-| `buddyclub-web` | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `API_URL` and `NEXT_PUBLIC_API_URL` (the API URL), `RALLY_HOST_PREFIX` (`rally-` on vercel.app, `rally.` with real domains), `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (Google sign-in button; unset hides it), and with real domains `COOKIE_DOMAIN=.buddy-club.com`, `NEXT_PUBLIC_COOKIE_DOMAIN=.buddy-club.com` |
+| Project         | Env vars                                                                                                                                                                                                                                                                                                        |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `buddyclub-api` | `NODE_ENV=production`, `LOG_LEVEL`, `SUPABASE_URL`, `SUPABASE_JWKS_URL`, `SUPABASE_JWT_AUDIENCE`, `DATABASE_URL` (transaction pooler, port 6543), `GUEST_TOKEN_SECRET` (32+ random chars), `CORS_ORIGINS` (the web origins), `PUBLIC_WEB_URL`                                                                   |
+| `buddyclub-web` | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `API_URL` and `NEXT_PUBLIC_API_URL` (the API URL), `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (Google sign-in button; unset hides it). One product on every host since Addendum 1.4: leave `WEB_PRODUCT`, `RALLY_HOST_PREFIX` and `COOKIE_DOMAIN` unset |
 
-Domains (later): `buddy-club.com` and `rally.buddy-club.com` both point at the web project;
-`api.buddy-club.com` at the API project. In Supabase (Authentication > URL configuration) set the
-site URL to the web origin and add each web origin's `/auth/callback` (today
-`https://buddyclub-web.vercel.app/auth/callback` and
-`https://rally-buddyclub-web.vercel.app/auth/callback`) to the redirect allowlist, plus the Vercel
-preview pattern `https://*.vercel.app/auth/callback` if previews should sign in.
+Domains (later): the Buddy Club domain points at the web project and `api.<domain>` at the API
+project. In Supabase (Authentication > URL configuration) set the site URL to the web origin and
+add the web origin's `/auth/callback` (today `https://buddyclub-web.vercel.app/auth/callback`) to
+the redirect allowlist, plus the Vercel preview pattern `https://*.vercel.app/auth/callback` if
+previews should sign in.
+
+Google sign-in renders Google's button on the page, so every origin the sign-in page is served
+from must be listed under **Authorised JavaScript origins** on the OAuth client in Google Cloud
+Console (APIs & Services > Credentials). Today that is `http://localhost:3000` (Google also wants
+`http://localhost` alongside it) and `https://buddyclub-web.vercel.app`; add the real domain when
+it exists. A missing origin fails with `Error 400: origin_mismatch`. No redirect URI is needed:
+the button hands the ID token to Supabase directly.
 
 ## Demo content (try every screen with realistic data)
 

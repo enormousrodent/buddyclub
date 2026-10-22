@@ -9,7 +9,7 @@ import { Icon } from './ui';
  * condensed display face, so it reads as its own product next to Buddy Club.
  */
 
-function Wide({ children, className = '' }: { children: ReactNode; className?: string }) {
+export function Wide({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <div className={`mx-auto w-full max-w-5xl px-5 ${className}`}>{children}</div>;
 }
 
@@ -35,10 +35,10 @@ export function RallyMarketingHeader({ signedIn }: { signedIn: boolean }) {
           aria-label="Main"
           className="hidden items-center gap-6 text-[15px] font-semibold sm:flex"
         >
-          <a href="#how" className="text-ink-2 hover:text-ink">
+          <a href="/#how" className="text-ink-2 hover:text-ink">
             How it works
           </a>
-          <a href="#features" className="text-ink-2 hover:text-ink">
+          <a href="/#features" className="text-ink-2 hover:text-ink">
             What it does
           </a>
         </nav>

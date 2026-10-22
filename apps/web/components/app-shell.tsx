@@ -5,19 +5,29 @@ import { getSessionUser } from '../lib/supabase/server';
 import { apiForUser } from '../lib/api';
 import { Avatar } from './ui';
 import { Lockup } from './brand';
+import { FrontFrame } from './front-frame';
 import { BottomNav } from './nav';
 import { PullToRefresh } from './pull-to-refresh';
 
 /**
  * Product shell: top bar with the lockup, bottom tab bar when signed in.
- * Pages add their own title; the bar never repeats it. Signed-out visitors on Buddy Club get the
- * wider marketing pages, so the bar widens with them and offers the two marketing actions.
+ * Pages add their own title; the bar never repeats it. Signed-out pages (sign-in, invites) share
+ * the front page's width and bar height so nothing jumps between them; signed in, the app is a
+ * phone-width column.
  * The bar has a hairline and a soft shadow so it reads as a header on a
  * white ground.
  */
 export async function AppShell({ product, children }: { product: Product; children: ReactNode }) {
   const user = await getSessionUser();
-  const wide = !user && product === 'buddyclub';
+  if (!user && product === 'rally')
+    return (
+      <FrontFrame signedIn={false}>
+        <PullToRefresh />
+        {children}
+      </FrontFrame>
+    );
+  const wide = !user;
+  const marketing = wide && product === 'buddyclub';
   const me = user
     ? await apiForUser()
         .me()
@@ -28,10 +38,10 @@ export async function AppShell({ product, children }: { product: Product; childr
       <PullToRefresh />
       <header className="sticky top-0 z-10 border-b border-hairline bg-paper/92 shadow-raised backdrop-blur">
         <div
-          className={`mx-auto flex h-14 items-center justify-between gap-4 px-5 ${wide ? 'max-w-5xl' : 'max-w-xl'}`}
+          className={`mx-auto flex items-center justify-between gap-4 px-5 ${wide ? 'h-16 max-w-5xl' : 'h-14 max-w-xl'}`}
         >
           <Link href={product === 'rally' && user ? '/dashboard' : '/'} className="text-ink">
-            <Lockup product={product} size={36} />
+            <Lockup product={product} size={wide ? 40 : 36} />
           </Link>
           {user ? (
             <Link href="/profile" aria-label="Profile" className="inline-flex items-center">
@@ -43,7 +53,7 @@ export async function AppShell({ product, children }: { product: Product; childr
             </Link>
           ) : (
             <div className="flex items-center gap-2">
-              {wide ? (
+              {marketing ? (
                 <nav
                   aria-label="Main"
                   className="hidden items-center gap-5 pr-3 text-[15px] font-semibold sm:flex"
@@ -62,7 +72,7 @@ export async function AppShell({ product, children }: { product: Product; childr
               >
                 Sign in
               </Link>
-              {wide ? (
+              {marketing ? (
                 <Link
                   href="/groups/new"
                   className="inline-flex min-h-9 items-center rounded-full bg-primary px-3.5 text-xs font-bold text-primary-ink hover:bg-primary-strong"
