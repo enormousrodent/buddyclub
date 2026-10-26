@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { ApiError, createApiClient } from '@buddyclub/api-client';
 import type { GuestMe, GuestSession, MySchedule } from '@buddyclub/shared-types';
 import { useEffect, useState } from 'react';
@@ -132,6 +133,21 @@ export function GuestView({ token }: { token: string }) {
           </Muted>
         </div>
         <Badge>Guest</Badge>
+      </Card>
+      <Card tone="well" className="flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="text-[15px] font-bold">Is this you?</div>
+          <Muted>
+            Create an account and this player becomes yours: your nights, your buddies, your
+            sessions on your own phone.
+          </Muted>
+        </div>
+        <Link
+          href={`/sign-in?next=${encodeURIComponent(`/claim/${token}`)}`}
+          className="shrink-0 whitespace-nowrap text-[13px] font-bold text-primary"
+        >
+          It&apos;s me
+        </Link>
       </Card>
       {state.schedule ? (
         <>

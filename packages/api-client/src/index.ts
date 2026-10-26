@@ -14,6 +14,8 @@ import {
   GuestGrantCreatedSchema,
   GuestGrantSchema,
   GuestMeSchema,
+  ClaimPreviewSchema,
+  ClaimResultSchema,
   GuestSessionSchema,
   HealthResponseSchema,
   IDEMPOTENCY_KEY_HEADER,
@@ -27,6 +29,9 @@ import {
   MyProfileSchema,
   SuggestionResultSchema,
   BuddyCardSchema,
+  JoinRequestSchema,
+  type CreateJoinRequestBody,
+  type JoinRequestStatus,
   BuddySummarySchema,
   HelloSchema,
   type BuddySearchQuery,
@@ -316,6 +321,35 @@ export function createApiClient(options: ApiClientOptions) {
           `/v1/activity-suggestions/count?name=${enc(name)}`,
           z.object({ count: z.number() }),
           o ?? {},
+        ),
+    },
+
+    /** Ask to join a club through a public invitation-only session; organisers decide. */
+    joinRequests: {
+      create: (seriesId: string, body: CreateJoinRequestBody = {}, o?: RequestOptions) =>
+        command(`/v1/sessions/${enc(seriesId)}/join-requests`, JoinRequestSchema, o, body),
+      mine: (o?: RequestOptions) =>
+        request('GET', '/v1/me/join-requests', listOf(JoinRequestSchema), o ?? {}),
+      inbox: (o?: RequestOptions) =>
+        request('GET', '/v1/me/join-requests/inbox', listOf(JoinRequestSchema), o ?? {}),
+      list: (orgId: string, status?: JoinRequestStatus, o?: RequestOptions) =>
+        request(
+          'GET',
+          `/v1/organisations/${enc(orgId)}/join-requests${status ? `?status=${status}` : ''}`,
+          listOf(JoinRequestSchema),
+          o ?? {},
+        ),
+      approve: (orgId: string, requestId: string, o?: RequestOptions) =>
+        command(
+          `/v1/organisations/${enc(orgId)}/join-requests/${enc(requestId)}/approve`,
+          JoinRequestSchema,
+          o,
+        ),
+      decline: (orgId: string, requestId: string, o?: RequestOptions) =>
+        command(
+          `/v1/organisations/${enc(orgId)}/join-requests/${enc(requestId)}/decline`,
+          JoinRequestSchema,
+          o,
         ),
     },
 
@@ -707,6 +741,11 @@ export function createApiClient(options: ApiClientOptions) {
       me: (o?: RequestOptions) => request('GET', '/v1/guest/me', GuestMeSchema, o ?? {}),
       schedule: (o?: RequestOptions) =>
         request('GET', '/v1/guest/schedule', MyScheduleSchema, o ?? {}),
+      /** Claim (ADR-008): signed in, take over the player a guest link points at. */
+      claimPreview: (token: string, o?: RequestOptions) =>
+        request('GET', `/v1/guest/claim?token=${enc(token)}`, ClaimPreviewSchema, o ?? {}),
+      claim: (token: string, o?: RequestOptions) =>
+        command('/v1/guest/claim', ClaimResultSchema, o, { token }),
     },
 
     groups: {

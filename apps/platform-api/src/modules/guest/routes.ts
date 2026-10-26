@@ -1,4 +1,7 @@
 import {
+  ClaimBodySchema,
+  ClaimPreviewSchema,
+  ClaimResultSchema,
   GuestMeSchema,
   GuestRedeemBodySchema,
   GuestSessionSchema,
@@ -8,7 +11,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import type { Db } from '../../db/index.js';
 import type { GuestTokenService } from '../../platform/guest-token.js';
-import { guestMe, redeemGuestLink } from './service.js';
+import { guestMe, redeemGuestLink, claimGuest, previewClaim } from './service.js';
 
 export interface GuestRoutesOptions {
   getDb: () => Db;
@@ -55,5 +58,45 @@ export async function guestRoutes(app: FastifyInstance, options: GuestRoutesOpti
       },
     },
     async (request) => guestMe(options.getDb(), request.guest!),
+  );
+
+  typed.get(
+    '/v1/guest/claim',
+    {
+      preHandler: app.requireActor,
+      schema: {
+        tags: ['guest'],
+        summary: 'What claiming a guest link would do (ADR-008)',
+        operationId: 'previewClaim',
+        security: [{ bearerAuth: [] }],
+        querystring: ClaimBodySchema,
+        response: { 200: ClaimPreviewSchema, 401: ProblemDetailsSchema, 404: ProblemDetailsSchema },
+      },
+    },
+    async (request) => previewClaim(options.getDb(), request.actor!, request.query.token),
+  );
+
+  typed.post(
+    '/v1/guest/claim',
+    {
+      preHandler: app.requireActor,
+      schema: {
+        tags: ['guest'],
+        summary: 'Take over the name-only player a guest link points at; the link is spent',
+        operationId: 'claimGuest',
+        security: [{ bearerAuth: [] }],
+        body: ClaimBodySchema,
+        response: {
+          200: ClaimResultSchema,
+          401: ProblemDetailsSchema,
+          404: ProblemDetailsSchema,
+          409: ProblemDetailsSchema,
+        },
+      },
+    },
+    async (request) =>
+      claimGuest(options.getDb(), request.actor!, request.body.token, {
+        correlationId: request.id,
+      }),
   );
 }

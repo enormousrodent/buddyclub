@@ -62,3 +62,9 @@ export async function chooseRole(role: 'organiser' | 'player'): Promise<void> {
   }
   redirect(role === 'organiser' ? '/welcome?step=3' : '/dashboard');
 }
+
+/** Step 2 as a form: the picked card, confirmed with one button. */
+export async function chooseRoleForm(formData: FormData): Promise<void> {
+  const role = formData.get('role') === 'player' ? 'player' : 'organiser';
+  await chooseRole(role);
+}

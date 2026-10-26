@@ -1,6 +1,8 @@
 import { GRANTABLE_ROLES, roleAllows } from '@buddyclub/auth';
 import { ActionForm } from '../../../../../../components/action-form';
 import {
+  Avatar,
+  Button,
   Card,
   Field,
   Input,
@@ -13,7 +15,14 @@ import {
   StateBadge,
 } from '../../../../../../components/ui';
 import { apiForUser } from '../../../../../../lib/api';
-import { changeMemberRole, createInvitation, removeMember, revokeInvitation } from '../../actions';
+import { whenIn } from '../../../../../../lib/sessions';
+import {
+  changeMemberRole,
+  createInvitation,
+  decideJoinRequest,
+  removeMember,
+  revokeInvitation,
+} from '../../actions';
 import { ClubNav } from '../club-nav';
 
 export const metadata = { title: 'Members' };
@@ -28,12 +37,62 @@ export default async function MembersPage({ params }: { params: Promise<{ orgId:
   ]);
   const canInvite = org.myRole ? roleAllows(org.myRole, 'members.invite') : false;
   const canManage = org.myRole ? roleAllows(org.myRole, 'members.manage') : false;
-  const invitations = canInvite ? (await api.invitations.list(orgId)).items : [];
+  const [invitationList, requests] = canInvite
+    ? await Promise.all([api.invitations.list(orgId), api.joinRequests.list(orgId, 'pending')])
+    : [{ items: [] }, { items: [] }];
+  const invitations = invitationList.items;
 
   return (
-    <Page title={org.name} back="/">
+    <Page title={org.name} back={`/clubs/${orgId}`}>
       <ClubNav orgId={orgId} current="members" />
 
+      {requests.items.length ? (
+        <>
+          <SectionHeading>Asked to join</SectionHeading>
+          <div className="mb-4 space-y-2">
+            {requests.items.map((r) => (
+              <Card key={r.id} className="flex items-center gap-3">
+                <Avatar name={r.displayName} src={r.avatarUrl} size={40} />
+                <div className="min-w-0 flex-1 text-sm">
+                  <div className="font-bold">{r.displayName}</div>
+                  <Muted className="block">
+                    {[
+                      r.sports
+                        .map((sp) =>
+                          sp.level
+                            ? `${sp.activityName} (${sp.level.replace('_', ' ')})`
+                            : sp.activityName,
+                        )
+                        .join(', ') || 'No sports listed',
+                      r.seriesName ? `asked about ${r.seriesName}` : null,
+                      whenIn(r.createdAt),
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </Muted>
+                  {r.note ? (
+                    <div className="mt-1 text-[13px] text-ink-2">&ldquo;{r.note}&rdquo;</div>
+                  ) : null}
+                </div>
+                <div className="flex shrink-0 flex-col gap-1.5">
+                  <form action={decideJoinRequest.bind(null, orgId, r.id, true)}>
+                    <Button type="submit" size="sm">
+                      Approve
+                    </Button>
+                  </form>
+                  <form action={decideJoinRequest.bind(null, orgId, r.id, false)}>
+                    <button type="submit" className="w-full text-center text-[13px] text-danger">
+                      Decline
+                    </button>
+                  </form>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </>
+      ) : null}
+
+      <SectionHeading>Members</SectionHeading>
       <List>
         {members.items.map((m) => (
           <Row

@@ -102,3 +102,27 @@ export const GuestMeSchema = z.object({
   grantExpiresAt: IsoDateTimeSchema,
 });
 export type GuestMe = z.infer<typeof GuestMeSchema>;
+
+/**
+ * Guest claim (ADR-008, decided 2026-10-26): the organiser's individual guest link is the proof.
+ * Signed in, the holder may take over the name-only player it points at, once.
+ */
+export const ClaimBodySchema = z.object({ token: z.string().min(16).max(200) });
+export type ClaimBody = z.infer<typeof ClaimBodySchema>;
+
+export const ClaimPreviewSchema = z.object({
+  participant: z.object({ id: UuidSchema, displayName: DisplayNameSchema }),
+  organisation: z.object({ id: UuidSchema, name: z.string() }),
+  /** Nights this player has checked in to; they come with the claim. */
+  nightsPlayed: z.int(),
+  claimable: z.boolean(),
+  /** Why not, when it is not. */
+  reason: z.string().nullable(),
+});
+export type ClaimPreview = z.infer<typeof ClaimPreviewSchema>;
+
+export const ClaimResultSchema = z.object({
+  participant: z.object({ id: UuidSchema, displayName: DisplayNameSchema }),
+  organisation: z.object({ id: UuidSchema, name: z.string() }),
+});
+export type ClaimResult = z.infer<typeof ClaimResultSchema>;

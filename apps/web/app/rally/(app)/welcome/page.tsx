@@ -2,10 +2,10 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ActionForm } from '../../../../components/action-form';
 import { Kicker } from '../../../../components/rally-kit';
-import { Card, Field, Icon, Input, LinkButton, Muted } from '../../../../components/ui';
+import { Button, Card, Field, Icon, Input, LinkButton, Muted } from '../../../../components/ui';
 import { apiForUser } from '../../../../lib/api';
 import { getSessionUser } from '../../../../lib/supabase/server';
-import { chooseRole, saveNameAndSports } from './actions';
+import { chooseRoleForm, saveNameAndSports } from './actions';
 import { RALLY_SPORTS, rallySportName } from '../../../../lib/sports';
 
 export const metadata = { title: 'Welcome' };
@@ -96,51 +96,51 @@ export default async function WelcomePage({
       ) : null}
 
       {step === 2 ? (
-        <div className="flex flex-1 flex-col gap-4">
+        <form action={chooseRoleForm} className="flex flex-1 flex-col gap-4">
           <h1 className="font-display text-[40px] font-extrabold uppercase leading-[0.95]">
             How will you use Buddy Club?
           </h1>
           <Muted className="block text-[15px] leading-6">
             You can do both. This just picks what you see first.
           </Muted>
-          <form action={chooseRole.bind(null, 'organiser')}>
-            <button
-              type="submit"
-              className="flex w-full items-start gap-3 rounded-card border-2 border-primary bg-surface p-4 text-left"
-            >
-              <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-ink">
-                <Icon name="play" size={20} />
+          <label className="flex w-full cursor-pointer items-start gap-3 rounded-card border border-hairline bg-surface p-4 text-left has-checked:border-2 has-checked:border-primary">
+            <input type="radio" name="role" value="organiser" defaultChecked className="sr-only" />
+            <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-ink">
+              <Icon name="play" size={20} />
+            </span>
+            <span>
+              <span className="block font-display text-[24px] font-bold uppercase leading-none">
+                I run sessions
               </span>
-              <span>
-                <span className="block font-display text-[24px] font-bold uppercase leading-none">
-                  I run sessions
-                </span>
-                <span className="mt-1 block text-[13px] leading-5 text-ink-2">
-                  Club nights, socials, league evenings. Courts, rotations and the timer from your
-                  phone.
-                </span>
+              <span className="mt-1 block text-[13px] leading-5 text-ink-2">
+                Club nights, socials, league evenings. Courts, rotations and the timer from your
+                phone.
               </span>
-            </button>
-          </form>
-          <form action={chooseRole.bind(null, 'player')}>
-            <button
-              type="submit"
-              className="flex w-full items-start gap-3 rounded-card border border-hairline bg-surface p-4 text-left"
-            >
-              <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-tint text-tint-ink">
-                <Icon name="user" size={20} />
+            </span>
+          </label>
+          <label className="flex w-full cursor-pointer items-start gap-3 rounded-card border border-hairline bg-surface p-4 text-left has-checked:border-2 has-checked:border-primary">
+            <input type="radio" name="role" value="player" className="sr-only" />
+            <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-tint text-tint-ink">
+              <Icon name="user" size={20} />
+            </span>
+            <span>
+              <span className="block font-display text-[24px] font-bold uppercase leading-none">
+                I turn up and play
               </span>
-              <span>
-                <span className="block font-display text-[24px] font-bold uppercase leading-none">
-                  I turn up and play
-                </span>
-                <span className="mt-1 block text-[13px] leading-5 text-ink-2">
-                  See your court, your partner and the clock. Join with a code or a QR.
-                </span>
+              <span className="mt-1 block text-[13px] leading-5 text-ink-2">
+                See your court, your partner and the clock. Join with a code or a QR.
               </span>
-            </button>
-          </form>
-        </div>
+            </span>
+          </label>
+          <div className="flex-1" />
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full font-display text-[20px] uppercase tracking-[0.06em]"
+          >
+            Continue
+          </Button>
+        </form>
       ) : null}
 
       {step >= 3 ? (

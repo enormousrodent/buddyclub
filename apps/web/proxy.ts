@@ -15,6 +15,7 @@ const SHARED_PREFIXES = [
   '/profile',
   '/invite',
   '/guest',
+  '/claim',
   '/sessions',
   '/league',
 ];

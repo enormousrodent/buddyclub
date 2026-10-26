@@ -81,6 +81,22 @@ export async function createInvitation(
   }
 }
 
+export async function decideJoinRequest(
+  orgId: string,
+  requestId: string,
+  approve: boolean,
+): Promise<void> {
+  try {
+    if (approve) await apiForUser().joinRequests.approve(orgId, requestId);
+    else await apiForUser().joinRequests.decline(orgId, requestId);
+  } catch (error) {
+    throw new Error(describeError(error), { cause: error });
+  }
+  revalidatePath(`/clubs/${orgId}/members`);
+  revalidatePath(`/clubs/${orgId}`);
+  revalidatePath('/dashboard');
+}
+
 export async function revokeInvitation(orgId: string, invitationId: string): Promise<void> {
   await run(
     () =>

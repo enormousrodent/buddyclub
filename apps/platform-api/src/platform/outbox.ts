@@ -16,7 +16,9 @@ export type OutboxEventType =
   | 'meet.standings_updated'
   | 'meet.progression_published'
   | 'catalogue.activity_promoted'
-  | 'buddies.hello';
+  | 'buddies.hello'
+  | 'community.join_requested'
+  | 'community.join_decided';
 
 export interface OutboxInput {
   eventType: OutboxEventType;

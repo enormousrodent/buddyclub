@@ -1,10 +1,21 @@
 import Link from 'next/link';
-import { Button, Empty, Icon, Input, List, Page, Row, Select } from '../../../../components/ui';
+import {
+  Button,
+  Card,
+  Empty,
+  Icon,
+  Input,
+  List,
+  Muted,
+  Page,
+  Row,
+  Select,
+} from '../../../../components/ui';
 import { apiForUser, apiPublic } from '../../../../lib/api';
 import { describeSchedule, whenIn } from '../../../../lib/sessions';
 import { RALLY_SPORTS, rallySportName } from '../../../../lib/sports';
 import { getSessionUser } from '../../../../lib/supabase/server';
-import { joinSession } from './actions';
+import { askToJoin, joinSession } from './actions';
 
 export const metadata = { title: 'Near you' };
 
@@ -16,9 +27,9 @@ export const metadata = { title: 'Near you' };
 export default async function NearYouPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; locality?: string; sport?: string }>;
+  searchParams: Promise<{ q?: string; locality?: string; sport?: string; asked?: string }>;
 }) {
-  const { q, locality, sport: rawSport } = await searchParams;
+  const { q, locality, sport: rawSport, asked } = await searchParams;
   const sport = RALLY_SPORTS.find((s) => s === rawSport) ?? '';
   const [user, result] = await Promise.all([
     getSessionUser(),
@@ -28,7 +39,12 @@ export default async function NearYouPage({
       ...(sport ? { sport } : {}),
     }),
   ]);
-  const me = user ? await apiForUser().me() : null;
+  const [me, requests] = user
+    ? await Promise.all([apiForUser().me(), apiForUser().joinRequests.mine()])
+    : [null, { items: [] }];
+  const pendingFor = new Set(
+    requests.items.filter((r) => r.status === 'pending').map((r) => r.organisationId),
+  );
   const myOrgs = new Set(
     (me?.memberships ?? []).filter((m) => m.status === 'active').map((m) => m.organisationId),
   );
@@ -37,8 +53,17 @@ export default async function NearYouPage({
     <Page
       title="Near you"
       back="/sessions"
-      lead="Public sessions by place and sport. Join an open one, or ask for a link."
+      lead="Public sessions by place and sport. Join an open one, or ask to join."
     >
+      {asked ? (
+        <Card className="mb-4 border-live">
+          <div className="font-display text-[20px] font-bold uppercase leading-none">Asked.</div>
+          <Muted className="mt-1 block">
+            The organisers will see your request, your sports and your level. Once they say yes, the
+            session appears on your home.
+          </Muted>
+        </Card>
+      ) : null}
       <form method="get" action="/explore" className="mb-4 flex flex-col gap-2">
         <div className="flex gap-2">
           <label htmlFor="q" className="sr-only">
@@ -86,7 +111,22 @@ export default async function NearYouPage({
                   member ? (
                     <span className="text-[13px] font-semibold text-primary">Open</span>
                   ) : s.joinPolicy !== 'open' ? (
-                    <span className="text-[12px] font-semibold text-muted">Invite only</span>
+                    pendingFor.has(s.organisationId) ? (
+                      <span className="text-[12px] font-semibold text-muted">Asked</span>
+                    ) : user ? (
+                      <form action={askToJoin.bind(null, s.id)}>
+                        <Button type="submit" size="sm" variant="secondary">
+                          Ask to join
+                        </Button>
+                      </form>
+                    ) : (
+                      <Link
+                        href={`/sign-in?next=${encodeURIComponent('/explore')}`}
+                        className="text-[13px] font-bold text-primary"
+                      >
+                        Sign in to ask
+                      </Link>
+                    )
                   ) : user ? (
                     <form action={joinSession.bind(null, s.id)}>
                       <Button type="submit" size="sm">

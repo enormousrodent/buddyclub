@@ -125,7 +125,7 @@ export default async function RallyHomePage({
   const { joined, completed } = await searchParams;
 
   const api = apiForUser();
-  const [me, sessions, presets, competitions, pendingRatings, scheduled, profile] =
+  const [me, sessions, presets, competitions, pendingRatings, scheduled, profile, inbox] =
     await Promise.all([
       api.me(),
       api.sessions.mine(),
@@ -134,6 +134,7 @@ export default async function RallyHomePage({
       api.sessions.pendingRatings(),
       api.sessions.scheduled(),
       api.profile.get(),
+      api.joinRequests.inbox(),
     ]);
   // The profile-completion card (Addendum 1.4 step 4) waits until a second night has been played.
   const attended = sessions.items.filter(
@@ -141,6 +142,12 @@ export default async function RallyHomePage({
       s.state === 'completed' && (s.myAttendance === 'checked_in' || s.myAttendance === 'left'),
   ).length;
   const suggestCompletion = !profile.onboarded.buddyclub && attended >= 2;
+  const waiting = new Map<string, { name: string; n: number }>();
+  for (const r of inbox.items) {
+    const cur = waiting.get(r.organisationId) ?? { name: r.organisationName, n: 0 };
+    cur.n += 1;
+    waiting.set(r.organisationId, cur);
+  }
   const myClubs = me.memberships.filter(
     (m) => m.organisationKind === 'club' && m.status === 'active',
   );
@@ -215,6 +222,24 @@ export default async function RallyHomePage({
             </span>
           </span>
           <span className="shrink-0 text-xl text-primary">★★★★★</span>
+        </Link>
+      ))}
+
+      {[...waiting.entries()].map(([orgId, w]) => (
+        <Link
+          key={orgId}
+          href={`/clubs/${orgId}/members`}
+          className="mb-3 flex items-center justify-between gap-3 rounded-card border border-primary bg-surface px-4 py-3"
+        >
+          <span className="min-w-0">
+            <span className="block text-[15px] font-bold">
+              {w.n} {w.n === 1 ? 'person has' : 'people have'} asked to join {w.name}
+            </span>
+            <span className="block text-[13px] text-muted">
+              Approve or decline on the Members tab.
+            </span>
+          </span>
+          <Icon name="chevron" size={18} className="shrink-0 text-primary" />
         </Link>
       ))}
 

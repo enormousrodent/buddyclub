@@ -66,8 +66,9 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
       type: sent === 'confirm' ? 'signup' : 'email',
     });
     if (error) throw error;
-    // Full navigation so the server sees the new session cookies on the first render.
-    window.location.assign(next);
+    // Full navigation so the server sees the new session cookies on the first render. A code
+    // sign-in is offered a password once, so the next time needs no email.
+    window.location.assign(`/profile/password?first=1&next=${encodeURIComponent(next)}`);
   }
 
   async function onSubmit(event: FormEvent) {

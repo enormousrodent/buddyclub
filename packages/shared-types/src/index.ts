@@ -11,6 +11,7 @@ export * from './facilities';
 export * from './sessions';
 export * from './profiles';
 export * from './buddies';
+export * from './join-requests';
 export * from './catalogue';
 export * from './competitions';
 export * from './public';

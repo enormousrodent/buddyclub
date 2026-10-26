@@ -15,7 +15,6 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import type { Db } from '../../db/index.js';
 import { expectedVersion } from '../../platform/if-match.js';
-import { AppError } from '../../problems.js';
 import * as svc from './service.js';
 
 export interface ParticipantRoutesOptions {
@@ -227,30 +226,4 @@ export async function participantRoutes(app: FastifyInstance, options: Participa
       return reply.status(204).send(null);
     },
   );
-
-  // Guest-to-account linking waits on ADR-008 (proof of identity). Reserved paths return 501.
-  for (const suffix of ['claim-intents', 'confirm-claim'] as const) {
-    typed.post(
-      `/v1/organisations/:orgId/participants/:participantId/${suffix}`,
-      {
-        preHandler: app.requireActor,
-        schema: {
-          tags: ['participants'],
-          summary: `Reserved: guest claim (${suffix}); disabled until ADR-008 is decided`,
-          operationId: suffix === 'claim-intents' ? 'createClaimIntent' : 'confirmClaim',
-          security: AUTH,
-          params: ParticipantParams,
-          response: { 501: ProblemDetailsSchema, ...PROBLEMS },
-        },
-      },
-      async () => {
-        throw new AppError(
-          501,
-          'NOT_IMPLEMENTED',
-          'Guest claim is not available yet',
-          'See ADR-008',
-        );
-      },
-    );
-  }
 }

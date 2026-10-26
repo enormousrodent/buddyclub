@@ -30,6 +30,9 @@ export default async function ProfilePage() {
       <LinkButton href="/profile/buddy" className="mb-3 w-full">
         My buddy profile: sports, level, days and gear
       </LinkButton>
+      <LinkButton href="/profile/password" variant="secondary" className="mb-3 w-full">
+        Set or change my password
+      </LinkButton>
       <Card className="mb-3">
         <AvatarUpload
           name={me.profile.displayName}

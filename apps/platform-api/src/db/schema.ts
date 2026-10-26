@@ -210,6 +210,18 @@ export interface ActivityRsvpsTable {
   updated_at: Timestamp;
 }
 
+export interface JoinRequestsTable {
+  id: Generated<string>;
+  organisation_id: string;
+  series_id: string | null;
+  profile_id: string;
+  note: string | null;
+  status: Generated<'pending' | 'approved' | 'declined'>;
+  decided_by_profile_id: string | null;
+  decided_at: NullableTimestamp;
+  created_at: Timestamp;
+}
+
 export interface GroupMembersTable {
   id: Generated<string>;
   group_id: string;
@@ -709,6 +721,7 @@ export interface Database {
   'community.sports': SportsTable;
   'community.groups': GroupsTable;
   'community.group_members': GroupMembersTable;
+  'community.join_requests': JoinRequestsTable;
   'community.interests': InterestsTable;
   'community.group_interests': GroupInterestsTable;
   'community.activities': ActivitiesTable;
