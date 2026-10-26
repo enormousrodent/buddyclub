@@ -348,6 +348,27 @@ export async function openNight(occurrenceId: string): Promise<void> {
   redirect(`/sessions/${occurrenceId}/players`);
 }
 
+/** Which of the venue's courts are live tonight; fewer when numbers are down. Between rounds only. */
+export async function setNightCourts(
+  occurrenceId: string,
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const courtIds = formData.getAll('courtId').map(String).filter(Boolean);
+  if (!courtIds.length) return { error: 'Keep at least one court' };
+  try {
+    await apiForUser().occurrences.update(occurrenceId, { courtIds });
+  } catch (error) {
+    return { error: describeError(error) };
+  }
+  revalidatePath(`/sessions/${occurrenceId}`);
+  revalidatePath(`/sessions/${occurrenceId}/players`);
+  return {
+    ok: true,
+    message: `${courtIds.length} court${courtIds.length === 1 ? '' : 's'} tonight`,
+  };
+}
+
 /** Singles or doubles tonight, before the first round is called. */
 export async function setNightFormat(
   occurrenceId: string,

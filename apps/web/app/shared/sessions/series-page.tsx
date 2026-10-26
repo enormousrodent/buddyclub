@@ -8,6 +8,7 @@ import {
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { ActionForm } from '../../../components/action-form';
+import { SelectAll } from '../../../components/select-all';
 import { Kicker } from '../../../components/rally-kit';
 import { SessionAction } from '../../../components/session-card';
 import { TimezoneField } from '../../../components/timezone-field';
@@ -441,6 +442,10 @@ export async function SeriesPage({ series }: { series: SessionSeries }) {
               submitLabel="Save regulars"
               variant="primary"
             >
+              <div className="flex items-center justify-between">
+                <Muted className="text-xs">{players.items.length} in the club</Muted>
+                <SelectAll name="participantId" />
+              </div>
               {signedUp.length ? (
                 <>
                   <Kicker>Signed up · {signedUp.length}</Kicker>

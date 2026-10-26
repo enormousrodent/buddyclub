@@ -23,6 +23,7 @@ import {
   checkInEveryone,
   noShow,
   setNightFormat,
+  setNightCourts,
   setNightMode,
   withdraw,
 } from '../../actions';
@@ -40,6 +41,11 @@ export default async function PlayersPage({
   const ctx = await loadSession(occurrenceId, '/players');
   const { board, org, canManage, checkedIn, registered, live, myParticipantId } = ctx;
   const clubPlayers = canManage ? (await apiForUser().participants.list(org.id)).items : [];
+  const venueId = canManage ? (await apiForUser().occurrences.get(occurrenceId)).venueId : null;
+  const venueCourts = venueId
+    ? (await apiForUser().venues.get(venueId)).courts.filter((c) => c.active)
+    : [];
+  const liveCourtIds = new Set(board.courts.filter((c) => c.active).map((c) => c.courtId));
   const onRoster = new Set(
     board.entries
       .filter((e) => e.attendanceStatus !== 'left' && e.attendanceStatus !== 'no_show')
@@ -113,6 +119,39 @@ export default async function PlayersPage({
             <Muted>Check-in opens at {opensLabel}. You&apos;re expected; see you there.</Muted>
           </Card>
         )
+      ) : null}
+
+      {canManage && live && !board.currentRound && venueCourts.length ? (
+        <Card className="mb-4">
+          <Kicker className="mb-2">Courts tonight</Kicker>
+          <ActionForm
+            action={setNightCourts.bind(null, occurrenceId)}
+            submitLabel="Use these courts"
+            variant="secondary"
+            resetOnSuccess={false}
+          >
+            <div className="flex flex-wrap gap-2">
+              {venueCourts.map((c) => (
+                <label
+                  key={c.id}
+                  className="inline-flex h-9 cursor-pointer items-center rounded-full border border-hairline-strong px-3.5 text-[13px] font-semibold has-checked:border-primary has-checked:bg-primary has-checked:text-primary-ink"
+                >
+                  <input
+                    type="checkbox"
+                    name="courtId"
+                    value={c.id}
+                    defaultChecked={liveCourtIds.has(c.id)}
+                    className="sr-only"
+                  />
+                  {c.label ?? `Court ${c.code}`}
+                </label>
+              ))}
+            </div>
+            <Muted className="text-xs">
+              Untick courts you are not using tonight. The next round only uses the ones left on.
+            </Muted>
+          </ActionForm>
+        </Card>
       ) : null}
 
       {canManage && live && noRoundYet ? (
