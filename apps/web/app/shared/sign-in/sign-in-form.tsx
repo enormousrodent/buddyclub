@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
-import { Alert, Button, Field, Icon, Input, Muted } from '../../../components/ui';
+import { Alert, Button, Field, Input, Muted } from '../../../components/ui';
 import { createSupabaseBrowserClient } from '../../../lib/supabase/client';
 
 type Mode = 'code' | 'password' | 'signup';
@@ -11,7 +11,8 @@ type Mode = 'code' | 'password' | 'signup';
 const CODE_LENGTH = 6;
 
 /**
- * Sign-in (design A2) and the "check your email" state (A3). A six-digit code by email first:
+ * Sign-in (design A2) and the "check your email" state (A3). A six-digit code by email, for
+ * sign-in and for account creation alike:
  * corporate mail scanners pre-open links and burn them, a code typed into this screen cannot be
  * burnt by anyone but the person holding it. A password and account creation sit behind one link
  * so the first screen asks for one thing.
@@ -37,11 +38,11 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
       });
       if (error) throw error;
     } else {
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+      // Also a code: Supabase sends new addresses the sign-up template whichever flow asked.
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: redirectTo, data: { full_name: fullName } },
+        options: { data: { full_name: fullName } },
       });
       if (error) throw error;
       if (data.session) {
@@ -60,7 +61,7 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
     const { error } = await createSupabaseBrowserClient().auth.verifyOtp({
       email,
       token,
-      type: 'email',
+      type: sent === 'confirm' ? 'signup' : 'email',
     });
     if (error) throw error;
     // Full navigation so the server sees the new session cookies on the first render.
@@ -72,7 +73,7 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
     setBusy(true);
     setError(null);
     try {
-      if (sent === 'code') await verify();
+      if (sent) await verify();
       else if (mode === 'password') {
         const { error } = await createSupabaseBrowserClient().auth.signInWithPassword({
           email,
@@ -107,11 +108,11 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
         }
       }}
     >
-      {busy ? 'Sending…' : sent === 'code' ? 'Send a new code' : 'Resend the link'}
+      {busy ? 'Sending…' : 'Send a new code'}
     </Button>
   );
 
-  if (sent === 'code')
+  if (sent)
     return (
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <div className="text-center">
@@ -158,31 +159,6 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
           Codes last an hour. Nothing to click, so a mail scanner cannot use it up.
         </Muted>
       </form>
-    );
-
-  if (sent === 'confirm')
-    return (
-      <div className="flex flex-col items-center gap-3 py-4 text-center">
-        <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-tint text-tint-ink">
-          <Icon name="check" size={28} />
-        </span>
-        <h2
-          className={`font-display text-[32px] font-bold leading-none ${rally ? 'uppercase' : ''}`}
-        >
-          Check your email
-        </h2>
-        <p className="max-w-xs text-[15px] leading-6 text-ink-2">
-          We sent a confirmation link to <strong className="text-ink">{email}</strong>. Open it on
-          this phone.
-        </p>
-        <div className="mt-2 flex w-full flex-col gap-2">
-          {resend}
-          <Button type="button" variant="ghost" onClick={() => setSent(null)}>
-            Use a different address
-          </Button>
-        </div>
-        {error ? <Alert tone="danger">{error}</Alert> : null}
-      </div>
     );
 
   return (

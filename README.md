@@ -163,8 +163,9 @@ the button hands the ID token to Supabase directly.
 
 Email sign-in is a six-digit code, not a link, because corporate mail scanners (Outlook Safe
 Links among them) pre-open links and burn the one-time token. The code and the link are the same
-token, so the **Magic Link** email template in Supabase (Authentication > Email templates) must
-carry the code and no link at all, for example:
+token, so both the **Magic link or OTP** template (existing addresses) and the **Confirm sign up**
+template (addresses signing in for the first time, whichever flow asked) in Supabase
+(Authentication > Email templates) must carry the code and no link at all, for example:
 
 ```html
 <h2>Your Buddy Club code</h2>
@@ -173,7 +174,8 @@ carry the code and no link at all, for example:
 <p>If you did not ask for it, ignore this email.</p>
 ```
 
-The **Confirm signup** template (password accounts) still uses `{{ .ConfirmationURL }}`.
+Password account creation also verifies with the code. The `/auth/callback` route stays for
+Google and any future link flow.
 
 ## Demo content (try every screen with realistic data)
 
