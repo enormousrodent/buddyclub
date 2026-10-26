@@ -8,10 +8,12 @@ import { createSupabaseBrowserClient } from '../../../lib/supabase/client';
 
 type Mode = 'code' | 'password' | 'signup';
 
-const CODE_LENGTH = 6;
+/** Supabase projects choose their own code length (Authentication > Sign in / Providers > Email). */
+const MIN_CODE = 6;
+const MAX_CODE = 10;
 
 /**
- * Sign-in (design A2) and the "check your email" state (A3). A six-digit code by email, for
+ * Sign-in (design A2) and the "check your email" state (A3). A code by email, for
  * sign-in and for account creation alike:
  * corporate mail scanners pre-open links and burn them, a code typed into this screen cannot be
  * burnt by anyone but the person holding it. A password and account creation sit behind one link
@@ -57,7 +59,7 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
 
   async function verify() {
     const token = code.replace(/\D/g, '');
-    if (token.length !== CODE_LENGTH) throw new Error(`Type the ${CODE_LENGTH}-digit code`);
+    if (token.length < MIN_CODE) throw new Error('Type the whole code from the email');
     const { error } = await createSupabaseBrowserClient().auth.verifyOtp({
       email,
       token,
@@ -122,20 +124,19 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
             Check your email
           </h2>
           <p className="mx-auto mt-2 max-w-xs text-[15px] leading-6 text-ink-2">
-            We sent a {CODE_LENGTH}-digit code to <strong className="text-ink">{email}</strong>.
-            Type it here.
+            We sent a code to <strong className="text-ink">{email}</strong>. Type it here.
           </p>
         </div>
         <Field label="Code">
           <Input
             value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, CODE_LENGTH))}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, MAX_CODE))}
             inputMode="numeric"
             autoComplete="one-time-code"
             pattern="[0-9]*"
-            maxLength={CODE_LENGTH}
-            placeholder="123456"
-            className="text-center font-display text-[28px] tracking-[0.3em]"
+            maxLength={MAX_CODE}
+            placeholder="12345678"
+            className="text-center font-display text-[26px] tracking-[0.2em]"
             autoFocus
             required
           />
@@ -145,7 +146,7 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
           type="submit"
           size="lg"
           className={`w-full ${rally ? 'font-display text-[20px] uppercase tracking-[0.06em]' : ''}`}
-          disabled={busy || code.length !== CODE_LENGTH}
+          disabled={busy || code.length < MIN_CODE}
         >
           {busy ? 'Checking…' : 'Sign in'}
         </Button>

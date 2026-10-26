@@ -161,7 +161,7 @@ Console (APIs & Services > Credentials). Today that is `http://localhost:3000` (
 it exists. A missing origin fails with `Error 400: origin_mismatch`. No redirect URI is needed:
 the button hands the ID token to Supabase directly.
 
-Email sign-in is a six-digit code, not a link, because corporate mail scanners (Outlook Safe
+Email sign-in is a code (the project's OTP length, 8 digits today), not a link, because corporate mail scanners (Outlook Safe
 Links among them) pre-open links and burn the one-time token. The code and the link are the same
 token, so both the **Magic link or OTP** template (existing addresses) and the **Confirm sign up**
 template (addresses signing in for the first time, whichever flow asked) in Supabase
