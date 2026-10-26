@@ -306,6 +306,18 @@ export default async function RallyHomePage({
           Scan the organiser&apos;s QR code, or type the code under it.
         </Muted>
       </Card>
+      <Link
+        href="/explore"
+        className="mt-3 mb-3 flex items-center justify-between gap-3 rounded-card border border-hairline bg-surface px-4 py-3"
+      >
+        <span className="min-w-0">
+          <span className="block text-[15px] font-bold">Find a club near you</span>
+          <span className="block text-[13px] text-muted">
+            Public sessions by place and sport. Join an open one, or ask to join.
+          </span>
+        </span>
+        <Icon name="search" size={18} className="shrink-0 text-primary" />
+      </Link>
 
       {upcoming.length ||
       live.some((s) => s !== resume) ||
@@ -378,7 +390,7 @@ export default async function RallyHomePage({
             }
           >
             {clubs === 0
-              ? 'Start on your own, or ask an organiser for a code to join theirs.'
+              ? 'Find a club near you above, ask an organiser for a code, or start on your own.'
               : 'Your clubs have nothing scheduled.'}
           </Empty>
         </div>

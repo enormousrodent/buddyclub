@@ -48,10 +48,16 @@ export default async function MySessionsPage() {
       title="Sessions"
       lead="Everything you're down for, across your clubs."
       action={
-        <LinkButton href={startHref} size="sm">
-          <Icon name="plus" size={16} />
-          New
-        </LinkButton>
+        <span className="flex gap-2">
+          <LinkButton href="/explore" size="sm" variant="secondary">
+            <Icon name="search" size={16} />
+            Near you
+          </LinkButton>
+          <LinkButton href={startHref} size="sm">
+            <Icon name="plus" size={16} />
+            New
+          </LinkButton>
+        </span>
       }
     >
       {nothing ? (
@@ -63,7 +69,7 @@ export default async function MySessionsPage() {
             </LinkButton>
           }
         >
-          Start one yourself, or wait for an organiser to schedule one in your club.
+          Find a club near you, ask an organiser for a code, or start one yourself.
         </Empty>
       ) : null}
       {now.length ? (
