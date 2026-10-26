@@ -161,6 +161,20 @@ Console (APIs & Services > Credentials). Today that is `http://localhost:3000` (
 it exists. A missing origin fails with `Error 400: origin_mismatch`. No redirect URI is needed:
 the button hands the ID token to Supabase directly.
 
+Email sign-in is a six-digit code, not a link, because corporate mail scanners (Outlook Safe
+Links among them) pre-open links and burn the one-time token. The code and the link are the same
+token, so the **Magic Link** email template in Supabase (Authentication > Email templates) must
+carry the code and no link at all, for example:
+
+```html
+<h2>Your Buddy Club code</h2>
+<p>Type this code on the sign-in screen. It lasts an hour.</p>
+<p style="font-size:32px;font-weight:bold;letter-spacing:0.3em">{{ .Token }}</p>
+<p>If you did not ask for it, ignore this email.</p>
+```
+
+The **Confirm signup** template (password accounts) still uses `{{ .ConfirmationURL }}`.
+
 ## Demo content (try every screen with realistic data)
 
 ```sh

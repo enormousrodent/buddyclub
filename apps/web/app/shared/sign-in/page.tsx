@@ -36,7 +36,7 @@ export default async function SignInPage({
           </h1>
           <p className="max-w-md text-[16px] leading-7 text-ink-2">
             {rally
-              ? "We send a link. Tap it on this phone and you're in. No password to remember."
+              ? "We email you a six-digit code. Type it in and you're in. No password to remember."
               : 'Sign in to your clubs, or create an account.'}
           </p>
           {rally ? (

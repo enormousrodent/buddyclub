@@ -6,32 +6,38 @@ import { useState, type FormEvent } from 'react';
 import { Alert, Button, Field, Icon, Input, Muted } from '../../../components/ui';
 import { createSupabaseBrowserClient } from '../../../lib/supabase/client';
 
-type Mode = 'magic' | 'password' | 'signup';
+type Mode = 'code' | 'password' | 'signup';
+
+const CODE_LENGTH = 6;
 
 /**
- * Sign-in (design A2) and the "check your email" state (A3). Email link first; a password and
- * account creation sit behind one link so the first screen asks for one thing.
+ * Sign-in (design A2) and the "check your email" state (A3). A six-digit code by email first:
+ * corporate mail scanners pre-open links and burn them, a code typed into this screen cannot be
+ * burnt by anyone but the person holding it. A password and account creation sit behind one link
+ * so the first screen asks for one thing.
  */
 export function SignInForm({ next, rally = false }: { next: string; rally?: boolean }) {
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>('magic');
+  const [mode, setMode] = useState<Mode>('code');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sent, setSent] = useState<'link' | 'confirm' | null>(null);
+  const [sent, setSent] = useState<'code' | 'confirm' | null>(null);
 
-  async function send(kind: 'link' | 'confirm') {
+  async function send(kind: 'code' | 'confirm') {
     const supabase = createSupabaseBrowserClient();
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
-    if (kind === 'link') {
+    if (kind === 'code') {
+      // No redirect: the email carries a code, not a link, so there is nothing to pre-open.
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: redirectTo },
+        options: { shouldCreateUser: true },
       });
       if (error) throw error;
     } else {
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -44,7 +50,21 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
         return;
       }
     }
+    setCode('');
     setSent(kind);
+  }
+
+  async function verify() {
+    const token = code.replace(/\D/g, '');
+    if (token.length !== CODE_LENGTH) throw new Error(`Type the ${CODE_LENGTH}-digit code`);
+    const { error } = await createSupabaseBrowserClient().auth.verifyOtp({
+      email,
+      token,
+      type: 'email',
+    });
+    if (error) throw error;
+    // Full navigation so the server sees the new session cookies on the first render.
+    window.location.assign(next);
   }
 
   async function onSubmit(event: FormEvent) {
@@ -52,7 +72,8 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
     setBusy(true);
     setError(null);
     try {
-      if (mode === 'password') {
+      if (sent === 'code') await verify();
+      else if (mode === 'password') {
         const { error } = await createSupabaseBrowserClient().auth.signInWithPassword({
           email,
           password,
@@ -61,7 +82,7 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
         router.replace(next);
         router.refresh();
       } else if (mode === 'signup') await send('confirm');
-      else await send('link');
+      else await send('code');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Sign-in failed');
     } finally {
@@ -69,7 +90,77 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
     }
   }
 
-  if (sent)
+  const resend = (
+    <Button
+      type="button"
+      variant="ghost"
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        setError(null);
+        try {
+          await send(sent ?? 'code');
+        } catch (e) {
+          setError(e instanceof Error ? e.message : 'Could not resend');
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      {busy ? 'Sending…' : sent === 'code' ? 'Send a new code' : 'Resend the link'}
+    </Button>
+  );
+
+  if (sent === 'code')
+    return (
+      <form onSubmit={onSubmit} className="flex flex-col gap-4">
+        <div className="text-center">
+          <h2
+            className={`font-display text-[32px] font-bold leading-none ${rally ? 'uppercase' : ''}`}
+          >
+            Check your email
+          </h2>
+          <p className="mx-auto mt-2 max-w-xs text-[15px] leading-6 text-ink-2">
+            We sent a {CODE_LENGTH}-digit code to <strong className="text-ink">{email}</strong>.
+            Type it here.
+          </p>
+        </div>
+        <Field label="Code">
+          <Input
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, CODE_LENGTH))}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="[0-9]*"
+            maxLength={CODE_LENGTH}
+            placeholder="123456"
+            className="text-center font-display text-[28px] tracking-[0.3em]"
+            autoFocus
+            required
+          />
+        </Field>
+        {error ? <Alert tone="danger">{error}</Alert> : null}
+        <Button
+          type="submit"
+          size="lg"
+          className={`w-full ${rally ? 'font-display text-[20px] uppercase tracking-[0.06em]' : ''}`}
+          disabled={busy || code.length !== CODE_LENGTH}
+        >
+          {busy ? 'Checking…' : 'Sign in'}
+        </Button>
+        <div className="flex flex-col gap-2">
+          {resend}
+          <Button type="button" variant="ghost" onClick={() => setSent(null)}>
+            Use a different address
+          </Button>
+        </div>
+        <Muted className="block text-center text-xs">
+          Codes last an hour. Nothing to click, so a mail scanner cannot use it up.
+        </Muted>
+      </form>
+    );
+
+  if (sent === 'confirm')
     return (
       <div className="flex flex-col items-center gap-3 py-4 text-center">
         <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-tint text-tint-ink">
@@ -81,28 +172,11 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
           Check your email
         </h2>
         <p className="max-w-xs text-[15px] leading-6 text-ink-2">
-          {sent === 'link' ? 'We sent a sign-in link to' : 'We sent a confirmation link to'}{' '}
-          <strong className="text-ink">{email}</strong>. Open it on this phone.
+          We sent a confirmation link to <strong className="text-ink">{email}</strong>. Open it on
+          this phone.
         </p>
         <div className="mt-2 flex w-full flex-col gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            disabled={busy}
-            onClick={async () => {
-              setBusy(true);
-              setError(null);
-              try {
-                await send(sent);
-              } catch (e) {
-                setError(e instanceof Error ? e.message : 'Could not resend');
-              } finally {
-                setBusy(false);
-              }
-            }}
-          >
-            {busy ? 'Sending…' : 'Resend the link'}
-          </Button>
+          {resend}
           <Button type="button" variant="ghost" onClick={() => setSent(null)}>
             Use a different address
           </Button>
@@ -134,7 +208,7 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
           required
         />
       </Field>
-      {mode !== 'magic' ? (
+      {mode !== 'code' ? (
         <Field label="Password">
           <Input
             type="password"
@@ -155,16 +229,16 @@ export function SignInForm({ next, rally = false }: { next: string; rally?: bool
       >
         {busy
           ? 'Working…'
-          : mode === 'magic'
-            ? 'Send me a sign-in link'
+          : mode === 'code'
+            ? 'Email me a code'
             : mode === 'password'
               ? 'Sign in'
               : 'Create account'}
       </Button>
       <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[13px] font-semibold">
-        {mode !== 'magic' ? (
-          <button type="button" className="text-primary" onClick={() => setMode('magic')}>
-            Email me a link instead
+        {mode !== 'code' ? (
+          <button type="button" className="text-primary" onClick={() => setMode('code')}>
+            Email me a code instead
           </button>
         ) : null}
         {mode !== 'password' ? (
