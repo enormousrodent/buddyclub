@@ -8,6 +8,7 @@ import type {
   UpdateParticipantBody,
 } from '@buddyclub/shared-types';
 import { DeclaredAttributesSchema } from '@buddyclub/shared-types';
+import { sql } from 'kysely';
 import type { Db } from '../../db/index.js';
 import type { Actor } from '../../platform/actor.js';
 import { recordAudit } from '../../platform/audit.js';
@@ -359,5 +360,126 @@ export async function revokeGuestGrant(
       actor: { type: 'user', id: actor.profileId },
       correlationId: ctx.correlationId,
     });
+  });
+}
+
+/** Tables that point at a player with a one-per-thing rule: a clash keeps the target's row. */
+const KEYED_REFS: [table: string, key: string][] = [
+  ['activities.round_assignments', 'round_id'],
+  ['matches.match_side_players', 'match_side_id'],
+  ['competition.team_roster', 'team_id'],
+  ['community.group_members', 'group_id'],
+  ['community.activity_rsvps', 'activity_id'],
+];
+
+/**
+ * Merge (owner, 2026-10-26): an organiser folds a name-only player into another player in the
+ * same club, for when someone joined by themselves instead of claiming. Everything the source
+ * record did moves to the target: nights, regular status, round and match history, pairs, team
+ * places. Where both did the same thing the target's row stays. Guest links are revoked and the
+ * source is archived, never deleted, so the audit trail still resolves.
+ */
+export async function mergeParticipants(
+  db: Db,
+  actor: Actor,
+  organisationId: string,
+  sourceId: string,
+  intoId: string,
+  ctx: CommandContext,
+): Promise<Participant> {
+  assertOrgAction(actor, organisationId, 'participants.manage');
+  if (sourceId === intoId)
+    throw new AppError(400, 'VALIDATION_FAILED', 'Pick a different player to merge into');
+  return db.transaction().execute(async (trx) => {
+    const load = (id: string) =>
+      trx
+        .selectFrom('identity.participants')
+        .select(PARTICIPANT_COLUMNS)
+        .where('organisation_id', '=', organisationId)
+        .where('id', '=', id)
+        .forUpdate()
+        .executeTakeFirst();
+    const source = await load(sourceId);
+    const target = await load(intoId);
+    if (!source || !target) throw notFound('Player not found');
+    if (source.archived_at || target.archived_at)
+      throw new AppError(409, 'CONFLICT', 'Archived players cannot be merged');
+    if (source.user_profile_id)
+      throw new AppError(
+        409,
+        'CONFLICT',
+        'Only a name-only player can be merged into another',
+        'The player you merge from must have no account',
+      );
+
+    const moved: Record<string, number> = {};
+    const count = (r: { numAffectedRows?: bigint }) => Number(r.numAffectedRows ?? 0);
+
+    await sql`delete from activities.session_entries s using activities.session_entries t
+      where s.participant_id = ${sourceId} and t.participant_id = ${intoId}
+        and t.occurrence_id = s.occurrence_id`.execute(trx);
+    moved['nights'] = count(
+      await sql`update activities.session_entries set participant_id = ${intoId}
+        where participant_id = ${sourceId}`.execute(trx),
+    );
+    await sql`insert into activities.session_regulars (series_id, participant_id, added_by_profile_id)
+      select series_id, ${intoId}, ${actor.profileId} from activities.session_regulars
+      where participant_id = ${sourceId} on conflict do nothing`.execute(trx);
+    moved['regulars'] = count(
+      await sql`delete from activities.session_regulars where participant_id = ${sourceId}`.execute(
+        trx,
+      ),
+    );
+    for (const [table, key] of KEYED_REFS) {
+      await sql`delete from ${sql.table(table)} s using ${sql.table(table)} t
+        where s.participant_id = ${sourceId} and t.participant_id = ${intoId}
+          and t.${sql.ref(key)} = s.${sql.ref(key)}`.execute(trx);
+      moved[table.split('.')[1] ?? table] = count(
+        await sql`update ${sql.table(table)} set participant_id = ${intoId}
+          where participant_id = ${sourceId}`.execute(trx),
+      );
+    }
+    for (const table of ['activities.pair_locks', 'activities.session_keep_apart']) {
+      await sql`update ${sql.table(table)} set participant_a = ${intoId}
+        where participant_a = ${sourceId}`.execute(trx);
+      await sql`update ${sql.table(table)} set participant_b = ${intoId}
+        where participant_b = ${sourceId}`.execute(trx);
+      await sql`delete from ${sql.table(table)} where participant_a = participant_b`.execute(trx);
+    }
+    await sql`update competition.teams set captain_participant_id = ${intoId}
+      where captain_participant_id = ${sourceId}`.execute(trx);
+    await sql`update identity.guest_grants set revoked_at = now()
+      where participant_id = ${sourceId} and revoked_at is null`.execute(trx);
+
+    await trx
+      .updateTable('identity.participants')
+      .set({
+        archived_at: new Date(),
+        ...(target.skill_rating === null && source.skill_rating !== null ? {} : {}),
+      })
+      .where('id', '=', sourceId)
+      .execute();
+    if (target.skill_rating === null && source.skill_rating !== null)
+      await trx
+        .updateTable('identity.participants')
+        .set({ skill_rating: source.skill_rating })
+        .where('id', '=', intoId)
+        .execute();
+
+    await recordAudit(trx, {
+      entityType: 'participant',
+      entityId: intoId,
+      operation: 'merge',
+      actor: { type: 'user', id: actor.profileId },
+      correlationId: ctx.correlationId,
+      before: { mergedFrom: sourceId, mergedFromName: source.display_name },
+      after: moved,
+    });
+    const row = await trx
+      .selectFrom('identity.participants')
+      .select(PARTICIPANT_COLUMNS)
+      .where('id', '=', intoId)
+      .executeTakeFirstOrThrow();
+    return toParticipant(row);
   });
 }

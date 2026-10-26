@@ -292,3 +292,20 @@ export async function toggleCourt(
     `/venues/${venueId}`,
   );
 }
+
+/** Fold a name-only player into an account player; lands on the player that remains. */
+export async function mergeParticipant(
+  orgId: string,
+  participantId: string,
+  formData: FormData,
+): Promise<void> {
+  const into = String(formData.get('into') ?? '');
+  if (!into) return;
+  try {
+    await apiForUser().participants.merge(orgId, participantId, { intoParticipantId: into });
+  } catch (error) {
+    throw new Error(describeError(error), { cause: error });
+  }
+  revalidatePath(`/clubs/${orgId}/players`);
+  redirect(`/clubs/${orgId}/players/${into}`);
+}

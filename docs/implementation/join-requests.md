@@ -40,3 +40,13 @@ applied to the cloud dev database. Not committed.
   a page that says what will happen (club, name, nights kept) with "Yes, that's me".
 - For Liz: open her guest link on her phone, tap "It's me", sign in or create an account, confirm.
   Her record becomes her account under her real name; the walk-in entry is gone.
+
+## Organiser merge (same day)
+
+For the case the claim flow does not cover: someone joined by themselves, so a name-only player
+and an account player exist side by side. `POST /v1/organisations/:orgId/participants/:id/merge`
+with `intoParticipantId` (participants.manage) moves nights, regular status, round and match
+history, team places and pairs from the name-only record to the account one; where both did the
+same thing the account's row stays; guest links are revoked; the source is archived, not
+deleted. Only a name-only player can be the source. On the player page, "Same person as an
+account?" with a pick-list of account players. `merge.pg.test.ts` (2).

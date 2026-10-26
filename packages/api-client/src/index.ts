@@ -87,6 +87,7 @@ import {
   type CreateOrganisationBody,
   type CreatePairLockBody,
   type CreateParticipantBody,
+  type MergeParticipantBody,
   type CreateRulesetBody,
   type CreateSessionSeriesBody,
   type CreateVenueBody,
@@ -444,6 +445,18 @@ export function createApiClient(options: ApiClientOptions) {
     participants: {
       create: (orgId: string, body: CreateParticipantBody, o?: RequestOptions) =>
         command(`/v1/organisations/${enc(orgId)}/participants`, ParticipantSchema, o, body),
+      merge: (
+        orgId: string,
+        participantId: string,
+        body: MergeParticipantBody,
+        o?: RequestOptions,
+      ) =>
+        command(
+          `/v1/organisations/${enc(orgId)}/participants/${enc(participantId)}/merge`,
+          ParticipantSchema,
+          o,
+          body,
+        ),
       list: (orgId: string, includeArchived = false, o?: RequestOptions) =>
         request(
           'GET',

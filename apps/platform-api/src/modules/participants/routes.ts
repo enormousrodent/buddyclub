@@ -1,4 +1,5 @@
 import {
+  MergeParticipantBodySchema,
   CreateGuestGrantBodySchema,
   CreateParticipantBodySchema,
   GuestGrantCreatedSchema,
@@ -225,5 +226,31 @@ export async function participantRoutes(app: FastifyInstance, options: Participa
       );
       return reply.status(204).send(null);
     },
+  );
+
+  typed.post(
+    '/v1/organisations/:orgId/participants/:participantId/merge',
+    {
+      preHandler: app.requireActor,
+      schema: {
+        tags: ['participants'],
+        summary:
+          'Fold a name-only player into another player in the club: nights, regulars, history move; the source is archived',
+        operationId: 'mergeParticipants',
+        security: AUTH,
+        params: ParticipantParams,
+        body: MergeParticipantBodySchema,
+        response: { 200: ParticipantSchema, ...PROBLEMS, 409: ProblemDetailsSchema },
+      },
+    },
+    async (request) =>
+      svc.mergeParticipants(
+        db(),
+        request.actor!,
+        request.params.orgId,
+        request.params.participantId,
+        request.body.intoParticipantId,
+        ctx(request),
+      ),
   );
 }

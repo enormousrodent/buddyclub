@@ -1,9 +1,23 @@
 import { roleAllows } from '@buddyclub/auth';
 import { notFound } from 'next/navigation';
 import { ActionForm } from '../../../../../../../components/action-form';
-import { Badge, Card, Muted, Page, SectionHeading } from '../../../../../../../components/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  Field,
+  Muted,
+  Page,
+  SectionHeading,
+  Select,
+} from '../../../../../../../components/ui';
 import { apiForUser } from '../../../../../../../lib/api';
-import { archiveParticipant, issueGuestLink, revokeGuestLink } from '../../../actions';
+import {
+  archiveParticipant,
+  issueGuestLink,
+  mergeParticipant,
+  revokeGuestLink,
+} from '../../../actions';
 
 export const metadata = { title: 'Player' };
 
@@ -16,10 +30,14 @@ export default async function PlayerPage({
   const api = apiForUser();
   const org = await api.organisations.get(orgId);
   if (!org.myRole || !roleAllows(org.myRole, 'participants.manage')) notFound();
-  const [participant, grants] = await Promise.all([
+  const [participant, grants, all] = await Promise.all([
     api.participants.get(orgId, participantId),
     api.guestGrants.list(orgId, participantId),
+    api.participants.list(orgId),
   ]);
+  const accounts = all.items.filter(
+    (p) => p.userProfileId !== null && !p.archivedAt && p.id !== participantId,
+  );
   const isGuest = participant.userProfileId === null;
   const liveGrants = grants.items.filter(
     (g) =>
@@ -36,6 +54,34 @@ export default async function PlayerPage({
         {participant.skillRating !== null ? <Muted>Skill {participant.skillRating}</Muted> : null}
         {participant.archivedAt ? <Muted>Archived</Muted> : null}
       </Card>
+
+      {isGuest && !participant.archivedAt && accounts.length ? (
+        <>
+          <SectionHeading>Same person as an account?</SectionHeading>
+          <Card>
+            <p className="mb-3 text-sm">
+              If {participant.displayName} has since joined with their own account, merge this
+              record into it: their nights, regular status and history move across, and this
+              name-only record is archived.
+            </p>
+            <form action={mergeParticipant.bind(null, orgId, participantId)} className="space-y-3">
+              <Field label="Merge into">
+                <Select name="into" defaultValue="">
+                  <option value="">Pick the account player</option>
+                  {accounts.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.displayName}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Button type="submit" variant="secondary">
+                Merge
+              </Button>
+            </form>
+          </Card>
+        </>
+      ) : null}
 
       {isGuest && !participant.archivedAt ? (
         <>

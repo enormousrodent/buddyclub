@@ -126,3 +126,7 @@ export const ClaimResultSchema = z.object({
   organisation: z.object({ id: UuidSchema, name: z.string() }),
 });
 export type ClaimResult = z.infer<typeof ClaimResultSchema>;
+
+/** Organiser merge: fold a name-only player into another player in the same club. */
+export const MergeParticipantBodySchema = z.object({ intoParticipantId: UuidSchema });
+export type MergeParticipantBody = z.infer<typeof MergeParticipantBodySchema>;
