@@ -24,6 +24,7 @@ export function ActionForm({
   children,
   variant = 'primary',
   size = 'md',
+  block = false,
   className = '',
   resetOnSuccess = true,
 }: {
@@ -32,6 +33,8 @@ export function ActionForm({
   children?: ReactNode;
   variant?: 'primary' | 'secondary' | 'danger' | 'tonal' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
+  /** Full-width submit, for the main action on a phone. */
+  block?: boolean;
   className?: string;
   resetOnSuccess?: boolean;
 }) {
@@ -44,7 +47,13 @@ export function ActionForm({
         key={resetOnSuccess && state.ok ? `ok-${state.message ?? ''}-${state.link ?? ''}` : 'form'}
       >
         {children}
-        <Button type="submit" variant={variant} size={size} disabled={pending}>
+        <Button
+          type="submit"
+          variant={variant}
+          size={size}
+          disabled={pending}
+          className={block ? 'w-full' : ''}
+        >
           {pending ? 'Working…' : submitLabel}
         </Button>
       </form>

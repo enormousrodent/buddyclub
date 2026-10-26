@@ -128,6 +128,8 @@ export default async function PlayersPage({
             action={setNightCourts.bind(null, occurrenceId)}
             submitLabel="Use these courts"
             variant="secondary"
+            size="lg"
+            block
             resetOnSuccess={false}
           >
             <div className="flex flex-wrap gap-2">
@@ -291,6 +293,8 @@ export default async function PlayersPage({
               <ActionForm
                 action={addWalkIn.bind(null, occurrenceId)}
                 submitLabel="Add walk-in"
+                size="lg"
+                block
                 variant="secondary"
               >
                 <Field label="Walk-in name" hint="No account needed. They can get a link later.">
