@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import type { Product } from '../lib/env';
 import { getSessionUser } from '../lib/supabase/server';
 import { apiForUser } from '../lib/api';
@@ -28,11 +28,6 @@ export async function AppShell({ product, children }: { product: Product; childr
     );
   const wide = !user;
   const marketing = wide && product === 'buddyclub';
-  const me = user
-    ? await apiForUser()
-        .me()
-        .catch(() => null)
-    : null;
   return (
     <div className="min-h-dvh">
       <PullToRefresh />
@@ -45,11 +40,9 @@ export async function AppShell({ product, children }: { product: Product; childr
           </Link>
           {user ? (
             <Link href="/profile" aria-label="Profile" className="inline-flex items-center">
-              <Avatar
-                name={me?.profile.displayName ?? 'Me'}
-                src={me?.profile.avatarUrl}
-                size={34}
-              />
+              <Suspense fallback={<Avatar name="Me" size={34} />}>
+                <MeAvatar />
+              </Suspense>
             </Link>
           ) : (
             <div className="flex items-center gap-2">
@@ -88,4 +81,12 @@ export async function AppShell({ product, children }: { product: Product; childr
       {user ? <BottomNav product={product} /> : null}
     </div>
   );
+}
+
+/** The viewer's avatar, streamed in after the bar so the header never waits on the API. */
+async function MeAvatar() {
+  const me = await apiForUser()
+    .me()
+    .catch(() => null);
+  return <Avatar name={me?.profile.displayName ?? 'Me'} src={me?.profile.avatarUrl} size={34} />;
 }

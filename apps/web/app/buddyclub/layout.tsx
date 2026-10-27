@@ -1,7 +1,8 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { AppShell } from '../../components/app-shell';
+import { PageSkeleton } from '../../components/ui';
 import { apiForUser } from '../../lib/api';
 import { getSessionUser } from '../../lib/supabase/server';
 
@@ -12,9 +13,20 @@ import { getSessionUser } from '../../lib/supabase/server';
  */
 export default async function BuddyClubLayout({ children }: { children: ReactNode }) {
   const path = (await headers()).get('x-buddyclub-path') ?? '/';
-  if (!path.startsWith('/welcome') && (await getSessionUser())) {
-    const profile = await apiForUser().profile.get();
-    if (!profile.onboarded.buddyclub) redirect('/welcome');
-  }
-  return <AppShell product="buddyclub">{children}</AppShell>;
+  return (
+    <AppShell product="buddyclub">
+      <Suspense fallback={<PageSkeleton />}>
+        {path.startsWith('/welcome') ? null : <FirstRunGate />}
+        {children}
+      </Suspense>
+    </AppShell>
+  );
+}
+
+/** Runs beside the page, not before it (see the Rally layout). */
+async function FirstRunGate() {
+  if (!(await getSessionUser())) return null;
+  const profile = await apiForUser().profile.get();
+  if (!profile.onboarded.buddyclub) redirect('/welcome');
+  return null;
 }

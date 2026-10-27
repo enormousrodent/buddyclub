@@ -577,3 +577,25 @@ export function TextButton({
     </button>
   );
 }
+
+/**
+ * Placeholder blocks shown while a page's data loads (route `loading.tsx`). Shaped like the
+ * screens they stand in for: a title, then a few rows. Nothing moves except a slow pulse.
+ */
+export function PageSkeleton({ rows = 4 }: { rows?: number }) {
+  return (
+    <main
+      className="mx-auto w-full max-w-xl animate-pulse px-5 pb-28 pt-4"
+      aria-busy="true"
+      aria-label="Loading"
+    >
+      <div className="mb-5 h-8 w-2/5 rounded-lg bg-surface-2" />
+      <div className="mb-3 h-22 rounded-[20px] bg-surface-2" />
+      <div className="space-y-2">
+        {Array.from({ length: rows }, (_, i) => (
+          <div key={i} className="h-16 rounded-card bg-surface-2" />
+        ))}
+      </div>
+    </main>
+  );
+}

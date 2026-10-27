@@ -1,10 +1,11 @@
 import type { Round } from '@buddyclub/shared-types';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { TimerHero } from '../../../../components/live';
 import { Kicker, StatTile } from '../../../../components/rally-kit';
 import { Alert, Badge, Button, Card, Icon, LinkButton, Muted } from '../../../../components/ui';
 import { RATING_TAGS } from '@buddyclub/shared-types';
-import { apiForUser } from '../../../../lib/api';
+import { ApiError, apiForUser } from '../../../../lib/api';
 import { transitionOccurrence, transitionRound } from '../actions';
 
 const TAG_LABELS = new Map<string, string>(
@@ -98,9 +99,16 @@ export default async function SessionPage({
   params: Promise<{ occurrenceId: string }>;
 }) {
   const { occurrenceId } = await params;
-  const series = await resolveSeries(occurrenceId);
+  // The id is a series or a night; ask for both at once rather than one after the other.
+  const [series, ctx] = await Promise.all([
+    resolveSeries(occurrenceId),
+    loadSession(occurrenceId).catch((error: unknown) => {
+      if (error instanceof ApiError && error.status === 404) return null;
+      throw error;
+    }),
+  ]);
   if (series) return <SeriesPage series={series} />;
-  const ctx = await loadSession(occurrenceId);
+  if (!ctx) notFound();
   const { board, canManage, checkedIn, live, activeCourts } = ctx;
   const state = board.occurrence.state;
   const rating =

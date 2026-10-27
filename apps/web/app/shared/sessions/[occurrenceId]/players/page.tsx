@@ -40,11 +40,15 @@ export default async function PlayersPage({
   const { occurrenceId } = await params;
   const ctx = await loadSession(occurrenceId, '/players');
   const { board, org, canManage, checkedIn, registered, live, myParticipantId } = ctx;
-  const clubPlayers = canManage ? (await apiForUser().participants.list(org.id)).items : [];
-  const venueId = canManage ? (await apiForUser().occurrences.get(occurrenceId)).venueId : null;
-  const venueCourts = venueId
-    ? (await apiForUser().venues.get(venueId)).courts.filter((c) => c.active)
-    : [];
+  // The roster and the night's venue do not depend on each other: one round trip, not two.
+  const api = apiForUser();
+  const [clubPlayers, venueId] = canManage
+    ? await Promise.all([
+        api.participants.list(org.id).then((r) => r.items),
+        api.occurrences.get(occurrenceId).then((o) => o.venueId),
+      ])
+    : [[], null];
+  const venueCourts = venueId ? (await api.venues.get(venueId)).courts.filter((c) => c.active) : [];
   const liveCourtIds = new Set(board.courts.filter((c) => c.active).map((c) => c.courtId));
   const onRoster = new Set(
     board.entries

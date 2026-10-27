@@ -28,11 +28,11 @@ export async function loadSession(occurrenceId: string, path = ''): Promise<Sess
   if (!(await getSessionUser()))
     redirect(`/sign-in?next=${encodeURIComponent(`/sessions/${occurrenceId}${path}`)}`);
   const api = apiForUser();
-  const board: Board = await api.occurrences.board(occurrenceId);
-  const [org, me] = await Promise.all([
-    api.organisations.get(board.occurrence.organisationId),
+  const [board, me]: [Board, Awaited<ReturnType<typeof api.me>>] = await Promise.all([
+    api.occurrences.board(occurrenceId),
     api.me(),
   ]);
+  const org = await api.organisations.get(board.occurrence.organisationId);
   // Organisers of the club, and hosts of the session while hosting is switched on.
   const canManage = board.canManage;
   const product = (await headers()).get('x-buddyclub-product');

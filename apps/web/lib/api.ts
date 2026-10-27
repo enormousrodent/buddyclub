@@ -1,10 +1,20 @@
 import { ApiError, createApiClient, type ApiClient } from '@buddyclub/api-client';
+import { cache } from 'react';
 import { env } from './env';
 import { getAccessToken } from './supabase/server';
 
-/** Platform API client bound to the signed-in user's token (server side only). */
+const userClient = cache(() => createApiClient({ baseUrl: env.apiUrl(), getAccessToken }));
+// The layout, the shell and most pages all ask who the viewer is; one request answers them all.
+const me = cache(() => userClient().me());
+const profile = cache(() => userClient().profile.get());
+
+/**
+ * Platform API client bound to the signed-in user's token (server side only).
+ * `me()` and `profile.get()` are memoised for the current request.
+ */
 export function apiForUser(): ApiClient {
-  return createApiClient({ baseUrl: env.apiUrl(), getAccessToken });
+  const client = userClient();
+  return { ...client, me, profile: { ...client.profile, get: profile } };
 }
 
 /** Platform API client for public endpoints (invitation preview, guest redeem). */

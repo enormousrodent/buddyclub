@@ -56,10 +56,10 @@ export async function proxy(request: NextRequest) {
       },
     },
   });
-  // Refreshes the session cookie when needed.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Refreshes the session cookie when needed. The token is checked against the project's signing
+  // keys locally (cached JWKS), not by a round trip to the Auth server on every navigation.
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims ?? null;
 
   // Rally's front page is marketing; a signed-in person lands on the app instead.
   if (product === 'rally' && pathname === '/' && user) {

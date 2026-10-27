@@ -1,7 +1,8 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { AppShell } from '../../../components/app-shell';
+import { PageSkeleton } from '../../../components/ui';
 import { apiForUser } from '../../../lib/api';
 import { getSessionUser } from '../../../lib/supabase/server';
 
@@ -12,9 +13,23 @@ import { getSessionUser } from '../../../lib/supabase/server';
  */
 export default async function RallyLayout({ children }: { children: ReactNode }) {
   const path = (await headers()).get('x-buddyclub-path') ?? '/';
-  if (!path.startsWith('/welcome') && (await getSessionUser())) {
-    const profile = await apiForUser().profile.get();
-    if (!profile.onboarded.rally) redirect('/welcome');
-  }
-  return <AppShell product="rally">{children}</AppShell>;
+  return (
+    <AppShell product="rally">
+      <Suspense fallback={<PageSkeleton />}>
+        {path.startsWith('/welcome') ? null : <FirstRunGate />}
+        {children}
+      </Suspense>
+    </AppShell>
+  );
+}
+
+/**
+ * Renders beside the page rather than before it, so the profile check and the page's own data
+ * load at the same time; the shared boundary means neither shows until both are done.
+ */
+async function FirstRunGate() {
+  if (!(await getSessionUser())) return null;
+  const profile = await apiForUser().profile.get();
+  if (!profile.onboarded.rally) redirect('/welcome');
+  return null;
 }
